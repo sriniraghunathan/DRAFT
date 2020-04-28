@@ -295,7 +295,6 @@ if testing or not local:
         resdic = np.load(opfname, allow_pickle = 1).item()
 
     for mask_iter in range(tot_masks):
-        resdic['cl_dic'][mask_iter] = {}
         for nu1 in nuarr:
             for nu2 in nuarr:
 
