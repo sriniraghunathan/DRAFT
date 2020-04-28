@@ -1,0 +1,12 @@
+qsub -V batch_jobs/gspec_mask0_dust.sh
+qsub -V batch_jobs/gspec_mask0_sync.sh
+
+qsub -V batch_jobs/gspec_mask1_dust.sh
+qsub -V batch_jobs/gspec_mask1_sync.sh
+
+qsub -V batch_jobs/gspec_mask2_dust.sh
+qsub -V batch_jobs/gspec_mask2_sync.sh
+
+qsub -V batch_jobs/gspec_mask3_dust.sh
+qsub -V batch_jobs/gspec_mask3_sync.sh
+
