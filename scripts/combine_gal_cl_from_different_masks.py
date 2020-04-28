@@ -3,13 +3,18 @@ import numpy as np, glob, sys
 nside, lmax = 2048, 3500
 t_only = 0
 
-data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
-comp_arr = ['dust', 'synchrotron']
+zonca_sims = 1
+
+if zonca_sims:
+    data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    comp_arr = ['dust', 'synchrotron']
+else:
+    comp_arr = ['dust', 'sync']
 
 for which_comp in comp_arr:
 
-    if (0):
-        searchstr = '%s/cls_galactic_sims_xxxx_CUmilta_20200319_maskplanck_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
+    if not zonca_sims:
+        searchstr = 'cls_galactic_sims_xxxx_CUmilta_20200319_maskplanck_nside%s_lmax%s_mask?.npy' %(nside, lmax)
     else:
         searchstr = '%s/%s/0000/cls_galactic_sims_xxxx_maskplanck_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
 
