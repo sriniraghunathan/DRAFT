@@ -151,3 +151,9 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
     return final_nl
 
 ################################################################################################################
+def get_delta_cl(el, cl, nl, fsky = 1., delta_l = 1.):
+
+    delta_cl = np.sqrt(2./ (2.*el + 1) / fsky / delta_l) * (cl)## + nl)
+
+    return delta_cl
+################################################################################################################

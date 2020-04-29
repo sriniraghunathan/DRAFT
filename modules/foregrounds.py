@@ -48,10 +48,16 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax 
     #filename = os.path.join(
     #    os.path.dirname(__file__), 'data/foregrounds/george_plot_bestfit_line.sav'
     #)
-    filename = 'george_plot_bestfit_line.sav'
-    from scipy.io import readsav
 
-    data = readsav(filename)
+    #fix me: file / folder path
+    from scipy.io import readsav
+    try:
+        filename = 'george_plot_bestfit_line.sav'
+        data = readsav(filename)
+    except:        
+        filename = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/george_plot_bestfit_line.sav'
+        data = readsav(filename)
+
 
     #from IPython import embed; embed()
     if freq2 is None:
@@ -240,6 +246,12 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
     elif component == 'sync':
         cl_gal_dic_fname = param_dict['cl_gal_dic_sync_fname']
 
+    try:
+        cl_gal_folder = param_dict['cl_gal_folder']
+        cl_gal_dic_fname = '%s/%s' %(cl_gal_folder, cl_gal_dic_fname)
+    except:
+        pass
+
     cl_gal_dic = np.load(cl_gal_dic_fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][which_gal_mask]
 
     try:
@@ -257,7 +269,9 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
     try:
         cl_gal = cl_gal[spec_ind]
     except:
+        print('(%s,%s) not found for mask = %s in %s. Setting them to zeros.' %(freq1, freq2, which_spec, cl_gal_dic_fname))
         cl_gal = np.zeros( len(cl_gal[0]) )
+
 
     el_gal = np.arange( len(cl_gal) )
 

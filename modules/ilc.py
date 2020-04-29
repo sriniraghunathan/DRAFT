@@ -56,24 +56,25 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 #print('dust')
                 cl = cl + cl_dg_po + cl_dg_clus
 
-            if include_gal and not pol: #get galactic dust and sync
+            if include_gal:# and not pol: #get galactic dust and sync
 
                 which_spec = 'TT'
                 if pol: which_spec = 'EE'
 
                 el, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
                 el, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
-                
-                '''
-                loglog(cl_dg_po + cl_dg_clus, label = r'EG: %s, %s' %(freq1, freq2));
-                loglog(cl_gal_dust, label = r'Dust: %s, %s' %(freq1, freq2));title(r'%s' %(param_dict['which_gal_mask']))
-                loglog(cl_gal_sync, label = r'Sync: %s, %s' %(freq1, freq2));title(r'%s' %(param_dict['which_gal_mask']))
-                cl = cl + cl_gal_dust + cl_gal_sync
-                #loglog(cl);
-                legend(loc = 1)
-                ylim(1e-5, 1e3);#show();sys.exit()
-                xlim(20,param_dict['lmax']);ylim(1e-8,1e6);
-                '''
+
+                if (0):#not pol:
+
+                    loglog(cl_dg_po + cl_dg_clus, label = r'EG: %s, %s' %(freq1, freq2));
+                    loglog(cl_gal_dust, label = r'Dust: %s, %s' %(freq1, freq2));title(r'%s' %(param_dict['which_gal_mask']))
+                    loglog(cl_gal_sync, label = r'Sync: %s, %s' %(freq1, freq2));title(r'%s' %(param_dict['which_gal_mask']))
+                    #cl = cl + cl_gal_dust + cl_gal_sync
+                    #loglog(cl);
+                    legend(loc = 1)
+                    ylim(1e-5, 1e3);#show();sys.exit()
+                    xlim(20,param_dict['lmax']);ylim(1e-8,1e6);
+                    show();sys.exit()
                 
                 cl = cl + cl_gal_dust
                 cl = cl + cl_gal_sync
