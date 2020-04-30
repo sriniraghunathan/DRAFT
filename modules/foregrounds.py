@@ -252,6 +252,14 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
     except:
         pass
 
+    if component == 'sync':
+        #fix me: Forcing sync. to CUmilta's simulations
+        print('\n\t\tForcing sync. to CUmilta\'s simulations\n\n')
+        try:
+            cl_gal_dic_fname = param_dict['cl_gal_dic_sync_fname_forced']
+        except:
+            pass
+
     cl_gal_dic = np.load(cl_gal_dic_fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][which_gal_mask]
 
     try:
