@@ -1,2 +1,0 @@
-/u/home/s/srinirag/.local/lib/python2.7/site-packages/healpy/fitsfunc.py:371: UserWarning: No INDXSCHM keyword in header file : assume IMPLICIT
-  warnings.warn("No INDXSCHM keyword in header file : " "assume {}".format(schm))
