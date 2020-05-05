@@ -77,7 +77,7 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 
-testing = 0
+testing = 0 ##1
 if testing and local:
     lmax = 2000
     nside = 512
@@ -271,8 +271,10 @@ if testing or not local:
 
         mask_arr = mask_arr * cmbs4_hit_map
 
+    print(len(mask_arr))
     if which_mask != -1:
         mask_arr = [mask_arr[which_mask]]
+    print(len(mask_arr))
 
     mask_arr = np.asarray(mask_arr)
     tot_masks = len(mask_arr)
@@ -345,7 +347,7 @@ if testing or not local:
         plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/S4_hitmaps.pdf'
         #savefig(plname)
         show()
-        sys.exit()
+        #sys.exit()
 
 
     logline = '\tget power spectra now\n'
@@ -361,6 +363,8 @@ if testing or not local:
         resdic = np.load(opfname, allow_pickle = 1).item()
 
     for mask_iter in range(tot_masks):
+        if mask_iter not in resdic['cl_dic']:
+            resdic['cl_dic'][mask_iter] = {}
         for nu1 in nuarr:
             for nu2 in nuarr:
 
