@@ -27,6 +27,6 @@ for which_mask in mask_arr:
 
         cmd = 'qsub -V %s' %(opfname)
         os.system(cmd)
-        print('%s\n'cmd)
+        print('%s\n' %(cmd))
 
 
