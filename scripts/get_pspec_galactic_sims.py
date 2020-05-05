@@ -77,7 +77,7 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 
-testing = 1
+testing = 0
 if testing and local:
     lmax = 2000
     nside = 512
@@ -249,9 +249,12 @@ if testing or not local:
 
             mask = lat_mask_arr[mask_iter]
 
-        #simple rotation from gal to celestial
-        mask = healpix_rotate_coords(mask, coord = ['G', 'C'])
-        mask = H.smoothing(np.copy(mask), fwhm = np.radians(10.), lmax = lmax, verbose = verbose)
+        if (1):
+            mask = H.ud_grade(mask, 256)
+            #simple rotation from gal to celestial
+            mask = healpix_rotate_coords(mask, coord = ['G', 'C'])
+            mask = H.smoothing(np.copy(mask), fwhm = np.radians(10.), verbose = verbose)#, lmax = lmax)
+            mask = H.ud_grade(mask, nside_out = nside)
         thresh = 0.4
         mask[mask<thresh] = 0.
         mask[mask!=0] = 1.
