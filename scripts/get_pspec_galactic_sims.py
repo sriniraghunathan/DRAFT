@@ -39,13 +39,17 @@ if str(os.getcwd()).find('sri')>-1: local = 0
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-dust_or_sync', dest='dust_or_sync', action='store', help='dust_or_sync', type=str, required=True)
-parser.add_argument('-which_mask', dest='which_mask', action='store', help='which_mask', type=int, default=-1)
 parser.add_argument('-lmax', dest='lmax', action='store', help='lmax', type=int, default=3500)#5200)
 parser.add_argument('-nuarr', dest='nuarr', action='store', type=int, nargs='+', default= [27, 39, 93, 145, 225, 278], help='nuarr')
 parser.add_argument('-t_only', dest='t_only', action='store', help='t_only', type=int, default=0)
 parser.add_argument('-nside', dest='nside', action='store', help='nside', type=int, default=2048)#4096)
 parser.add_argument('-verbose', dest='verbose', action='store', help='verbose', type=int, default=0)
 parser.add_argument('-zonca_sims', dest='zonca_sims', action='store', help='zonca_sims', type=int, default=1) #S4 sims by Andrea Zonca
+
+parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', help='use_planck_mask', type=int, default=1) #use Planck galactic mask
+parser.add_argument('-which_mask', dest='which_mask', action='store', help='which_mask', type=int, default=-1)
+
+parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='store', help='use_lat_step_mask', type=int, default=0) #mask based on latitude
 #nuarr = [20, 27, 39, 93, 145, 225, 278]
 #nuarr = [27, 39, 93, 145, 225, 278]
 
@@ -71,7 +75,7 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 
-testing = 0
+testing = 1
 if testing and local:
     lmax = 2000
     nside = 512
@@ -91,8 +95,11 @@ if not zonca_sims:
     else:
         sim_folder = 'S4_march_2020/sims_from_others/CUmilta/ampmod_maps/'
 
-    #opfname = '%s/cls_gal_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
-    opfname = '%s/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    if use_planck_mask:
+        #opfname = '%s/cls_gal_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_lat_step_mask:
+        opfname = '%s/lat_steps/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 else:
     if local:
@@ -107,7 +114,13 @@ else:
 
     sim_folder = '%s/0000/' %(sim_folder)
 
-    opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    if use_planck_mask:
+        opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_lat_step_mask:
+        opfname = '%s/lat_steps/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+
+if use_lat_step_mask:
+    os.system('mkdir %s/lat_steps/' %(sim_folder))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
 log_file = 'tmp/pspec_%s.txt' %(dust_or_sync)
@@ -161,8 +174,15 @@ if testing or not local:
 
         map_dic[nu] = currmap
 
+    if (1): #get cmbs4 footprint        
+        cmbs4_hit_map_fname = '%s/high_cadence_hits_el30_cosecant_modulation.fits' %(cmbs4_footprint_folder)
+        cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
+        cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
+        if H.get_nside(cmbs4_hit_map) != nside:
+            cmbs4_hit_map = H.ud_grade(cmbs4_hit_map, nside_out = nside)
+
     #now get masks
-    if (1):
+    if use_planck_mask:
         planck_mask_fname = '%s/HFI_Mask_GalPlane-apo0_2048_R2.00.fits' %(mask_folder)
         planck_mask = H.read_map(planck_mask_fname, verbose = verbose, field = (1,2,3))
         if H.get_nside(planck_mask) != nside:
@@ -176,14 +196,40 @@ if testing or not local:
             planck_mask[mask_iter][planck_mask[mask_iter]!=0] = 1.
         '''
 
-        cmbs4_hit_map_fname = '%s/high_cadence_hits_el30_cosecant_modulation.fits' %(cmbs4_footprint_folder)
-        cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
-        cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
-        if H.get_nside(cmbs4_hit_map) != nside:
-            cmbs4_hit_map = H.ud_grade(cmbs4_hit_map, nside_out = nside)
+        tot_masks = len(planck_mask)
 
+    elif use_lat_step_mask:
+
+        '''
+        H.mollview(cmbs4_hit_map, coord = ['C'], sub = (2,2,1)); H.graticule()
+        H.mollview(planck_mask, coord = ['G', 'C'], sub = (2,2,2)); H.graticule()
+
+        H.mollview(cmbs4_hit_map, coord = ['C', 'G'], sub = (2,2,3)); H.graticule()
+        H.mollview(planck_mask, coord = ['G'], sub = (2,2,4)); H.graticule(); show()
+        '''
+
+        min_lat, max_lat, delta_lat = -60., 30., 15.
+        lat_arr = np.arange( min_lat, max_lat + 1., delta_lat )
+
+        npix = H.nside2npix( nside )
+        phi_deg, theta_deg = H.pix2ang( nside, np.arange(npix), lonlat = 1 )
         
-    tot_masks = len(planck_mask)
+        lat_mask_arr = []
+        for l1 in lat_arr[:-1]:
+            l2 = l1 + delta_lat
+            curr_mask = np.zeros( npix )
+            unmask_pixels = np.where( (theta_deg>=l1) & (theta_deg<l2) )[0]
+            curr_mask[unmask_pixels] = 1.
+
+            '''
+            print(np.min( theta_deg[unmask_pixels] ), np.max( theta_deg[unmask_pixels] ))
+            H.mollview( curr_mask, sub = (2,2,1)); H.graticule(); 
+            H.mollview( cmbs4_hit_map, sub = (2,2,2)); H.graticule(); show()
+            '''
+
+            lat_mask_arr.append(curr_mask)
+
+        tot_masks = len(lat_mask_arr)
 
     logline = '\tget masks now\n'
     lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
@@ -192,7 +238,14 @@ if testing or not local:
     mask_arr = []
 
     for mask_iter in range(tot_masks):
-        mask = np.copy(planck_mask[mask_iter])
+
+        if use_planck_mask:
+
+            mask = np.copy(planck_mask[mask_iter])
+
+        elif use_lat_step_mask:
+
+            mask = lat_mask_arr[mask_iter]
 
         #simple rotation from gal to celestial
         mask = healpix_rotate_coords(mask, coord = ['G', 'C'])
@@ -203,21 +256,22 @@ if testing or not local:
 
         mask_arr.append( mask )
 
-    #first full sky
-    npix = H.nside2npix( nside )
-    no_mask = np.ones( npix )
-    #mask_arr = np.concatenate(([no_mask], mask_arr))
+    if use_planck_mask:
 
-    mask_arr.append( no_mask )
+        #first full sky
+        npix = H.nside2npix( nside )    
+        no_mask = np.ones( npix )
+        #mask_arr = np.concatenate(([no_mask], mask_arr))
+        mask_arr.append( no_mask )
+
+        mask_arr = mask_arr * cmbs4_hit_map
 
     if which_mask != -1:
         mask_arr = [mask_arr[which_mask]]
 
     mask_arr = np.asarray(mask_arr)
-
     tot_masks = len(mask_arr)
 
-    mask_arr = mask_arr * cmbs4_hit_map
     fsky_arr = np.mean(mask_arr, axis = 1)
 
     logline = '\t\t all masks obtained\n'
@@ -239,8 +293,9 @@ if testing or not local:
         for mask_iter in range(tot_masks):
             fsky = np.mean(mask_arr[mask_iter])
             H.mollview(mask_arr[mask_iter], sub = (1, tot_masks,mask_iter+1), title = r'Mask: %s: f$_{\rm sky} = %.2f$' %(mask_iter, fsky), cbar = 0); 
-        savefig('/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/masks.pdf')
-        #show()
+        plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/masks.pdf'
+        #savefig(plname)
+        show()
 
         totiter = 1
         for iter in range(totiter):
@@ -255,18 +310,23 @@ if testing or not local:
                         vmin, vmax = None, None
             else:
                 vmin, vmax = None, None ##-100., 100. #None, None
+
+            if t_only:
+                currmap = [currmap]
+
             for mask_iter in range(tot_masks):
                 fsky = np.mean(mask_arr[mask_iter])
                 H.mollview(currmap[0] * mask_arr[mask_iter], sub = (1,tot_masks,mask_iter+1), title_fontsize = 6, unit = r'$\mu K$', title = r'%s @ 145 GHz + Mask %s: f$_{\rm sky} = %.2f$' %(dust_or_sync, mask_iter, fsky), min = vmin, max = vmax); 
             
             if iter == 0:
                 if zonca_sims:
-                    savefig('/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s.pdf' %(dust_or_sync, nu))
+                    plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s.pdf' %(dust_or_sync, nu)
                 else:
-                    savefig('/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_fixedcolourscale.pdf' %(dust_or_sync, nu))
+                    plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_fixedcolourscale.pdf' %(dust_or_sync, nu) 
             else:
-                savefig('/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_freecolourscale.pdf' %(dust_or_sync, nu))
-            #show(); #sys.exit()
+                plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_freecolourscale.pdf' %(dust_or_sync, nu)
+            #savefig(plname)
+            show(); #sys.exit()
 
         clf()
         cmbs4_hit_map_flist = glob.glob('%s/high_cadence_hits_*_cosecant_modulation.fits' %(cmbs4_footprint_folder))
@@ -277,8 +337,9 @@ if testing or not local:
             cmbs4_hit_map_dummy[cmbs4_hit_map_dummy!=0] = 1.
             fsky = np.mean(cmbs4_hit_map_dummy)
             H.mollview(cmbs4_hit_map, sub = (1,3,cntr+1), title = r'%s: f$_{\rm sky} = %.2f$' %(fname_str, fsky), title_fontsize = 6); 
-        savefig('/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/S4_hitmaps.pdf')
-        #show()
+        plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/S4_hitmaps.pdf'
+        #savefig(plname)
+        show()
         sys.exit()
 
 
