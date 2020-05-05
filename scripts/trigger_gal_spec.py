@@ -18,15 +18,15 @@ for which_mask in mask_arr:
         template = open(template_fname, 'r')
 
         for line in template:
-            opf.writelines('%s\n' %(line))
+            opf.writelines('%s\n' %(line.strip()))
 
-        opline = 'python %s -dust_or_sync %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s' %(pgmname, which_mask, dust_or_sync, use_planck_mask, use_lat_step_mask)
-        opf.writelines('%s\n' %(opline))
+        opline = 'python %s -dust_or_sync %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s' %(pgmname, dust_or_sync, which_mask, use_planck_mask, use_lat_step_mask)
+        opf.writelines('%s\n\n' %(opline))
         opf.close()
         template.close()
 
         cmd = 'qsub -V %s' %(opfname)
         os.system(cmd)
-        print(cmd)
+        print('%s\n'cmd)
 
 
