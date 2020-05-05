@@ -1,6 +1,6 @@
 import numpy as np, sys, os
 
-s,e = 0, 7
+s,e = 0, 4
 mask_arr = np.arange(s, e+1)
 dust_sync_arr = ['dust', 'sync']
 
