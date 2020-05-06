@@ -1,4 +1,4 @@
-import numpy as np, glob, sys
+import numpy as np, glob, sys, os
 
 local = 1
 if str(os.getcwd()).find('sri')>-1:
