@@ -1,6 +1,6 @@
 import numpy as np, sys, os
 
-s,e = 0, 4
+s,e = 0, 5
 mask_arr = np.arange(s, e+1)
 dust_sync_arr = ['dust', 'sync']
 
@@ -9,7 +9,7 @@ use_planck_mask = 0
 use_lat_step_mask = 1
 t_only = 1 ##0
 nside = 4096 ##2048
-lmax = 7000
+lmax = 10000 ##7000
 
 template_fname = 'batch_jobs/template_hoff.sh'
 
