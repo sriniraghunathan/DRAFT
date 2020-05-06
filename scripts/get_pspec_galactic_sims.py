@@ -77,7 +77,7 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 
-testing = 0 ##1
+testing = 0##1
 if testing and local:
     lmax = 2000
     nside = 512
@@ -231,6 +231,10 @@ if testing or not local:
 
             lat_mask_arr.append(curr_mask)
 
+        #finally add all masks together
+        curr_mask = np.sum(lat_mask_arr, axis = 0)
+        lat_mask_arr.append( curr_mask )
+
         tot_masks = len(lat_mask_arr)
 
     logline = '\tget masks now\n'
@@ -347,7 +351,7 @@ if testing or not local:
         plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/S4_hitmaps.pdf'
         #savefig(plname)
         show()
-        #sys.exit()
+        sys.exit()
 
 
     logline = '\tget power spectra now\n'
