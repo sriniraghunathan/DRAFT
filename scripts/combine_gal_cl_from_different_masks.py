@@ -1,15 +1,21 @@
 import numpy as np, glob, sys
 
+local = 1
+if str(os.getcwd()).find('sri')>-1:
+    local =0
+
 nside, lmax = 2048, 3500
 t_only = 0
 
 zonca_sims = 1
 
 lat_steps_mask = 1
-nside, lmax = 4096, 7000
+nside, lmax = 4096, 10000 ##7000
 
 if zonca_sims:
     data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    if not local:
+        data_folder = '//u/home/s/srinirag/project-nwhiteho/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
     comp_arr = ['dust', 'synchrotron']
 else:
     comp_arr = ['dust', 'sync']
