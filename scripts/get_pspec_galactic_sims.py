@@ -250,7 +250,7 @@ if testing or not local:
             mask = lat_mask_arr[mask_iter]
 
         if (1):
-            mask = H.ud_grade(mask, 256)
+            mask = H.ud_grade(mask, 128)
             #simple rotation from gal to celestial
             mask = healpix_rotate_coords(mask, coord = ['G', 'C'])
             mask = H.smoothing(np.copy(mask), fwhm = np.radians(10.), verbose = verbose)#, lmax = lmax)
@@ -271,10 +271,10 @@ if testing or not local:
 
         mask_arr = mask_arr * cmbs4_hit_map
 
-    print(len(mask_arr))
+    #print(len(mask_arr))
     if which_mask != -1:
         mask_arr = [mask_arr[which_mask]]
-    print(len(mask_arr))
+    #print(len(mask_arr))
 
     mask_arr = np.asarray(mask_arr)
     tot_masks = len(mask_arr)

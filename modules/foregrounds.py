@@ -252,7 +252,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
     except:
         pass
 
-    if component == 'sync':
+    if (0):##component == 'sync':
         #fix me: Forcing sync. to CUmilta's simulations
         print('\n\t\tForcing sync. to CUmilta\'s simulations\n\n')
         try:
