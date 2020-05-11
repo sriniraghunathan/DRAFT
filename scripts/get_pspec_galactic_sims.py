@@ -47,10 +47,12 @@ parser.add_argument('-nside', dest='nside', action='store', help='nside', type=i
 parser.add_argument('-verbose', dest='verbose', action='store', help='verbose', type=int, default=0)
 parser.add_argument('-zonca_sims', dest='zonca_sims', action='store', help='zonca_sims', type=int, default=1) #S4 sims by Andrea Zonca
 
-parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', help='use_planck_mask', type=int, default=1) #use Planck galactic mask
+parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', help='use_planck_mask', type=int, default=0) #use Planck galactic mask
 parser.add_argument('-which_mask', dest='which_mask', action='store', help='which_mask', type=int, default=-1)
 
 parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='store', help='use_lat_step_mask', type=int, default=0) #mask based on latitude
+
+parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=1) #rough S4 mask
 
 #nuarr = [20, 27, 39, 93, 145, 225, 278]
 #nuarr = [27, 39, 93, 145, 225, 278]
@@ -77,7 +79,7 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 
-testing = 0##1
+testing = 0
 if testing and local:
     lmax = 2000
     nside = 512
@@ -102,6 +104,8 @@ if not zonca_sims:
         opfname = '%s/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_lat_step_mask:
         opfname = '%s/lat_steps/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask:
+        opfname = '%s/s4like_mask/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 else:
     if local:
@@ -120,9 +124,11 @@ else:
         opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_lat_step_mask:
         opfname = '%s/lat_steps/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask:
+        opfname = '%s/s4like_mask/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
-if use_lat_step_mask:
-    os.system('mkdir %s/lat_steps/' %(sim_folder))
+if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
+if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
 log_file = 'tmp/pspec_%s.txt' %(dust_or_sync)
@@ -178,6 +184,7 @@ if testing or not local:
 
     if (1): #get cmbs4 footprint        
         cmbs4_hit_map_fname = '%s/high_cadence_hits_el30_cosecant_modulation.fits' %(cmbs4_footprint_folder)
+        #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
         cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
         cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
         if H.get_nside(cmbs4_hit_map) != nside:
@@ -237,6 +244,24 @@ if testing or not local:
 
         tot_masks = len(lat_mask_arr)
 
+    elif use_s4like_mask:
+
+        npix = H.nside2npix( nside )
+        phi_deg, theta_deg = H.pix2ang( nside, np.arange(npix), lonlat = 1 )
+
+        s4_mask_dic = {0: 10.}#, 1: 15., 2: 20.}
+        
+        s4like_mask_arr = []
+        for mask_iter in sorted( s4_mask_dic ):
+            min_lat, max_lat = -s4_mask_dic[mask_iter], s4_mask_dic[mask_iter]
+            curr_mask = np.ones( npix )
+            unmask_pixels = np.where( (theta_deg>=min_lat) & (theta_deg<max_lat) )[0]
+            curr_mask[unmask_pixels] = 0.
+
+            s4like_mask_arr.append( curr_mask )
+
+        tot_masks = len(s4like_mask_arr)
+
     logline = '\tget masks now\n'
     lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
     print(logline)
@@ -253,6 +278,10 @@ if testing or not local:
 
             mask = lat_mask_arr[mask_iter]
 
+        elif use_s4like_mask:
+
+            mask = s4like_mask_arr[mask_iter]
+
         if (1):
             mask = H.ud_grade(mask, 128)
             #simple rotation from gal to celestial
@@ -265,7 +294,7 @@ if testing or not local:
 
         mask_arr.append( mask )
 
-    if use_planck_mask:
+    if use_planck_mask or use_s4like_mask:
 
         #first full sky
         npix = H.nside2npix( nside )    
