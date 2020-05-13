@@ -9,8 +9,12 @@ t_only = 0
 
 zonca_sims = 1
 
-lat_steps_mask = 1
+lat_steps_mask = 0
 nside, lmax = 4096, 10000 ##7000
+
+s4like_mask = 1
+nside, lmax = 4096, 7000
+t_only = 0
 
 if zonca_sims:
     data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
@@ -25,11 +29,17 @@ for which_comp in comp_arr:
     if not zonca_sims:
         searchstr = 'cls_galactic_sims_xxxx_CUmilta_20200319_maskplanck_nside%s_lmax%s_mask?.npy' %(nside, lmax)
     else:
-        if not lat_steps_mask:
-            searchstr = '%s/%s/0000/cls_galactic_sims_xxxx_maskplanck_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
+        if lat_steps_mask:
+            searchstr = '%s/%s/0000/lat_steps/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
+        elif s4like_mask:
+            if not t_only:
+                searchstr = '%s/%s/0000/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
+            else:
+                searchstr = '%s/%s/0000/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
         else:
             searchstr = '%s/%s/0000/lat_steps/cls_galactic_sims_xxxx_maskplanck_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
 
+    #print(which_comp, searchstr)
     curr_searchstr = searchstr.replace('xxxx', which_comp)
     curr_searchstr = curr_searchstr.replace('_synchrotron_', '_sync_')
     flist = sorted( glob.glob(curr_searchstr) )

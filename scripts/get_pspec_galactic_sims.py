@@ -103,9 +103,9 @@ if not zonca_sims:
         #opfname = '%s/cls_gal_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
         opfname = '%s/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_lat_step_mask:
-        opfname = '%s/lat_steps/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/lat_steps/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask:
-        opfname = '%s/s4like_mask/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/s4like_mask/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 else:
     if local:
