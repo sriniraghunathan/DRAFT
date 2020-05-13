@@ -249,7 +249,7 @@ if testing or not local:
         npix = H.nside2npix( nside )
         phi_deg, theta_deg = H.pix2ang( nside, np.arange(npix), lonlat = 1 )
 
-        s4_mask_dic = {0: 10.}#, 1: 15., 2: 20.}
+        s4_mask_dic = {0: 10., 1: 15., 2: 20.}
         
         s4like_mask_arr = []
         for mask_iter in sorted( s4_mask_dic ):
