@@ -123,9 +123,9 @@ else:
     if use_planck_mask:
         opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_lat_step_mask:
-        opfname = '%s/lat_steps/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/lat_steps/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask:
-        opfname = '%s/s4like_mask/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/s4like_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
