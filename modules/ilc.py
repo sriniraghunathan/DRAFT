@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], pol = 0, pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -12,8 +12,10 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
     el, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
     el, cl_ksz = fg.get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
-    if pol:
+    if which_spec == 'EE':
         cl_ksz = cl_ksz * pol_frac_per_cent_ksz**2.
+    if which_spec == 'TE':
+        cl_ksz = cl_ksz * 0.
 
     cl_dic = {}
     cl_ori = np.zeros(len(el))
@@ -26,19 +28,26 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             #get dust
             el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
-            if pol:
+            if which_spec == 'EE':
                 cl_dg_po = cl_dg_po * pol_frac_per_cent_dust**2.
                 cl_dg_clus = cl_dg_clus * pol_frac_per_cent_dust**2.
+            elif which_spec == 'TE':
+                cl_dg_po = cl_dg_po * 0.
+                cl_dg_clus = cl_dg_clus * 0.
 
             #get tsz
             el, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
-            if pol:
+            if which_spec == 'EE':
                 cl_tsz = cl_tsz * pol_frac_per_cent_tsz**2.
+            elif which_spec == 'TE':
+                cl_tsz = cl_tsz * 0.
 
             #get radio
             el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])
-            if pol:
+            if which_spec == 'EE':
                 cl_radio = cl_radio * pol_frac_per_cent_radio**2.
+            elif which_spec == 'TE':
+                cl_radio = cl_radio * 0.
 
             cl = np.copy( cl_ori )
             if 'cmb' not in ignore_fg:
@@ -57,9 +66,6 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cl = cl + cl_dg_po + cl_dg_clus
 
             if include_gal:# and not pol: #get galactic dust and sync
-
-                which_spec = 'TT'
-                if pol: which_spec = 'EE'
 
                 el, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
                 el, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)

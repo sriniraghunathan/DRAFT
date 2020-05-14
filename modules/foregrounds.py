@@ -274,12 +274,15 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
     if np.ndim(cl_gal) == 1: #TT-only. Pol will fail.
         cl_gal = np.asarray( [cl_gal] )
 
-    try:
-        cl_gal = cl_gal[spec_ind]
-    except:
-        print('(%s,%s) not found for mask = %s in %s. Setting them to zeros.' %(freq1, freq2, which_spec, cl_gal_dic_fname))
-        cl_gal = np.zeros( len(cl_gal[0]) )
-
+    if which_spec == 'TE' and cl_gal_dic_fname.find('CUmilta')==-1:
+        #force TE to be np.sqrt(TT) * np.sqrt(EE)
+        cl_gal = np.sqrt( cl_gal[0] * cl_gal[1] )
+    else:
+        try:
+            cl_gal = cl_gal[spec_ind]
+        except:
+            print('(%s,%s) not found for mask = %s in %s. Setting them to zeros.' %(freq1, freq2, which_spec, cl_gal_dic_fname))
+            cl_gal = np.zeros( len(cl_gal[0]) )
 
     el_gal = np.arange( len(cl_gal) )
 
