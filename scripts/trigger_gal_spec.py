@@ -2,9 +2,11 @@ import numpy as np, sys, os
 
 pgmname = 'get_pspec_galactic_sims.py'
 use_planck_mask = 0
+use_lat_step_mask = 0
+use_s4like_mask = 0
 ##s,e = 0, 4
 
-use_lat_step_mask = 0 ##1
+use_lat_step_mask = 1
 t_only = 1 ##0
 nside = 4096 ##2048
 lmax = 10000 ##7000
