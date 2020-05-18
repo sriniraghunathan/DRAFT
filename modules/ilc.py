@@ -112,12 +112,17 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 print('\n\n\t\tfix me: there must be noise correlation in case of atmospheric noise')
                 sys.exit()
 
-            cl = cl + nl
+            if which_spec != 'TE':
+                cl = cl + nl
+            else:
+                nl_dummy = misc.get_nl(0.1, el, 0.1)
+                cl = cl + nl_dummy
 
             cl[np.isnan(cl)] = 0.
             cl[np.isinf(cl)] = 0.
 
-            ##loglog(cl); title('%s - %s' %(freq1, freq2)); show()
+            if (0):#which_spec == 'TT':
+                loglog(cl); title('%s - %s' %(freq1, freq2)); show(); sys.exit()
 
             cl_dic[(freq1, freq2)] = cl
 

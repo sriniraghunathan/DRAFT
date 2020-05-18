@@ -1,21 +1,26 @@
 import numpy as np, sys, os
 
-s,e = 0, 6
-mask_arr = np.arange(s, e+1)
-dust_sync_arr = ['dust', 'sync']
-
 pgmname = 'get_pspec_galactic_sims.py'
 use_planck_mask = 0
+##s,e = 0, 4
 
 use_lat_step_mask = 0 ##1
 t_only = 1 ##0
 nside = 4096 ##2048
 lmax = 10000 ##7000
+s,e = 3, 4
 
+'''
 use_s4like_mask = 1
 t_only = 0
 nside = 4096 ##2048
 lmax = 7000
+s,e = 0, 6
+'''
+
+mask_arr = np.arange(s, e+0.1)
+dust_sync_arr = ['dust', 'sync']
+
 
 template_fname = 'batch_jobs/template_hoff.sh'
 
