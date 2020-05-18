@@ -36,7 +36,7 @@ for which_mask in mask_arr:
         for line in template:
             opf.writelines('%s\n' %(line.strip()))
 
-        opline = 'python %s -dust_or_sync %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, which_mask, use_planck_mask, use_lat_step_mask, use_s4like_mask, t_only, nside, lmax)
+        opline = 'python %s -dust_or_sync %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, t_only, nside, lmax)
         opf.writelines('%s\n\n' %(opline))
         opf.close()
         template.close()
