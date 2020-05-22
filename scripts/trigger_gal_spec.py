@@ -16,7 +16,7 @@ use_s4like_mask = 1
 t_only = 0
 nside = 4096 ##2048
 lmax = 7000
-s,e = 0, 6
+s,e = 0, 3
 
 mask_arr = np.arange(s, e+0.1)
 dust_sync_arr = ['dust', 'sync']

@@ -79,7 +79,7 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 
-testing = 0
+testing =  1
 if testing and local:
     lmax = 2000
     nside = 512
@@ -319,7 +319,7 @@ if testing or not local:
     print(logline)
 
     if testing:
-        #from IPython import embed; embed()
+        from IPython import embed; embed()
         from pylab import *
 
         from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = [r'\boldmath']
@@ -329,12 +329,18 @@ if testing or not local:
 
         rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
+        if use_lat_step_mask:
+            tot_masks = tot_masks - 1
         clf()
         for mask_iter in range(tot_masks):
             fsky = np.mean(mask_arr[mask_iter])
-            H.mollview(mask_arr[mask_iter], sub = (1, tot_masks,mask_iter+1), title = r'Mask: %s: f$_{\rm sky} = %.2f$' %(mask_iter, fsky), cbar = 0); 
-        plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/masks.pdf'
-        #savefig(plname)
+            H.mollview(mask_arr[mask_iter], sub = (1, tot_masks,mask_iter+1), title = r'Mask: %s: f$_{\rm sky} = %.2f$' %(mask_iter, fsky), cbar = 0, title_fontsize = 10); 
+        plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks.pdf'
+        if use_lat_step_mask:
+            plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4wide_cluster_search.pdf'
+        plfolder = '/'.join( plname.split('/')[:-1] )
+        os.system('mkdir -p %s' %(plfolder))
+        savefig(plname)
         show()
 
         totiter = 1
@@ -366,6 +372,8 @@ if testing or not local:
             else:
                 plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_freecolourscale.pdf' %(dust_or_sync, nu)
             #savefig(plname)
+            if use_lat_step_mask:
+                plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_S4wide_cluster_search.pdf' %(dust_or_sync, nu)
             show(); #sys.exit()
 
         clf()
