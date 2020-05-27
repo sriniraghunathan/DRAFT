@@ -148,7 +148,6 @@ def compton_y_to_delta_Tcmb(freq1, freq2 = None, Tcmb = 2.73):
     return Tcmb * np.mean(g_nu)
 
 def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20.):
-
     if fg_model == 'george15':
         el, cl_dg_po_freq0 = get_foreground_power_spt('DG-Po', freq1 = freq0, freq2 = freq0)
         el, cl_dg_clus_freq0 = get_foreground_power_spt('DG-Cl', freq1 = freq0, freq2 = freq0)
@@ -305,7 +304,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
 
     return el_gal, cl_gal
 
-def get_cl_dust(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., el_slope = -0.58, Tdust = 19.6, Adust_freq0 = 4.3, spec_index_dust = 1.6, return_dl = 0):
+def get_cl_dust_galactic(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., el_slope = -0.58, Tdust = 19.6, Adust_freq0 = 4.3, spec_index_dust = 1.6, return_dl = 0):
 
     if freq2 is None:
         freq2 = freq1
