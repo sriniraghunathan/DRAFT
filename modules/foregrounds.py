@@ -305,7 +305,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
 
     return el_gal, cl_gal
 
-def fn_dust_amp(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., Tdust = 19.6, Adust_freq0 = 4.3, spec_index_dust = 1.6):
+def get_cl_dust(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., el_slope = -0.58, Tdust = 19.6, Adust_freq0 = 4.3, spec_index_dust = 1.6, return_dl = 0):
 
     if freq2 is None:
         freq2 = freq1
@@ -323,13 +323,15 @@ def fn_dust_amp(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., Tdust = 19
     etanu2_dust = ((1.*freq2*1e9)**spec_index_dust) * bnu2
     etanu0_dust = ((1.*freq0*1e9)**spec_index_dust) * bnu0
 
+    dl_dust = Adust_freq0 * epsilon_nu1_nu2 * (1.*etanu1_dust * etanu2_dust/etanu0_dust/etanu0_dust) * (el*1./el_norm)**el_slope
 
-    Adust = Adust_freq0 * epsilon_nu1_nu2 * (1.*etanu1_dust * etanu2_dust/etanu0_dust/etanu0_dust) * (el*1./el_norm)**2
-
-    dl_fac = el * (el+1)/2/np.pi
-    cl_dust = dl_dust / dl_fac
-
+    if return_dl:
+        return dl_dust
+    else:
+        dl_fac = el * (el+1)/2/np.pi
+        cl_dust = dl_dust / dl_fac
     return cl_dust
+
 
 """
 els = np.arange(1,100)

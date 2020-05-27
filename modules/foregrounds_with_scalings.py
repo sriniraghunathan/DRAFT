@@ -76,24 +76,30 @@ def get_spt_effective_frequencies(which_spt, band, component):
     if band not in ['95GHz', '150GHz', '220GHz']:
         raise ValueError("band must be one of 90/95, 150, 220GHz")
 
-    if component == 'dg-cl' or component == 'dg-po' or component == 'dg':
-        component = 'dg'
+    #if component == 'dg-cl' or component == 'dg-po' or component == 'dg':
+    #    component = 'dg'
 
     if which_spt == 'george' or which_spt == 'sptsz':
         spt_eff_frequencies = {
-            'dg': {'95GHz': 96.9, '150GHz': 153.4, '220GHz': 221.6},
+            'dg': {'95GHz': 97.9, '150GHz': 154.1, '220GHz': 219.6},
+            'dg-cl': {'95GHz': 100.318, '150GHz': 156.760, '220GHz': 221.805},
+            'dg-po': {'95GHz': 99.8975, '150GHz': 156.342, '220GHz': 221.418},
             'rg': {'95GHz': 93.5, '150GHz': 149.5, '220GHz': 215.8},
             'tsz': {'95GHz': 96.6, '150GHz': 152.3, '220GHz': 220.1},
         }
     elif which_spt == 'reichardt' or which_spt == 'sptszpol':
         spt_eff_frequencies = {
             'dg': {'95GHz': 96.9, '150GHz': 153.4, '220GHz': 221.6},
+            'dg-cl': {'95GHz': 100.213, '150GHz': 156.661, '220GHz': 221.724},
+            'dg-po': {'95GHz': 99.9050, '150GHz': 156.353, '220GHz': 221.445},
             'rg': {'95GHz': 93.5, '150GHz': 149.5, '220GHz': 215.8},
             'tsz': {'95GHz': 96.6, '150GHz': 152.3, '220GHz': 220.1},
         }
     elif which_spt == 'spt3g' or which_spt == '3g':
         spt_eff_frequencies = {
             'dg': {'95GHz': 95.96, '150GHz': 150.01, '220GHz': 222.76},
+            'dg-cl': {'95GHz': 95.96, '150GHz': 150.01, '220GHz': 222.76},
+            'dg-po': {'95GHz': 95.96, '150GHz': 150.01, '220GHz': 222.76},
             'rg': {'95GHz': 93.52, '150GHz': 145.92, '220GHz': 213.34},
             'tsz': {'95GHz': 95.69, '150GHz': 148.85, '220GHz': 220.15},
         }
@@ -388,53 +394,65 @@ def get_cl_dusty_galaxies(
 
 
     # ref. frequency for reference band in the ref. SPT experiment
-    freq0 = get_spt_effective_frequencies(fg_model, band0, 'DG')
+    freq0_dg_po = get_spt_effective_frequencies(fg_model, band0, 'DG-Po')
+    freq0_dg_cl = get_spt_effective_frequencies(fg_model, band0, 'DG-Cl')
 
-    # Eq. 11 of G15 https://arxiv.org/pdf/1408.3161.pdf
-    nr = (get_planck_db_dt(freq0)) ** 2.0
-    dr = get_planck_db_dt(freq1) * get_planck_db_dt(freq2)
-    epsilon_nu1_nu2 = nr / dr
+    freq0arr = [freq0_dg_po, freq0_dg_cl]
+    freq1arr =[freq1, freq1]
+    freq2arr =[freq2, freq2]
+    fgcomparr = ['DG-Po', 'DG-Cl']
 
-    # Eq. 13 of G15 https://arxiv.org/pdf/1408.3161.pdf
-    bnuT_freq1 = get_planck_bnu_of_t(freq1, temp=cib_temp)
-    bnuT_freq2 = get_planck_bnu_of_t(freq2, temp=cib_temp)
-    bnuT_freq0 = get_planck_bnu_of_t(freq0, temp=cib_temp)
+    for fgc, freq0, freq1, freq2 in zip(fgcomparr, freq0arr, freq1arr, freq2arr):
 
-    # ensure freq is in Hz for subsequent calculations
-    freq0 *= 1e9
-    freq1 *= 1e9
-    freq2 *= 1e9
+        ##print(band0, freq0)
 
-    # Eq. 13 of G15 https://arxiv.org/pdf/1408.3161.pdf for DG-Po
-    etanu1_dg_po = ((1.0 * freq1) ** spec_index_dg_po) * bnuT_freq1
-    etanu2_dg_po = ((1.0 * freq2) ** spec_index_dg_po) * bnuT_freq2
-    etanu0_dg_po = ((1.0 * freq0) ** spec_index_dg_po) * bnuT_freq0
+        # Eq. 11 of G15 https://arxiv.org/pdf/1408.3161.pdf
+        nr = (get_planck_db_dt(freq0)) ** 2.0
+        dr = get_planck_db_dt(freq1) * get_planck_db_dt(freq2)
+        epsilon_nu1_nu2 = nr / dr
 
-    # Eq. 13 of G15 https://arxiv.org/pdf/1408.3161.pdf for DG-Cl
-    etanu1_dg_clus = ((1.0 * freq1) ** spec_index_dg_clus) * bnuT_freq1
-    etanu2_dg_clus = ((1.0 * freq2) ** spec_index_dg_clus) * bnuT_freq2
-    etanu0_dg_clus = ((1.0 * freq0) ** spec_index_dg_clus) * bnuT_freq0
+        # Eq. 13 of G15 https://arxiv.org/pdf/1408.3161.pdf
+        bnuT_freq1 = get_planck_bnu_of_t(freq1, temp=cib_temp)
+        bnuT_freq2 = get_planck_bnu_of_t(freq2, temp=cib_temp)
+        bnuT_freq0 = get_planck_bnu_of_t(freq0, temp=cib_temp)
 
-    # convert spectra at (freq0 x freq0) to (freq1 x freq2)
-    # Eq. 12 of G15 https://arxiv.org/pdf/1408.3161.pdf
-    # DG-Po
-    eps_eta_term_dg_po = epsilon_nu1_nu2 * (
-        1.0 * etanu1_dg_po * etanu2_dg_po / etanu0_dg_po / etanu0_dg_po
-    )
-    print(freq0/1e9, freq1/1e9, freq2/1e9, eps_eta_term_dg_po)
-    dl_dg_po = dl_dg_po_amp * eps_eta_term_dg_po * dl_dg_po_template
+        # ensure freq is in Hz for subsequent calculations
+        freq0 *= 1e9
+        freq1 *= 1e9
+        freq2 *= 1e9
 
-    # DG-Cl
-    eps_eta_term_dg_clus = epsilon_nu1_nu2 * (
-        1.0 * etanu1_dg_clus * etanu2_dg_clus / etanu0_dg_clus / etanu0_dg_clus
-    )
-    if np.ndim(dl_dg_clus_template) > 1:  # 1-/2-halo terms
-        dl_dg_clus = (
-            dl_dg_clus_amp[:, None] * eps_eta_term_dg_clus * dl_dg_clus_template
-        )
-        dl_dg_clus = np.sum(dl_dg_clus, axis=0)
-    else:  # D_{\ell} \propto \ell^0.8
-        dl_dg_clus = dl_dg_clus_amp * eps_eta_term_dg_clus * dl_dg_clus_template
+        if fgc == 'DG-Po':
+            # Eq. 13 of G15 https://arxiv.org/pdf/1408.3161.pdf for DG-Po
+            etanu1_dg_po = ((1.0 * freq1) ** spec_index_dg_po) * bnuT_freq1
+            etanu2_dg_po = ((1.0 * freq2) ** spec_index_dg_po) * bnuT_freq2
+            etanu0_dg_po = ((1.0 * freq0) ** spec_index_dg_po) * bnuT_freq0
+
+            # convert spectra at (freq0 x freq0) to (freq1 x freq2)
+            # Eq. 12 of G15 https://arxiv.org/pdf/1408.3161.pdf
+            # DG-Po
+            eps_eta_term_dg_po = epsilon_nu1_nu2 * (
+                1.0 * etanu1_dg_po * etanu2_dg_po / etanu0_dg_po / etanu0_dg_po
+            )
+            #print(freq0/1e9, freq1/1e9, freq2/1e9, eps_eta_term_dg_po)
+            dl_dg_po = dl_dg_po_amp * eps_eta_term_dg_po * dl_dg_po_template
+
+        elif fgc == 'DG-Cl':
+            # Eq. 13 of G15 https://arxiv.org/pdf/1408.3161.pdf for DG-Cl
+            etanu1_dg_clus = ((1.0 * freq1) ** spec_index_dg_clus) * bnuT_freq1
+            etanu2_dg_clus = ((1.0 * freq2) ** spec_index_dg_clus) * bnuT_freq2
+            etanu0_dg_clus = ((1.0 * freq0) ** spec_index_dg_clus) * bnuT_freq0
+
+            # DG-Cl
+            eps_eta_term_dg_clus = epsilon_nu1_nu2 * (
+                1.0 * etanu1_dg_clus * etanu2_dg_clus / etanu0_dg_clus / etanu0_dg_clus
+            )
+            if np.ndim(dl_dg_clus_template) > 1:  # 1-/2-halo terms
+                dl_dg_clus = (
+                    dl_dg_clus_amp[:, None] * eps_eta_term_dg_clus * dl_dg_clus_template
+                )
+                dl_dg_clus = np.sum(dl_dg_clus, axis=0)
+            else:  # D_{\ell} \propto \ell^0.8
+                dl_dg_clus = dl_dg_clus_amp * eps_eta_term_dg_clus * dl_dg_clus_template
 
     # convert dl to cl
     cl_dg_po = dl_dg_po / dl_fac
