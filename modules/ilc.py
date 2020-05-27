@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000.):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -120,6 +120,21 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             cl[np.isnan(cl)] = 0.
             cl[np.isinf(cl)] = 0.
+
+            ##########################################################################################
+            #20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
+            adjust_for_large_beams = 1                    
+            if adjust_for_large_beams:
+                bl = bl_dic[freq1]
+                if 'effective' in bl_dic:
+                    bl_eff = bl_dic['effective']
+                else:
+                    bl_eff = bl_dic[145]
+                bad_inds = np.where( (bl_eff/bl > beam_tol_for_ilc) )[0]
+                #print(nuval1, nuval2, bad_inds)
+                cl[bad_inds] = 0.
+            #20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
+            ##########################################################################################
 
             if (0):#which_spec == 'TT':
                 loglog(cl); title('%s - %s' %(freq1, freq2)); show(); sys.exit()
