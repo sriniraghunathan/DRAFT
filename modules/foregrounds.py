@@ -1,4 +1,5 @@
 import numpy as np, sys, os, scipy as sc
+from pylab import *
 
 h, k_B, c=6.626e-34,1.38e-23, 3e8
 ################################################################################################################
@@ -226,7 +227,7 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
 
     return el, cl_rg
 
-def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_mask = 0, bl_dic = None, el = None):
+def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
 
     #fix: pol not working yet
 
@@ -273,9 +274,67 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec,  which_gal_
     if np.ndim(cl_gal) == 1: #TT-only. Pol will fail.
         cl_gal = np.asarray( [cl_gal] )
 
+    ############################################################################################################
+    ############################################################################################################
+    ############################################################################################################
+    #compare EE at \ell = 80 to table 1 of https://arxiv.org/pdf/1801.04945.pdf
+    if (0):##which_spec == 'EE' and component == 'dust' and freq1 == 145 and freq1 == freq2: 
+        freq0 = 353.
+        el_norm = 80.
+        Tdust = 20. ##19.6
+        Adust_freq0 = 4.3
+        spec_index_dust = 1.54 ##1.6
+        nr = ( fn_dB_dT(freq0) )**2.
+        dr = fn_dB_dT(freq1) * fn_dB_dT(freq2)
+
+        epsilon_nu1_nu2 = nr/dr
+
+        bnu1 = fn_BnuT(freq1, temp = Tdust)
+        bnu2 = fn_BnuT(freq2, temp = Tdust)
+        bnu0 = fn_BnuT(freq0, temp = Tdust)
+
+        etanu1_dust = ((1.*freq1*1e9)**spec_index_dust) * bnu1
+        etanu2_dust = ((1.*freq2*1e9)**spec_index_dust) * bnu2
+        etanu0_dust = ((1.*freq0*1e9)**spec_index_dust) * bnu0    
+        cl_ee = cl_gal_dic[ (freq1, freq2) ][1]
+        mul_fac = epsilon_nu1_nu2 * (1.*etanu1_dust * etanu2_dust/etanu0_dust/etanu0_dust)
+        print(mul_fac)
+        print(component, freq1, freq2, cl_ee[80], cl_ee[80] / mul_fac)
+        loglog(cl_ee); xlim(None, 200.); ylim(1e-6, 1e-2)
+        sys.exit()
+    ############################################################################################################
+    ############################################################################################################
+    ############################################################################################################
+
     if which_spec == 'TE' and cl_gal_dic_fname.find('CUmilta')==-1:
         #force TE to be np.sqrt(TT) * np.sqrt(EE)
-        cl_gal = np.sqrt( cl_gal[0] * cl_gal[1] )
+        ###cl_gal = np.sqrt( cl_gal[0] * cl_gal[1] )
+        cl_gal_tt, cl_gal_ee = cl_gal_dic[ (freq1, freq2) ][0], cl_gal_dic[ (freq1, freq2) ][1]
+
+        if (1):##component == 'dust':
+            rte = 0.35 #page 5 of https://arxiv.org/pdf/1801.04945.pdf: Discussion below Fig.5; also page 38 of https://readthedocs.org/projects/so-pysm-models/downloads/pdf/0.2.dev/
+        else: ##elif component == 'sync':
+            rte = 0.
+        cl_gal = rte * np.sqrt( cl_gal_tt * cl_gal_ee )
+        if (0):##component == 'sync':
+            rho_dust_sync = 0.16 #Fig. 8 of https://arxiv.org/pdf/1801.04945.pdf
+            cl_gal = cl_gal * rho_dust_sync
+
+        """
+        else:
+            '''
+            if which_gal_mask == 3:
+                ee_te_ratio = 5.
+            else:
+                ee_te_ratio = 2.7
+            '''
+            ee_te_ratio = 2.7
+            spec_ind = 1 ##EE
+            cl_gal = cl_gal_dic[ (freq1, freq2) ][spec_ind] * ee_te_ratio  
+        loglog(cl_gal)
+        loglog(cl_gal_dic[ (freq1, freq2) ][1] * 2.7)
+        show();sys.exit()
+        """
     else:
         try:
             cl_gal = cl_gal[spec_ind]
