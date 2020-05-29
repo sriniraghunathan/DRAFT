@@ -6,8 +6,9 @@ totlf, totmf, tothf = 2, 12, 5
 lf_to_mf_hf_arr = [(0,0), (0,1), (1, 0), (1,1), (2,0), (0,2)]
 mf_to_lf_hf_arr = [(0,0)]
 hf_to_lf_mf_arr = [(0,0), (1,0), (2,0), (3,0), (4,0), (5,0)]
-also_te_arr = [ 0, 1]
-which_gal_mask_arr = [2] ##[0, 1, 2, 3]
+#also_te_arr = [ 0, 1]
+also_te_arr = [ 0 ]
+which_gal_mask_arr = [1] ##[0, 1, 2, 3]
 
 for which_gal_mask in which_gal_mask_arr:
     for also_te in also_te_arr:

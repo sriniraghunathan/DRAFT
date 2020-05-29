@@ -138,18 +138,24 @@ noise_inds = [1, 4]
 for freq in freqarr:
     specs_arr = np.asarray( specs_dic[freq] )
     oldnoise_arr = specs_arr[noise_inds]
-    if newlf == 0.:
-        scalefac = 100.
-    else:
-        if freq == 27 or freq == 39:
+    if freq == 27 or freq == 39:
+        if newlf == 0.:
+            scalefac = 100.
+        else:
             scalefac = np.sqrt( totlf / newlf)
-        elif freq == 93 or freq == 145:
+    elif freq == 93 or freq == 145:
+        if newmf == 0.:
+            scalefac = 100.
+        else:
             scalefac = np.sqrt( totmf / newmf)
-        if freq == 225 or freq == 278:
+    if freq == 225 or freq == 278:
+        if newhf == 0.:
+            scalefac = 100.
+        else:
             scalefac = np.sqrt( tothf / newhf)
-        newnoise_arr = oldnoise_arr * scalefac
-        specs_arr[noise_inds] = newnoise_arr
-        specs_dic[freq] = specs_arr.tolist()
+    newnoise_arr = oldnoise_arr * scalefac
+    specs_arr[noise_inds] = newnoise_arr
+    specs_dic[freq] = specs_arr.tolist()
 #for freq in freqarr: print(freq, specs_dic[freq])
 #print('\n')
 
@@ -160,6 +166,10 @@ print(tothf, newhf, tothfmoved)
 sys.exit()
 '''
 extrastr_tubesmoved = 'lf%d-mf%d-hf%d' %(newlf, newmf, newhf)
+print(extrastr_tubesmoved)
+for freq in freqarr: print(freq, specs_dic[freq])
+print('\n')
+
 ############################################################
 
 corr_noise = 1
@@ -373,6 +383,7 @@ cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,No
 cl_camb *= 1e12
 cl_TT, cl_EE, cl_BB, cl_TE = cl_camb.T
 
+
 clf(); 
 fsval = 8
 lwval = 0.75
@@ -414,10 +425,13 @@ for cntr, which_spec in enumerate( which_spec_arr ):
         
 curr_row = rspan
 rspan = tr - rspan
+dont_plot_weights = 1
+if dont_plot_weights:
+    clf()
 for cntr, which_spec in enumerate( which_spec_arr ):
     #ax = subplot(1,2,cntr+1, xscale = 'log', yscale = 'log')
     ax = subplot2grid((tr,tc), (curr_row, cntr), rowspan = rspan, colspan = cspan, xscale = 'log', yscale = 'log')
-    plot(el, cl_residual[which_spec], 'black', lw = 2., label = r'Residual')
+    plot(el, cl_residual[which_spec], 'black', lw = 1., label = r'Residual')
     if which_spec == 'TT':
         plot(el_camb, cl_TT, 'gray', lw = 1., label = r'TT')
         '''
@@ -463,19 +477,23 @@ for cntr, which_spec in enumerate( which_spec_arr ):
             nl = nl_dic['P'][(freq, freq)]
         elif which_spec == 'TE':
             nl = nl_dic['T'][(freq, freq)] * 0.
-        plot(el, nl, color = colordic[freq], lw = lwval, ls = '--', label = r'Noise: %s' %(freq))#, alpha = 0.5)
+        plot(el, nl, color = colordic[freq], lw = 0.3, ls = '--', label = r'Noise: %s' %(freq))#, alpha = 0.5)
     #legend(loc=3, fancybox=1, ncol = 4, fontsize = 6);
     
     xlim(xmin, xmax);
     ylim(1e-8,1e6);
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
-        ylabel(r'$C_{\ell}$')
+        ylabel(r'$C_{\ell}\ [\mu K^{2}]$')
         legend(loc = 1, fontsize = 6, ncol = 2, handlelength = 2., handletextpad = 0.1)
     else:
         setp(ax.get_yticklabels(which = 'both'), visible=False)
     for label in ax.get_xticklabels(): label.set_fontsize(fsval)
     for label in ax.get_yticklabels(): label.set_fontsize(fsval)
+
+    if dont_plot_weights:
+        title(r'%s' %(which_spec), fontsize = 10)
+
         
 #tit = 'Galaxy = %s; Mask = %s; Bands = %s' %(include_gal, param_dict['which_gal_mask'], str(freqarr))
 if remove_atm:
@@ -487,8 +505,11 @@ else:
         tit = 'Galaxy = %s; Mask = N/A; Bands = %s' %(include_gal, str(freqarr))    
 if not corr_noise:
     tit = '%s; No corr. noise' %(tit)
-tit = '%s; LFMFHF = %s' %(tit, extrastr_tubesmoved)
-suptitle(r'%s' %tit, x = 0.53, y = 1., fontsize = 8)
+tit = '%s; LF-MF-HF = %s' %(tit, extrastr_tubesmoved)
+if dont_plot_weights:
+    suptitle(r'%s' %tit, x = 0.53, y = 0.7, fontsize = 8.5)
+else:
+    suptitle(r'%s' %tit, x = 0.53, y = 1., fontsize = 8)    
 savefig(plname)
 close()##show()
 
@@ -521,3 +542,6 @@ print('\n')
 print(opfname)
 print(plname)
 print('\n')
+
+print(cl_residual['TT'])
+print(cl_residual['EE'])
