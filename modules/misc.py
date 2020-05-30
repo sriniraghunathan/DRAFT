@@ -101,11 +101,16 @@ def healpix_rotate_coords(hmap, coord):
 
 def get_bl(beamval, el):
 
+    """
+    this funciton returns bl**2
+    """
+
     fwhm_radians = np.radians(beamval/60.)
     sigma = fwhm_radians / np.sqrt(8. * np.log(2.))
     sigma2 = sigma ** 2
-    bl = np.exp(0.5 * el * (el+1) * sigma2)
+    bl = np.exp(el * (el+1) * sigma2)
 
+    #bl = np.exp(-0.5*el * (el+1) * sigma2) ##traditionally this is how it is written. But note that I do the inverse and this funciton returns bl**2
     return bl
 
 ################################################################################################################
