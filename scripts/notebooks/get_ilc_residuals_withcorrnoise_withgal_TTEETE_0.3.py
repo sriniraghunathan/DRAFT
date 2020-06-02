@@ -30,6 +30,7 @@ parser.add_argument('-mf_to_hf', dest='mf_to_hf', action='store', help='mf_to_hf
 parser.add_argument('-hf_to_lf', dest='hf_to_lf', action='store', help='hf_to_lf', type=float, default=0.)
 parser.add_argument('-hf_to_mf', dest='hf_to_mf', action='store', help='hf_to_mf', type=float, default=0.)
 parser.add_argument('-also_te', dest='also_te', action='store', type=int, default= 0, help='also_te')
+parser.add_argument('-include_gal', dest='include_gal', action='store', type=int, default= None, help='include_gal')
 parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', type=int, default= None, help='which_gal_mask')
 
 args = parser.parse_args()
@@ -66,14 +67,18 @@ paramfile = 'params.ini'
 # read and store param dict
 param_dict = misc.fn_get_param_dict(paramfile)
 el = np.arange(param_dict['lmax'])
-include_gal = param_dict['include_gal'] ##1
-
 s4like_mask = param_dict['s4like_mask']
 try:
     remove_atm = param_dict['remove_atm']
 except:
     remove_atm = 0    
 
+#inlclude galaxy or not
+if include_gal is not None:
+    param_dict['include_gal'] = include_gal
+include_gal = param_dict['include_gal']
+
+#which galaxy mask
 if not include_gal:
     which_gal_mask = 3
 if which_gal_mask is not None:
@@ -169,6 +174,7 @@ extrastr_tubesmoved = 'lf%d-mf%d-hf%d' %(newlf, newmf, newhf)
 print(extrastr_tubesmoved)
 for freq in freqarr: print(freq, specs_dic[freq])
 print('\n')
+
 
 ############################################################
 
@@ -329,11 +335,16 @@ for which_spec in which_spec_arr:
 freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
 which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #opfname = 'results/galactic_sims/S4_ilc_20204020_galaxy%s_%s.npy' %(include_gal, freqarr_str)
-parent_folder = 'results/galactic_sims/tt_ee_te/'
+parent_folder = 'results/20200601/%s/' %(which_spec_arr_str)
 if s4like_mask:
-    parent_folder = 'results/galactic_sims/s4like_mask/tt_ee_te/'
+    parent_folder = 'results/20200601/s4like_mask/%s/' %(which_spec_arr_str)
 
-opfname = '%s/S4_ilc_zonca_sims_20204028_galaxy%s_%s_%s_%s.npy' %(parent_folder, include_gal, freqarr_str, which_spec_arr_str, extrastr_tubesmoved)
+if newlf == totlf and newmf == totmf and newhf == tothf:
+    parent_folder = '%s/baseline/' %(parent_folder)
+else:
+    parent_folder = '%s/tubes_mod/' %(parent_folder)
+
+opfname = '%s/S4_ilc_galaxy%s_%s_%s_%s.npy' %(parent_folder, include_gal, freqarr_str, which_spec_arr_str, extrastr_tubesmoved)
 
 if not corr_noise:
     opfname = opfname.replace('.npy', '_nocorrnoise.npy')
