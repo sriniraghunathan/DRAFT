@@ -235,7 +235,7 @@ def residual_power(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcali
         weight = np.dot(nr, drinv)
 
         #ILC residuals
-        #cl_residual[elcnt] = np.asarray(1./dr).squeeze()
+        #cl_residual[elcnt] = np.asarray(1./dr).squeeze()        
         cl_residual_tt, cl_residual_ee, cl_residual_te = drinv[0,0], drinv[1,1], drinv[0,1]
         cl_residual[:, elcnt] = cl_residual_tt, cl_residual_ee, cl_residual_te
 
@@ -246,6 +246,8 @@ def residual_power(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcali
 
     weightsarr = np.asarray( weightsarr )
     cl_residual = np.asarray( cl_residual )
+
+    from IPython import embed; embed()
 
     cl_residual[np.isinf(cl_residual)] = 0.
     cl_residual[np.isnan(cl_residual)] = 0.
@@ -301,6 +303,12 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1):
     #acap = np.mat(np.eye(len(acap)) * acap)
     acap_full[0,:len(acap)] = acap
     acap_full[1,len(acap):] = acap
+
+    '''
+    acap_full[0,len(acap):] = acap/10.
+    acap_full[1,:len(acap)] = acap/10.
+    '''
+
     acap_full = np.mat(acap_full).T #should be teb_len*nc x teb_len
     acap = acap_full
     
