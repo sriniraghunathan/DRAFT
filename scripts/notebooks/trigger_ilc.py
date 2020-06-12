@@ -1,11 +1,12 @@
 import numpy as np, sys, os
 
-pgmname = 'get_ilc_residuals_withcorrnoise_withgal_TTEETE_0.3.py'
+#pgmname = 'get_ilc_residuals_withcorrnoise_withgal_TTEETE_0.3.py'
+pgmname = 'get_ilc_residuals_withcorrnoise_withgal_TTEETE_0.4.py'
 
 totlf, totmf, tothf = 2, 12, 5
-lf_to_mf_hf_arr = [(0,0), (0,1), (1,0), (1,1), (2,0), (0,2)]
+lf_to_mf_hf_arr = [(0,0)]#, (0,1), (1,0), (1,1), (2,0), (0,2)]
 mf_to_lf_hf_arr = [(0,0)]
-hf_to_lf_mf_arr = [(0,0), (0,1), (1,0), (1,1), (2,0), (0,2)]#, (3,0), (4,0), (5,0)]
+hf_to_lf_mf_arr = [(0,0)]#, (0,1), (1,0), (1,1), (2,0), (0,2)]#, (3,0), (4,0), (5,0)]
 #also_te_arr = [ 0, 1]
 also_te_arr = [ 1 ]
 include_gal_arr = [0, 1]
@@ -45,8 +46,8 @@ for include_gal in include_gal_arr:
 
                         cmd = 'python %s -lf_to_mf %s -lf_to_hf %s -mf_to_lf %s -mf_to_hf %s -hf_to_lf %s -hf_to_mf %s -also_te %s -include_gal %s -which_gal_mask %s ' %(pgmname, lf_to_mf, lf_to_hf, mf_to_lf, mf_to_hf, hf_to_lf, hf_to_mf, also_te, include_gal, which_gal_mask)
                         print('\n###############\n%s\n' %(cmd))
-                        os.system(cmd)
-                        #sys.exit()
+                        #os.system(cmd)
+                        sys.exit()
 sys.exit()
 
 

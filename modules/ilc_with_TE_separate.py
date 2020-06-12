@@ -1,5 +1,5 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc
-from pylab import *
+#from pylab import *
 ################################################################################################################
 def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000.):
 
@@ -136,215 +136,25 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             if (0):#which_spec == 'TT':
                 loglog(cl); title('%s - %s' %(freq1, freq2)); show(); sys.exit()
 
-            if (0):##which_spec == 'TE':
-                #print(which_spec, freq1, freq2, cl)
-                loglog(cl, label = r'%s - %s' %(freq1, freq2));
-                legend(loc = 3, ncol = 2, fontsize = 6) 
+            if (0):#which_spec == 'TE':
+                print(which_spec, freq1, freq2, cl)
 
             cl_dic[(freq1, freq2)] = cl
 
     return el, cl_dic  
 
 ################################################################################################################
-################################################################################################################
-################################################################################################################
-
-def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
-
-    nc = len(freqarr)
-
-    if freqcalib_fac is None: freqcalib_fac = np.ones(nc)
-
-    if final_comp.lower() == 'cmb':
-        freqscale_fac = np.ones(nc)
-
-    elif final_comp.lower() == 'tsz' or final_comp.lower() == 'y':
-
-        freqscale_fac = []
-        for freq in sorted( freqarr ):
-            freqscale_fac.append( compton_y_to_delta_Tcmb(freq * 1e9) )
-
-        freqscale_fac = np.asarray( freqscale_fac )
-
-        if final_comp.lower() == 'tsz': #tsz at 150 GHz
-            freqscale_fac = freqscale_fac / freqscale_fac[1]
-
-    acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
-
-    acap = np.mat(acap).T #should be teb_len*nc x teb_len
-    
-    return acap
-
-def create_clmat(freqarr, elcnt, cl_dic):
-    """
-    freqarr  = array of frequency channel
-    elcnt = \el index
-    cl_dic = cl_cmb + cl_FG auto and cross spectra of the frequency channels
-    """
-    nc = len(freqarr)
-    clmat = np.zeros( (nc, nc) )
-
-    for ncnt1, freq1 in enumerate(freqarr):
-        for ncnt2, freq2 in enumerate(freqarr):
-            clmat[ncnt2, ncnt1] = cl_dic[(freq1, freq2)][elcnt]
-    return clmat
-
-def get_clinv(freqarr, elcnt, cl_dic, which_spec):
-
-    clmat_dic = {}
-    if 'TT' in cl_dic:
-        clmat_dic['TT'] = np.mat( create_clmat(freqarr, elcnt, cl_dic['TT']) )
-    if 'EE' in cl_dic:
-        clmat_dic['EE'] = np.mat( create_clmat(freqarr, elcnt, cl_dic['EE']) )
-    if 'TE' in cl_dic:
-        clmat_dic['TE'] = np.mat( create_clmat(freqarr, elcnt, cl_dic['TE']) )
-
-    if (0):        
-        if which_spec == 'TT' or which_spec == 'EE':
-            clmat = clmat_dic[which_spec]
-        else:
-            nc = len(freqarr)
-            clmat = np.zeros( ( nc * 2, nc * 2) )
-            clmat[:nc, :nc] = clmat_dic['TT']
-            clmat[nc:, nc:] = clmat_dic['EE']
-            clmat[nc:, :nc] = clmat_dic['TE']
-            clmat[:nc, nc:] = clmat_dic['TE']
-
-            #imshow(clmat, vmin = 0., vmax = 100.); colorbar();sys.exit()
-    
-    if (1):
-        clmat = clmat_dic[which_spec]
-
-    if (0):##elcnt == 100:
-        sbpldic = {'TT': 1, 'EE': 2, 'TE': 3}
-        subplot(1,3,sbpldic[which_spec])
-        imshow(clmat_dic[which_spec], vmin = None, vmax = None); colorbar(); title(which_spec);
-
-    clinv = sc.linalg.pinv2(clmat)
-    #clinv = sc.linalg.inv(clmat)
-
-
-    return clinv
-
-def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cmb', freqcalib_fac = None, lmin = 0, return_weights = 0):
-
-    try:
-        lmin = param_dict['lmin']
-    except:
-        pass
-
-    if (0):
-        if which_spec == 'TE':
-            te_len = 2
-        else:
-            te_len = 1
-
-        freqarr_for_acap = np.tile(freqarr, te_len) #T and E, if need be
-        acap = get_acap(freqarr_for_acap, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
-
-        nc = len(freqarr)
-        cl_residual = np.zeros( (len(el)) )
-        weightsarr = np.zeros( (te_len * nc, len( el ) ) )
-    
-    if (1):
-        acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
-
-        nc = len(freqarr)
-        cl_residual = np.zeros( (len(el)) )
-        weightsarr = np.zeros( (nc, len( el ) ) )
-
-    for elcnt, el in enumerate(el):
-        if el <= lmin: continue ## or el>=lmax: continue
-        clinv = get_clinv( freqarr, elcnt, cl_dic, which_spec )
-        if (0):#el == lmin+1:
-            print(which_spec, clinv.shape)
-
-        nr = np.dot(clinv, acap)
-        dr = np.dot( acap.T, np.dot(clinv, acap) )
-        drinv = sc.linalg.pinv2(dr)
-        weight = np.dot(nr, drinv)
-
-        #ILC residuals
-        cl_residual[elcnt] = np.asarray(1./dr).squeeze()
-        weightsarr[:, elcnt] = weight.squeeze()
-
-
-    weightsarr = np.asarray( weightsarr )
-    cl_residual = np.asarray( cl_residual )
-    print(weightsarr.shape)
-
-    #from IPython import embed; embed()
-
-    cl_residual[np.isinf(cl_residual)] = 0.
-    cl_residual[np.isnan(cl_residual)] = 0.
-    
-    if return_weights:
-        return cl_residual, weightsarr
-    else:
-        return cl_residual
-
-
-################################################################################################################
-################################################################################################################
-################################################################################################################
-
-def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1):
-
-    nc = len(freqarr)
-
-    if freqcalib_fac is None: freqcalib_fac = np.ones(nc)
-
-    if final_comp.lower() == 'cmb':
-        freqscale_fac = np.ones(nc)
-
-    elif final_comp.lower() == 'tsz' or final_comp.lower() == 'y':
-
-        freqscale_fac = []
-        for freq in sorted( freqarr ):
-            freqscale_fac.append( compton_y_to_delta_Tcmb(freq * 1e9) )
-
-        freqscale_fac = np.asarray( freqscale_fac )
-
-        if final_comp.lower() == 'tsz': #tsz at 150 GHz
-            freqscale_fac = freqscale_fac / freqscale_fac[1]
-
-    acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
-
-    if teb_len>1:
-        acap_full = np.zeros( (teb_len, len(acap) * teb_len) )
-        #acap_full[:len(acap), :] = acap
-
-        #acap = np.mat(np.eye(len(acap)) * acap)
-        acap_full[0,:len(acap)] = acap
-        acap_full[1,len(acap):] = acap
-
-        '''
-        acap_full[0,len(acap):] = acap/10.
-        acap_full[1,:len(acap)] = acap/10.
-        '''
-
-        acap_full = np.mat(acap_full).T #should be teb_len*nc x teb_len
-        acap = acap_full
-    else:
-        acap = np.mat(acap).T #should be teb_len*nc x teb_len
-    
-    return acap
-
 def get_teb_spec_combination(cl_dic):
     pspec_arr = sorted( list( cl_dic.keys() ) )
-
     if pspec_arr == 'TT': #only TT is supplied
         teb_len = 1
     elif pspec_arr == sorted(['TT', 'EE']) or pspec_arr == sorted(['TT', 'EE', 'TE']): #TT/EE/TE are supplied
         teb_len = 2
     elif pspec_arr == sorted(['TT', 'EE', 'BB']) or pspec_arr == sorted(['TT', 'EE', 'BB', 'TE', 'TB', 'EB']): #TT/EE/BB are supplied
         teb_len = 3
-    else:
-        teb_len = 1
-        pspec_arr = None
     return teb_len, pspec_arr
 
-def create_clmat_new(freqarr, elcnt, cl_dic):
+def create_clmat(freqarr, elcnt, cl_dic):
     """
     freqarr  = array of frequency channel
     elcnt = \el index
@@ -373,59 +183,51 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
                     j, i = ncnt2 + nc, ncnt1
                     clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
                     clmat[i, j] = curr_cl_dic[(freq1, freq2)][elcnt]
+
     return clmat
 
-def get_clinv_new(freqarr, elcnt, cl_dic, return_clmat = 0):
-    clmat = np.mat( create_clmat_new(freqarr, elcnt, cl_dic) )
+def create_clmat_v1(freqarr, elcnt, cl_dic):
+    """
+    freqarr  = array of frequency channel
+    elcnt = \el index
+    cl_dic = cl_cmb + cl_FG auto and cross spectra of the frequency channels
+    """
+    nc = len(freqarr)
+    clmat = np.zeros( (nc, nc) )
+    for ncnt1, freq1 in enumerate(freqarr):
+        for ncnt2, freq2 in enumerate(freqarr):
+            clmat[ncnt2, ncnt1] = cl_dic[(freq1, freq2)][elcnt]
+    return clmat
+################################################################################################################
+def get_clinv(freqarr, elcnt, cl_dic):
+    clmat = np.mat( create_clmat(freqarr, elcnt, cl_dic) )
     #clmat = clmat + np.eye(len(clmat)) * np.min(np.diag(clmat)/1e3)
     clinv = sc.linalg.pinv2(clmat)
     #clinv = sc.linalg.inv(clmat)
 
-    if return_clmat:
-        return clinv, clmat
-    else:
-        return clinv
+    return clinv
 
-def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcalib_fac = None, lmin = 0, return_weights = 0):
+################################################################################################################
+def residual_power(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcalib_fac = None, lmin = 0, return_weights = 0):
+
+    try:
+        lmin = param_dict['lmin']
+    except:
+        pass
 
     #acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
     teb_len, pspec_arr = get_teb_spec_combination(cl_dic) #20200527 - teb
-    acap = get_acap_new(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+    acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
 
     nc = len(freqarr)
+
     #cl_residual = np.zeros( (len(el)) )
     #weightsarr = np.zeros( (nc, len( el ) ) )
     weightsarr = np.zeros( (teb_len * nc, teb_len, len( el ) ) )
     cl_residual = np.zeros( (3, len(el)) )
-
-    cl_residual_tmp = []
-
     for elcnt, el in enumerate(el):
         if el <= lmin: continue ## or el>=lmax: continue
-        #clinv = get_clinv_new( freqarr, elcnt, cl_dic )
-        clinv, clmat = get_clinv_new( freqarr, elcnt, cl_dic, return_clmat = 1 )
-
-        '''
-        if (0):##el>200:
-            from IPython import embed; embed()
-            clf()
-            tt_cov = clmat[:nc, :nc]
-            ee_cov = clmat[nc:, nc:]
-            te_cov = clmat[nc:, :nc]
-            subplot(131); imshow(tt_cov); colorbar(); title(r'TT')
-            subplot(132); imshow(ee_cov); colorbar(); title(r'EE')
-            subplot(133); imshow(te_cov); colorbar(); title(r'TE')
-            show()
-
-            tt_var, ee_var, te_var = np.diag(tt_cov), np.diag(ee_cov), np.diag(te_cov)
-            te_var_predction = 0.35 * np.sqrt( tt_var * ee_var )
-            ax = subplot(111, yscale = 'log')
-            plot(freqarr, tt_var, 'k'); plot(freqarr, ee_var, 'green'); plot(freqarr, te_var, 'red'); 
-            plot(freqarr, te_var_predction, 'red', ls = '--', lw = 2.); 
-            show()
-            medval = np.median( np.asarray(clmat) )
-            imshow(clmat, vmin = medval * 0.5, vmax = medval * 2.); colorbar(); title(r'$\ell$ = %s' %(el)); show()
-        '''
+        clinv = get_clinv( freqarr, elcnt, cl_dic )
 
         nr = np.dot(clinv, acap)
         dr = np.dot( acap.T, np.dot(clinv, acap) )
@@ -440,64 +242,9 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
         #weightsarr[:, elcnt] = np.asarray(nr/dr).squeeze()
         weightsarr[:, :, elcnt] = weight
 
-        cl_residual_tmp.append( drinv )
-
-    '''
-    if (1):
-        cl_residual_tmp = np.asarray( cl_residual_tmp )
-        tt, ee, te = cl_residual_tmp[:,0,0], cl_residual_tmp[:,1,1], cl_residual_tmp[:,0,1]
-        ax  =subplot(111, yscale = 'log')
-        plot(tt, 'k'); plot(ee, 'green'); plot(te, 'red'); ylim(1e-15, 1e2); show(); 
-
-        from IPython import embed; embed()
-        clf()
-        weightsarr = np.asarray( weightsarr )
-        tt_w, ee_w = np.asarray( [weightsarr[:nc, 0], weightsarr[nc:, 1]] )
-        te_tt_w, te_ee_w = np.asarray( [weightsarr[nc:, 0], weightsarr[:nc, 1]] )
-        w_for_plot = [tt_w, ee_w]
-        colordic = {27:'indigo', 39:'royalblue', 93: 'lightgreen', 145: 'darkgreen', 225: 'goldenrod', 278: 'darkred'}
-        for iter in range(2):
-            ax  =subplot(3,1,iter+1); 
-            for i in range(nc):
-                nu = freqarr[i]
-                plot(w_for_plot[iter][i], color = colordic[nu], label = r'%s' %nu);
-            axhline(0., lw = 0.1)
-            axhline(1., lw = 0.1)
-            plot(np.sum(w_for_plot[iter], axis=0), 'k--')
-            if iter == 0:
-                legend(loc = 4, ncol = 5, fontsize = 4)
-
-        ax = subplot(3,1,3)
-        te_w_for_plot = [te_tt_w, te_ee_w]
-        for iter in range(2):
-            if iter == 0:
-                ls = '-'
-            else:
-                ls = '-.'
-            for i in range(nc):
-                nu = freqarr[i]
-                #plot(te_w_for_plot[iter][i], color = colordic[nu], label = r'%s' %nu);
-            axhline(0., lw = 0.1)
-            axhline(1., lw = 0.1)
-            plot(np.sum(te_w_for_plot[iter], axis=0), color = 'k', ls = ls )
-        show()
-
-        dummyel = 200
-        tmp = weightsarr[:,:,dummyel]
-        print(tmp)
-        print(tt_w[:,dummyel], np.sum(tt_w[:,dummyel]))
-        print(ee_w[:,dummyel], np.sum(ee_w[:,dummyel]))
-        print(te_tt_w[:,dummyel], np.sum(te_tt_w[:,dummyel]))
-        print(te_ee_w[:,dummyel], np.sum(te_ee_w[:,dummyel]))
-
-    from IPython import embed; embed()
-
-    sys.exit()
-    '''
 
     weightsarr = np.asarray( weightsarr )
     cl_residual = np.asarray( cl_residual )
-    print(weightsarr.shape)
 
     #from IPython import embed; embed()
 
@@ -508,7 +255,6 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
         return cl_residual, weightsarr
     else:
         return cl_residual
-
 
 ################################################################################################################
 
@@ -525,6 +271,47 @@ def compton_y_to_delta_Tcmb(nu, Tcmb = 2.73, h=6.62607004e-34, k_B=1.38064852e-2
     g_nu = x * coth(x/2.) - 4.
 
     return Tcmb * np.mean(g_nu)
+
+################################################################################################################
+
+def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1):
+
+    nc = len(freqarr)
+
+    if freqcalib_fac is None: freqcalib_fac = np.ones(nc)
+
+    if final_comp.lower() == 'cmb':
+        freqscale_fac = np.ones(nc)
+
+    elif final_comp.lower() == 'tsz' or final_comp.lower() == 'y':
+
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( compton_y_to_delta_Tcmb(freq * 1e9) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+
+        if final_comp.lower() == 'tsz': #tsz at 150 GHz
+            freqscale_fac = freqscale_fac / freqscale_fac[1]
+
+    acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
+
+    acap_full = np.zeros( (teb_len, len(acap) * teb_len) )
+    #acap_full[:len(acap), :] = acap
+
+    #acap = np.mat(np.eye(len(acap)) * acap)
+    acap_full[0,:len(acap)] = acap
+    acap_full[1,len(acap):] = acap
+
+    '''
+    acap_full[0,len(acap):] = acap/10.
+    acap_full[1,:len(acap)] = acap/10.
+    '''
+
+    acap_full = np.mat(acap_full).T #should be teb_len*nc x teb_len
+    acap = acap_full
+    
+    return acap
 
 ################################################################################################################
 

@@ -316,9 +316,40 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
         else: ##elif component == 'sync':
             rte = 0.
         cl_gal = rte * np.sqrt( cl_gal_tt * cl_gal_ee )
+
+        '''
         if (0):##component == 'sync':
             rho_dust_sync = 0.16 #Fig. 8 of https://arxiv.org/pdf/1801.04945.pdf
             cl_gal = cl_gal * rho_dust_sync
+
+        if (0):#component == 'dust':   
+            print('TE dust: scaling',)         
+            ##cl_gal_old = np.copy(cl_gal)
+            freq0 = 278
+            rte = 0.35 
+            cl_gal_tt, cl_gal_ee = cl_gal_dic[ (freq0, freq0) ][0], cl_gal_dic[ (freq0, freq0) ][1]
+            cl_gal_freq0 = rte * np.sqrt( cl_gal_tt * cl_gal_ee )
+            cl_gal = scale_cl_dust_galactic(cl_gal_freq0, freq1, freq2, freq0 = freq0)#, Tdust = 19.6, spec_index_dust = 1.6)
+
+            if (0):
+                color_dic = {93: 'b', 145: 'green', 225: 'orangered', 278: 'darkred'} 
+                ls_dic = {93: ':', 145: '--', 225: '-.', 278: '-'} 
+                loglog(cl_gal, color = color_dic[freq1], ls = ls_dic[freq2], label = r'%s,%s' %(freq1, freq2))
+                legend(loc = 3, fontsize = 8)
+            if (0):
+                loglog(cl_gal_old, 'k', ls = '-')
+                loglog(cl_gal, color = 'orangered', ls ='--')
+                title(r'%s: %s: %s,%s' %(component, which_spec, freq1, freq2))
+                show()
+
+            if (0):###freq1 != freq2:
+                print('TE dust: nulling cross terms',)
+                cl_gal *= 0.
+        
+        if (0):#component == 'sync':
+            print('TE sync: nulling',)
+            cl_gal *= 0.
+        '''
 
         """
         else:
@@ -342,6 +373,23 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
             print('(%s,%s) not found for mask = %s in %s. Setting them to zeros.' %(freq1, freq2, which_spec, cl_gal_dic_fname))
             cl_gal = np.zeros( len(cl_gal[0]) )
 
+    if (0):##component == 'dust':
+        color_dic = {93: 'b', 145: 'green', 225: 'orangered', 278: 'darkred'} 
+        ls_dic = {93: ':', 145: '--', 225: '-.', 278: '-'}
+        if which_spec == 'TT':
+            ax = subplot(1,3,1, yscale = 'log')
+            legend(loc = 3, fontsize = 4, ncol = 3)
+            plot(cl_gal, color = color_dic[freq1], ls = ls_dic[freq2], label = r'%s,%s' %(freq1, freq2))
+            xlim(0., 7000.); ylim(1e-8, 1e7)
+        elif which_spec == 'EE':
+            ax = subplot(1,3,2, yscale = 'log')
+            plot(cl_gal, color = color_dic[freq1], ls = ls_dic[freq2], label = r'%s,%s' %(freq1, freq2))
+            xlim(0., 7000.); ylim(1e-8, 1e7)
+        elif which_spec == 'TE':
+            ax = subplot(1,3,3, yscale = 'log')
+            plot(cl_gal, color = color_dic[freq1], ls = ls_dic[freq2], label = r'%s,%s' %(freq1, freq2))
+            xlim(0., 7000.); ylim(1e-8, 1e7)
+
     el_gal = np.arange( len(cl_gal) )
 
     if bl_dic is not None:
@@ -362,6 +410,28 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
     ##print(which_spec, cl_gal[:10], freq1, freq2)
 
     return el_gal, cl_gal
+
+def scale_cl_dust_galactic(cl, freq1, freq2 = None, freq0 = 278., Tdust = 19.6, spec_index_dust = 1.6):
+
+    if freq2 is None:
+        freq2 = freq1
+
+    nr = ( fn_dB_dT(freq0) )**2.
+    dr = fn_dB_dT(freq1) * fn_dB_dT(freq2)
+
+    epsilon_nu1_nu2 = nr/dr
+
+    bnu1 = fn_BnuT(freq1, temp = Tdust)
+    bnu2 = fn_BnuT(freq2, temp = Tdust)
+    bnu0 = fn_BnuT(freq0, temp = Tdust)
+
+    etanu1_dust = ((1.*freq1*1e9)**spec_index_dust) * bnu1
+    etanu2_dust = ((1.*freq2*1e9)**spec_index_dust) * bnu2
+    etanu0_dust = ((1.*freq0*1e9)**spec_index_dust) * bnu0
+
+    cl_dust = cl * epsilon_nu1_nu2 * (1.*etanu1_dust * etanu2_dust/etanu0_dust/etanu0_dust)## * (el*1./el_norm)**el_slope
+
+    return cl_dust
 
 def get_cl_dust_galactic(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., el_slope = -0.58, Tdust = 19.6, Adust_freq0 = 4.3, spec_index_dust = 1.6, return_dl = 0):
 
