@@ -54,6 +54,9 @@ parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='stor
 
 parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=1) #rough S4 mask
 
+
+parser.add_argument('-testing', dest='testing', action='store', help='testing', type=int, default=0)
+
 #nuarr = [20, 27, 39, 93, 145, 225, 278]
 #nuarr = [27, 39, 93, 145, 225, 278]
 
@@ -79,7 +82,6 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 
-testing =  1
 if testing and local:
     lmax = 2000
     nside = 512
@@ -338,6 +340,8 @@ if testing or not local:
         plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks.pdf'
         if use_lat_step_mask:
             plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4wide_cluster_search.pdf'
+        if use_s4like_mask:
+            plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_Neff.pdf'
         plfolder = '/'.join( plname.split('/')[:-1] )
         os.system('mkdir -p %s' %(plfolder))
         savefig(plname)

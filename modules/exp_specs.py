@@ -73,7 +73,7 @@ def get_exp_specs(expname, remove_atm = 0):
             white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
             white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
 
-        elif expname == 'spt3gy12':
+        elif expname == 'spt3g_ZP':
             white_noise_T_90 = 14.3
             white_noise_T_150 = 14.0
             white_noise_T_220 = 48.
@@ -81,6 +81,51 @@ def get_exp_specs(expname, remove_atm = 0):
             white_noise_P_90 = 25.
             white_noise_P_150 = 17.
             white_noise_P_220 = 56.
+
+        elif expname == 'spt3g_ZP':
+            white_noise_T_90 = 14.3
+            white_noise_T_150 = 14.0
+            white_noise_T_220 = 48.
+
+            white_noise_P_90 = 25.
+            white_noise_P_150 = 17.
+            white_noise_P_220 = 56.
+
+        elif expname == 'spt3g_y12':
+            white_noise_T_90 = 9.
+            white_noise_T_150 = 10.
+            white_noise_T_220 = 40.
+
+            white_noise_P_90 = np.sqrt(2.) * white_noise_T_90
+            white_noise_P_150 = np.sqrt(2.) * white_noise_T_150
+            white_noise_P_220 = np.sqrt(2.) * white_noise_T_220
+
+        elif expname == 'spt3g_summer':
+            white_noise_T_90 = 13.
+            white_noise_T_150 = 13.0
+            white_noise_T_220 = 40.
+
+            white_noise_P_90 = np.sqrt(2.) * white_noise_T_90
+            white_noise_P_150 = np.sqrt(2.) * white_noise_T_150
+            white_noise_P_220 = np.sqrt(2.) * white_noise_T_220
+
+        elif expname == 'sptpol_summer':
+            white_noise_T_90 = 60.
+            white_noise_T_150 = 28.0
+            white_noise_T_220 = 10000.
+
+            white_noise_P_90 = np.sqrt(2.) * white_noise_T_90
+            white_noise_P_150 = np.sqrt(2.) * white_noise_T_150
+            white_noise_P_220 = np.sqrt(2.) * white_noise_T_220
+
+        elif expname == 'sptpol':
+            white_noise_T_90 = 14.
+            white_noise_T_150 = 6.0
+            white_noise_T_220 = 10000.
+
+            white_noise_P_90 = np.sqrt(2.) * white_noise_T_90
+            white_noise_P_150 = np.sqrt(2.) * white_noise_T_150
+            white_noise_P_220 = np.sqrt(2.) * white_noise_T_220
 
         elif expname == 'spt3g_TC':
             white_noise_T_90 = 7.960
