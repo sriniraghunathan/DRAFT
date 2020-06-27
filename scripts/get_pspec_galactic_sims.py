@@ -52,7 +52,8 @@ parser.add_argument('-which_mask', dest='which_mask', action='store', help='whic
 
 parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='store', help='use_lat_step_mask', type=int, default=0) #mask based on latitude
 
-parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=1) #rough S4 mask
+parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=0) #rough S4 mask
+parser.add_argument('-use_s4like_mask_v2', dest='use_s4like_mask_v2', action='store', help='use_s4like_mask_v2', type=int, default=1) #rough S4 mask v2: split footrpint into clean and unclean region
 
 
 parser.add_argument('-testing', dest='testing', action='store', help='testing', type=int, default=0)
@@ -108,6 +109,8 @@ if not zonca_sims:
         opfname = '%s/lat_steps/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask:
         opfname = '%s/s4like_mask/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask_v2:
+        opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 else:
     if local:
@@ -128,9 +131,12 @@ else:
         opfname = '%s/lat_steps/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask:
         opfname = '%s/s4like_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask_v2:
+        opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
+if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
 log_file = 'tmp/pspec_%s.txt' %(dust_or_sync)
@@ -246,7 +252,7 @@ if testing or not local:
 
         tot_masks = len(lat_mask_arr)
 
-    elif use_s4like_mask:
+    elif use_s4like_mask or use_s4like_mask_v2:
 
         npix = H.nside2npix( nside )
         phi_deg, theta_deg = H.pix2ang( nside, np.arange(npix), lonlat = 1 )
@@ -280,7 +286,7 @@ if testing or not local:
 
             mask = lat_mask_arr[mask_iter]
 
-        elif use_s4like_mask:
+        elif use_s4like_mask or use_s4like_mask_v2:
 
             mask = s4like_mask_arr[mask_iter]
 
@@ -305,6 +311,23 @@ if testing or not local:
         mask_arr.append( no_mask )
 
         mask_arr = mask_arr * cmbs4_hit_map
+        tot_masks = len(mask_arr)
+
+    if use_s4like_mask_v2: #20200627
+
+        mask_arr = mask_arr * cmbs4_hit_map
+        #add additional masks that cover the uncleaned CMB-S4 region.
+        unclean_mask_arr = []
+        for m in range(tot_masks):
+            curr_clean_mask = mask_arr[m]
+            curr_unclean_mask = cmbs4_hit_map - curr_clean_mask
+            unclean_mask_arr.append( curr_unclean_mask )
+            '''
+            tit1 = np.mean(curr_clean_mask);tit2 = np.mean(curr_unclean_mask);print(tit1 + tit2)
+            H.mollview(curr_clean_mask, sub = (1,2,1), title = '%.2f' %tit1);H.mollview(curr_unclean_mask, sub = (1,2,2), title = '%.2f' %tit2); show()
+            '''
+        mask_arr = np.concatenate( (mask_arr, unclean_mask_arr) )
+        tot_masks = len(mask_arr)
 
     #print(len(mask_arr))
     if which_mask != -1:
@@ -336,12 +359,21 @@ if testing or not local:
         clf()
         for mask_iter in range(tot_masks):
             fsky = np.mean(mask_arr[mask_iter])
-            H.mollview(mask_arr[mask_iter], sub = (1, tot_masks,mask_iter+1), title = r'Mask: %s: f$_{\rm sky} = %.2f$' %(mask_iter, fsky), cbar = 0, title_fontsize = 10); 
+            if not use_s4like_mask_v2:
+                H.mollview(mask_arr[mask_iter], sub = (1, tot_masks,mask_iter+1), title = r'Mask: %s: f$_{\rm sky} = %.2f$' %(mask_iter, fsky), cbar = 0, title_fontsize = 10); 
+            else:
+                if mask_iter<3:
+                    maskno = '%s(a)' %(mask_iter)
+                else:
+                    maskno = '%s(b)' %(mask_iter-3)
+                H.mollview(mask_arr[mask_iter], sub = (2, tot_masks/2,mask_iter+1), title = r'Mask: %s: f$_{\rm sky} = %.2f$' %(maskno, fsky), cbar = 0, title_fontsize = 10); 
         plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks.pdf'
         if use_lat_step_mask:
             plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4wide_cluster_search.pdf'
         if use_s4like_mask:
             plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_Neff.pdf'
+        if use_s4like_mask_v2:
+            plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_v2_Neff.pdf'
         plfolder = '/'.join( plname.split('/')[:-1] )
         os.system('mkdir -p %s' %(plfolder))
         savefig(plname)
