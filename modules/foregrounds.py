@@ -407,8 +407,6 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
         cl_gal = np.interp(el, el_gal, cl_gal, left = 0., right = 0.)
         el_gal = np.copy( el )
 
-    ##print(which_spec, cl_gal[:10], freq1, freq2)
-
     return el_gal, cl_gal
 
 def scale_cl_dust_galactic(cl, freq1, freq2 = None, freq0 = 278., Tdust = 19.6, spec_index_dust = 1.6):

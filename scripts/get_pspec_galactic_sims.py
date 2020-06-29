@@ -373,10 +373,10 @@ if testing or not local:
         if use_s4like_mask:
             plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_Neff.pdf'
         if use_s4like_mask_v2:
-            plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_v2_Neff.pdf'
+            plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_v2_Neff.png'
         plfolder = '/'.join( plname.split('/')[:-1] )
         os.system('mkdir -p %s' %(plfolder))
-        savefig(plname)
+        savefig(plname, dpi = 150)
         show()
 
         totiter = 1
@@ -421,9 +421,9 @@ if testing or not local:
             cmbs4_hit_map_dummy[cmbs4_hit_map_dummy!=0] = 1.
             fsky = np.mean(cmbs4_hit_map_dummy)
             H.mollview(cmbs4_hit_map, sub = (1,3,cntr+1), title = r'%s: f$_{\rm sky} = %.2f$' %(fname_str, fsky), title_fontsize = 6); 
-        plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/S4_hitmaps.pdf'
-        #savefig(plname)
-        show()
+        plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/S4_hitmaps.png'
+        savefig(plname, dpi = 150)
+        #show()
         sys.exit()
 
 

@@ -133,11 +133,13 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
     delta_T_radians = noiseval * np.radians(1./60.)
     nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
     nl = np.asarray( [nl[int(l)] for l in el] )
+    nl_white = np.copy(nl)
 
     if cross_band_noise:
         delta_T2_radians = noiseval2 * np.radians(1./60.)
         nl2 = np.tile(delta_T2_radians**2., int(max(el)) + 1 )
         nl2 = np.asarray( [nl2[int(l)] for l in el] )
+        nl2_white = np.copy(nl2)
 
     if use_beam_window: 
         nl *= bl
@@ -149,7 +151,9 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
             nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
 
     if cross_band_noise:
-        final_nl = rho * nl**0.5 * nl2**0.5
+        #final_nl = rho * nl**0.5 * nl2**0.5
+        final_nl = rho * delta_T_radians * (elknee * 1./el)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el)**(alphaknee2/2.)
+        #N[i,j,:] = rho * (w1*np.pi/180./60. * (ell/knee1)**(gamma1/2)) * (w2*np.pi/180./60. * (ell/knee2)**(gamma2/2))
     else:
         final_nl = np.copy(nl)
 

@@ -5,6 +5,56 @@ rcParams['font.family'] = 'serif'
 rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 
+if (1): #make plots of S4 ILC curves
+    s4_ilc_folder = 'results/20200601/s4like_mask//TT-EE-TE/baseline/'
+
+    colorarr = ['black', 'darkred']
+    include_gal_arr = [0, 1]
+    for include_gal in include_gal_arr:
+        if not include_gal:
+            fname = '%s/S4_ilc_galaxy0_27-39-93-145-225-278_TT-EE-TE_lf2-mf12-hf5_AZ.npy' %(s4_ilc_folder)
+        else:
+            galmask = 3
+            fname = '%s/S4_ilc_galaxy1_27-39-93-145-225-278_TT-EE-TE_lf2-mf12-hf5_galmask%s_AZ.npy' %(s4_ilc_folder, galmask)
+
+        dic = np.load(fname, allow_pickle = 1).item()
+        el_nl, cl_residual = dic['el'], dic['cl_residual']
+        Nl_TT, Nl_EE = cl_residual['TT'], cl_residual['EE']
+
+        clf()
+        fsval = 14
+
+        ax = subplot(111, yscale = 'log', xscale = 'log')
+        plot(Nl_TT, ls = '-', color = 'black', label = r'ILC: TT')
+        plot(Nl_EE, ls = '-', color = 'orangered', label = r'ILC: EE')
+
+        if (1):
+            #camb CMB
+            camb_file = '%s/%s' %(dic['param_dict']['data_folder'], dic['param_dict']['Dlfile_len'])
+            Tcmb= dic['param_dict']['T_cmb']
+            el_camb = np.loadtxt(camb_file, usecols = [0])
+            dl_camb = np.loadtxt(camb_file, usecols = [1,2,3,4])
+            cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,None] + 1) )
+            cl_camb *= 1e12
+            Dls_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+            plot(el_camb, cl_camb[:,0], color = 'gray', lw = 0.1)
+            plot(el_camb, cl_camb[:,1], color = 'navy', lw = 0.1)
+            #plot(el_camb, cl_camb[:,1], color = 'navy', lw = 0.5)
+
+        xlim(10, 7000); #ylim(0.9, 1.1)
+        xlabel(r'Multipole $\ell$', fontsize = fsval)
+        galstr = ''
+        if include_gal:
+            galstr = ': Galaxy = %s: Galmask = %s' %(include_gal, galmask)
+        title(r'S4 LAT ILC residuals (DSR specs)%s' %(galstr))
+        legend(loc = 3, fontsize = fsval - 3, fancybox = 1)
+        ylabel(r'$C_{\ell}\ [\mu K^{2}]$', fontsize = fsval)
+
+        plname = 'reports/s4_lat_freq_dep/s4_LAT_ilc_curves_galaxy%s.png' %(include_gal)
+        savefig(plname, dpi = 150)
+    sys.exit()
+    #show(); sys.exit()
+
 if (0): #make raito plots of baseline vs other configurations
     clf()
     fig = figure(figsize=(8, 5))
@@ -114,7 +164,6 @@ if (0): #make ratio plot of ILC for TTEE vs TTEETE
     savefig(plname, dpi = 200)
     sys.exit()
     #show(); sys.exit()
-
 
 if (1): #make ILC plot got Gil similar to Fig. 3 of https://arxiv.org/pdf/2006.06594.pdf
 
