@@ -151,7 +151,7 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
             nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
 
     if cross_band_noise:
-        #final_nl = rho * nl**0.5 * nl2**0.5
+        ###final_nl = rho * nl**0.5 * nl2**0.5
         final_nl = rho * delta_T_radians * (elknee * 1./el)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el)**(alphaknee2/2.)
         #N[i,j,:] = rho * (w1*np.pi/180./60. * (ell/knee1)**(gamma1/2)) * (w2*np.pi/180./60. * (ell/knee2)**(gamma2/2))
     else:
