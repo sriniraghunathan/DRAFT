@@ -89,12 +89,17 @@ if testing and local:
     ##nuarr = [ 145 ]#, 145]
     nuarr = [ 93 ]
 
+'''
 if not local:
     mask_folder = '/u/home/s/srinirag/project-nwhiteho/cmbs4/masks/planck/'
     cmbs4_footprint_folder = '/u/home/s/srinirag/project-nwhiteho/cmbs4/footprints/'
 else:
     mask_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/masks/planck/'
     cmbs4_footprint_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/footprints/'
+'''
+
+mask_folder = 'cmbs4/masks/planck/'
+cmbs4_footprint_folder = 'cmbs4/footprints/'
 
 if not zonca_sims:
     if local:
@@ -113,10 +118,14 @@ if not zonca_sims:
         opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 else:
+    '''
     if local:
         sim_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
     else:
         sim_folder = '/u/home/s/srinirag/project-nwhiteho/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    '''
+
+    sim_folder = 'cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
 
     if dust_or_sync == 'dust':
         sim_folder = '%s/dust/' %(sim_folder)
