@@ -54,6 +54,7 @@ parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='stor
 
 parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=0) #rough S4 mask
 parser.add_argument('-use_s4like_mask_v2', dest='use_s4like_mask_v2', action='store', help='use_s4like_mask_v2', type=int, default=1) #rough S4 mask v2: split footrpint into clean and unclean region
+parser.add_argument('-cos_el', dest='cos_el', action='store', help='cos_el', type=int, default=40) #rough S4 mask v2: split footrpint into clean and unclean region
 
 
 parser.add_argument('-testing', dest='testing', action='store', help='testing', type=int, default=0)
@@ -155,7 +156,11 @@ if t_only:
 
 if which_mask != -1:
     log_file = log_file.replace('.txt', '_mask%s.txt' %(which_mask))     
-    opfname = opfname.replace('.npy', '_mask%s.npy' %(which_mask))    
+    opfname = opfname.replace('.npy', '_mask%s.npy' %(which_mask))
+
+if (1):##cos_el != 30:
+    log_file = log_file.replace('.txt', '_cos_el_%s.txt' %(cos_el))     
+    opfname = opfname.replace('.npy', '_cos_el_%s.npy' %(cos_el))
 
 lf = open(log_file, 'w'); lf.close()
 
@@ -200,7 +205,7 @@ if testing or not local:
         map_dic[nu] = currmap
 
     if (1): #get cmbs4 footprint        
-        cmbs4_hit_map_fname = '%s/high_cadence_hits_el30_cosecant_modulation.fits' %(cmbs4_footprint_folder)
+        cmbs4_hit_map_fname = '%s/high_cadence_hits_el%s_cosecant_modulation.fits' %(cmbs4_footprint_folder, cos_el)
         #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
         cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
         cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
@@ -382,7 +387,7 @@ if testing or not local:
         if use_s4like_mask:
             plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_Neff.pdf'
         if use_s4like_mask_v2:
-            plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_v2_Neff.png'
+            plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4_v2_Neff_cos_el_%s.png' %(cos_el)
         plfolder = '/'.join( plname.split('/')[:-1] )
         os.system('mkdir -p %s' %(plfolder))
         savefig(plname, dpi = 150)

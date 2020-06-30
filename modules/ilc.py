@@ -49,6 +49,9 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             elif which_spec == 'TE':
                 cl_radio = cl_radio * 0.
 
+            print('\n\n\t inlcude tsz x cib\n\n')
+            sys.exit()
+
             cl = np.copy( cl_ori )
             if 'cmb' not in ignore_fg:
                 cl = cl + np.copy(cl_cmb)
