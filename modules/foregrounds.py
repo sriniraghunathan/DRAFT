@@ -204,6 +204,25 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15'):
 
     return el, cl_tsz
 
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20.):
+
+    if fg_model == 'george15':
+        corr_coeff = 0.1
+    elif fg_mode == 'reichardt20':
+        corr_coeff = 0.078
+
+    el, cl_dg_po_freq1_freq1, cl_dg_clus_freq1_freq1 = get_cl_dust(freq1, freq1, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
+    el, cl_tsz_freq1_freq1 = get_cl_tsz(freq1, freq1, freq0 = freq0, fg_model = fg_model)
+    cl_dg_freq1_freq1 = cl_dg_po_freq1_freq1 + cl_dg_clus_freq1_freq1
+
+    el, cl_dg_po_freq2_freq2, cl_dg_clus_freq2_freq2 = get_cl_dust(freq2, freq2, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
+    el, cl_tsz_freq2_freq2 = get_cl_tsz(freq2, freq2, freq0 = freq0, fg_model = fg_model)
+    cl_dg_freq2_freq2 = cl_dg_po_freq2_freq2 + cl_dg_clus_freq2_freq2
+
+    cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
+
+    return el, cl_tsz_cib
+
 def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg = -0.9):
 
     if fg_model == 'george15':

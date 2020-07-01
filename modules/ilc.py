@@ -49,8 +49,24 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             elif which_spec == 'TE':
                 cl_radio = cl_radio * 0.
 
-            print('\n\n\t inlcude tsz x cib\n\n')
-            sys.exit()
+            #print('\n\n\t inlcude tsz x cib\n\n')
+            #sys.exit()
+            #get tSZ x CIB
+            el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+            if which_spec == 'EE' or which_spec == 'TE':
+                cl_tsz_cib = cl_tsz_cib * 0.
+            if (0):
+                freq_combs = [ (90, 90), (90,150), (90, 220), (150, 150), (150, 220), (220, 220)]
+                colorarr = ['navy', 'blue', 'royalblue', 'green', 'lime', 'darkred']
+                ax = subplot(111, yscale = 'log');
+                for cntr, f1f2 in enumerate( freq_combs ):
+                    freq1, freq2 = f1f2
+                    el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+                    el, cl_tsz_cib_v2 = fg.get_foreground_power_spt('tSZ-CIB', freq1 = freq1, freq2 = freq2) 
+                    plot(el, cl_tsz_cib, color = colorarr[cntr], lw = 1.); plot(el, -cl_tsz_cib_v2, color = colorarr[cntr], lw = 2., ls = '--'); 
+                xlim(100, 5000)
+                show()
+                sys.exit()
 
             cl = np.copy( cl_ori )
             if 'cmb' not in ignore_fg:
