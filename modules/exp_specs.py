@@ -5,7 +5,6 @@ def get_exp_specs(expname, remove_atm = 0):
     if expname.find('s4')>-1:
         if expname == 's4wide':
 
-            #DSR specs
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
             27: [7.4, 21.34, 415., 3.5, 30.23, 700, 1.4],
@@ -204,8 +203,8 @@ def get_exp_specs(expname, remove_atm = 0):
         150: [beam_150, white_noise_T_150, elknee_T_150, alphaknee_T_150, white_noise_P_150, elknee_P_150, alphaknee_P_150],
         220: [beam_220, white_noise_T_220, elknee_T_220, alphaknee_T_220, white_noise_P_220, elknee_P_220, alphaknee_P_220],
         }
-
+        corr_noise = 0
         corr_noise_bands = {90:[90], 150:[150], 220: [220]}
         rho = 1.
 
-    return specs_dic, corr_noise_bands, rho
+    return specs_dic, corr_noise_bands, rho, corr_noise
