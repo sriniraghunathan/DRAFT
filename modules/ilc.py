@@ -49,8 +49,6 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             elif which_spec == 'TE':
                 cl_radio = cl_radio * 0.
 
-            #print('\n\n\t inlcude tsz x cib\n\n')
-            #sys.exit()
             #get tSZ x CIB
             el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
             if which_spec == 'EE' or which_spec == 'TE':
@@ -83,6 +81,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             if 'dust' not in ignore_fg:
                 #print('dust')
                 cl = cl + cl_dg_po + cl_dg_clus
+            if 'dust' not in ignore_fg and 'tsz' not in ignore_fg:
+                cl = cl + cl_tsz_cib
 
             if include_gal:# and not pol: #get galactic dust and sync
 
