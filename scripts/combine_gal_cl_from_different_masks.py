@@ -6,23 +6,24 @@ if str(os.getcwd()).find('sri')>-1:
 
 s4like_mask =0
 lat_steps_mask=0
+s4like_mask_v2=0
 
 nside, lmax = 2048, 3500
 t_only = 0
 
 zonca_sims = 1
 
-'''
-lat_steps_mask = 1
-nside, lmax = 4096, 10000 ##7000
-'''
+if (1):
+    lat_steps_mask = 1
+    nside, lmax = 4096, 10000 ##7000
 
-#s4like_mask = 1
-#nside, lmax = 4096, 7000
-s4like_mask_v2 = 1
-nside, lmax = 4096, 7000
-nside, lmax = 2048, 5000
-t_only = 0
+if (0):
+    #s4like_mask = 1
+    #nside, lmax = 4096, 7000
+    s4like_mask_v2 = 1
+    nside, lmax = 4096, 7000
+    nside, lmax = 2048, 5000
+    t_only = 0
 
 
 if zonca_sims:
@@ -79,7 +80,7 @@ for which_comp in comp_arr:
     opdic['lmax'] = lmax
     opdic['fsky_arr'] = np.asarray( fksy_arr )
 
-    opfname = f.replace('%s_' %mask_str, '')
+    opfname = f.replace('%s_' %mask_str, '').replace('_%s' %mask_str, '')
     print(opfname)
     print('\n')
     np.save(opfname, opdic)

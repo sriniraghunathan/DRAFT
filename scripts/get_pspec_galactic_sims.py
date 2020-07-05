@@ -88,7 +88,7 @@ if testing and local:
     lmax = 2000
     nside = 512
     ##nuarr = [ 145 ]#, 145]
-    nuarr = [ 93 ]
+    nuarr = [ 145 ]
 
 '''
 if not local:
@@ -393,6 +393,8 @@ if testing or not local:
         savefig(plname, dpi = 150)
         show()
 
+        #mask_arr = [mask_arr[2], mask_arr[5]]
+        #tot_masks = len(mask_arr)
         totiter = 1
         for iter in range(totiter):
             clf()
@@ -401,7 +403,7 @@ if testing or not local:
                     vmin, vmax = -80., 80. #None, None
                 else:
                     if dust_or_sync == 'dust':
-                        vmin, vmax = 0., 400.
+                        vmin, vmax = 0., 500.
                     else:
                         vmin, vmax = None, None
             else:
@@ -410,20 +412,48 @@ if testing or not local:
             if t_only:
                 currmap = [currmap]
 
+            mask_str_arr = []
+            if use_s4like_mask_v2:
+                mask_str_arr = ['Mask 1: S4-Clean: fsky = ', 'Mask 2: S4-Dirty: fsky = ', 'Mask 3: {\it Planck} rest: fsky = ']
+
+                planck_mask_fname = '%s/HFI_Mask_GalPlane-apo0_2048_R2.00.fits' %(mask_folder)
+                planck_mask = H.read_map(planck_mask_fname, verbose = 1, field = (2))#,2,3))
+                if (1):
+                    planck_mask = H.ud_grade(planck_mask, 128)
+                    #simple rotation from gal to celestial
+                    planck_mask = healpix_rotate_coords(planck_mask, coord = ['G', 'C'])
+                    planck_mask = H.smoothing(np.copy(planck_mask), fwhm = np.radians(10.), verbose = verbose)#, lmax = lmax)
+                    planck_mask = H.ud_grade(planck_mask, nside_out = nside)
+                    thresh = 0.4
+                    planck_mask[planck_mask<thresh] = 0.
+                    planck_mask[planck_mask!=0] = 1.                
+                planck_mask = H.ud_grade(planck_mask, nside)
+                planck_rest_of_sky = (1 - cmbs4_hit_map) * planck_mask
+                mask_arr.append( planck_rest_of_sky )
+                tot_masks = len(mask_arr)
+
             for mask_iter in range(tot_masks):
                 fsky = np.mean(mask_arr[mask_iter])
-                H.mollview(currmap[0] * mask_arr[mask_iter], sub = (1,tot_masks,mask_iter+1), title_fontsize = 6, unit = r'$\mu K$', title = r'%s @ 145 GHz + Mask %s: f$_{\rm sky} = %.2f$' %(dust_or_sync, mask_iter, fsky), min = vmin, max = vmax); 
+                tit = r'%s @ 145 GHz + Mask %s: f$_{\rm sky} = %.2f$' %(dust_or_sync, mask_iter, fsky)
+                if len(mask_str_arr)>0:
+                    tit = r'%s %.2f' %(mask_str_arr[mask_iter], fsky)
+                #H.mollview(currmap[0] * mask_arr[mask_iter], sub = (1,tot_masks,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=True,); #unit = r'$\mu K$')
+                H.mollview(currmap[0] * mask_arr[mask_iter], sub = (3,1,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=False,); #unit = r'$\mu K$')
             
             if iter == 0:
                 if zonca_sims:
-                    plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s.pdf' %(dust_or_sync, nu)
+                    plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s.pdf' %(dust_or_sync, nu)
                 else:
-                    plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_fixedcolourscale.pdf' %(dust_or_sync, nu) 
+                    plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_fixedcolourscale.pdf' %(dust_or_sync, nu) 
             else:
-                plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_freecolourscale.pdf' %(dust_or_sync, nu)
+                plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_freecolourscale.pdf' %(dust_or_sync, nu)
             #savefig(plname)
             if use_lat_step_mask:
-                plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_S4wide_cluster_search.pdf' %(dust_or_sync, nu)
+                    plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/scripts/reports/galactic_sims/maps_masks/%s_%s_S4wide_cluster_search.pdf' %(dust_or_sync, nu)
+            if use_s4like_mask_v2:
+                #plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/%s_%s_masks_S4_v2_Neff_cos_el_%s.png' %(dust_or_sync, nu, cos_el)
+                plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/%s_%s_masks_S4_v2_Neff_cos_el_%s_v2.png' %(dust_or_sync, nu, cos_el)
+            savefig(plname, dpi = 150)
             show(); #sys.exit()
 
         clf()

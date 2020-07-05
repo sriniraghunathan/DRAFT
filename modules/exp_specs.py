@@ -115,8 +115,16 @@ def get_exp_specs(expname, remove_atm = 0):
         beam_90, beam_150, beam_220 = 1.7, 1.2, 1.0
 
         if expname == 'sptsz':
-            white_noise_T_90, white_noise_T_150, white_noise_T_220 = 40., 18., 55.
+            #slide 3 of Lindsey https://pole.uchicago.edu/sptpol/images/Spt_des_clusters_july17_f2f.pdf
+            white_noise_T_90, white_noise_T_150, white_noise_T_220 = 40., 17., 80.
             white_noise_P_90, white_noise_P_150, white_noise_P_220 = 1e6, 1e6, 1e6
+        elif expname == 'sptpolultradeep':
+            #slide 3 of Lindsey https://pole.uchicago.edu/sptpol/images/Spt_des_clusters_july17_f2f.pdf
+            white_noise_T_90, white_noise_T_150, white_noise_T_220 = 10., 3.8, 1e6
+
+            white_noise_P_90 = white_noise_T_90 * np.sqrt(2.)
+            white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
+            white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
         elif expname == 'sptpolsummer':
             white_noise_T_150 = 28.
             white_noise_T_90 = white_noise_T_150 * np.sqrt(2.)
@@ -135,14 +143,14 @@ def get_exp_specs(expname, remove_atm = 0):
             white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
             white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
 
-        elif expname == 'spt3g_ZP':
-            white_noise_T_90 = 14.3
-            white_noise_T_150 = 14.0
-            white_noise_T_220 = 48.
+        elif expname == 'spt3g':
+            white_noise_T_90 = 3.0
+            white_noise_T_150 = 2.2
+            white_noise_T_220 = 8.8
 
-            white_noise_P_90 = 25.
-            white_noise_P_150 = 17.
-            white_noise_P_220 = 56.
+            white_noise_P_90 = np.sqrt(2.) * white_noise_T_90
+            white_noise_P_150 = np.sqrt(2.) * white_noise_T_150
+            white_noise_P_220 = np.sqrt(2.) * white_noise_T_220
 
         elif expname == 'spt3g_ZP':
             white_noise_T_90 = 14.3
