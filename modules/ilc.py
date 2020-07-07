@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000.):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -34,6 +34,18 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             elif which_spec == 'TE':
                 cl_dg_po = cl_dg_po * 0.
                 cl_dg_clus = cl_dg_clus * 0.
+
+            #include CIB decorrelation if available
+            if cib_corr_coeffs is not None:
+                if freq1 == freq2:
+                    corr_coeff = 1.
+                else:
+                    if (freq1, freq2) in cib_corr_coeffs:
+                        corr_coeff = cib_corr_coeffs[(freq1, freq2)]
+                    elif (freq2, freq1) in cib_corr_coeffs:
+                        corr_coeff = cib_corr_coeffs[(freq2, freq1)]
+                cl_dg_po *= corr_coeff
+                cl_dg_clus *= corr_coeff
 
             #get tsz
             el, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
@@ -83,6 +95,19 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cl = cl + cl_dg_po + cl_dg_clus
             if 'dust' not in ignore_fg and 'tsz' not in ignore_fg:
                 cl = cl + cl_tsz_cib
+
+            if (1):
+                if (freq1 >= 600 or freq2>600) and which_spec == 'TT':
+                    print(freq1, freq2)
+                    cl_dust = cl_dg_po + cl_dg_clus
+                    labval = r'%s,%s' %(freq1, freq2)
+                    loglog(cl_cmb, 'gray')
+                    loglog(cl, 'k')
+                    loglog(cl_dust, ls = '--', label = labval)
+                    legend(loc=3, fontsize = 6)
+                    #title(labval)
+                    #show(); sys.exit()
+
 
             if include_gal:# and not pol: #get galactic dust and sync
 

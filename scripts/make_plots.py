@@ -5,7 +5,7 @@ rcParams['font.family'] = 'serif'
 rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 
-if (1): #make plots of S4 ILC curves
+if (0): #make plots of S4 ILC curves
     s4_ilc_folder = 'results/20200601/s4like_mask//TT-EE-TE/baseline/'
 
     colorarr = ['black', 'darkred']
@@ -165,7 +165,7 @@ if (0): #make ratio plot of ILC for TTEE vs TTEETE
     sys.exit()
     #show(); sys.exit()
 
-if (1): #make ILC plot got Gil similar to Fig. 3 of https://arxiv.org/pdf/2006.06594.pdf
+if (0): #make ILC plot got Gil similar to Fig. 3 of https://arxiv.org/pdf/2006.06594.pdf
 
     def inv_var_noise(nl1, nl2):
 
@@ -273,8 +273,116 @@ if (1): #make ILC plot got Gil similar to Fig. 3 of https://arxiv.org/pdf/2006.0
     #show(); sys.exit()
 
 
+if (1): #make ILC plot for SPT
 
-if (1):
+    sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
+    import misc
+    clf()
+    subplots_adjust(hspace = 0.1)
+    fsval = 14
+    spt_ilc_folder = 'results/spt/'
+    
+
+    colorarr = ['orangered', 'darkred']
+    include_gal = 0
+
+    sptpolultradeep = '%s/sptpolultradeep_ilc_90-150-220_TT-EE.npy' %(spt_ilc_folder)
+    #sptpolultradeepplus3g = '%s/sptpolultradeepplus3g_ilc_90-150-220_TT-EE.npy' %(spt_ilc_folder)
+    sptpolplusultradeep = '%s/sptpolplusultradeep_ilc_90-150-220_TT-EE.npy' %(spt_ilc_folder)
+    sptpolplusultradeepplus3g = '%s/sptpolplusultradeepplus3g_ilc_90-150-220_TT-EE.npy' %(spt_ilc_folder)
+    sptpolplusultradeepplus3gfull = '%s/sptpolplusultradeepplus3gfull_ilc_90-150-220_TT-EE.npy' %(spt_ilc_folder)
+
+    fname_arr = [sptpolultradeep, sptpolplusultradeep, sptpolplusultradeepplus3g, sptpolplusultradeepplus3gfull]
+    lab_arr = [r'Ultradeep', r'Ultradeep+SPTpol', r'Ultradeep+SPTpol+3G', r'Ultradeep+SPTpol+3G-full']
+
+    #camb CMB
+    dic = np.load(sptpolultradeep, allow_pickle = 1).item()
+    camb_file = '%s/%s' %(dic['param_dict']['data_folder'], dic['param_dict']['Dlfile_len'])
+    Tcmb= dic['param_dict']['T_cmb']
+    el_camb = np.loadtxt(camb_file, usecols = [0])
+    dl_camb = np.loadtxt(camb_file, usecols = [1,2,3,4])
+    cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,None] + 1) )
+    cl_camb *= 1e12
+    Dls_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+
+    #kSZ
+    ksz_file = '%s/dl_ksz_CSFplusPATCHY_13sep2011_norm1_fake12000.txt' %(dic['param_dict']['data_folder'])
+    el_ksz, dl_ksz = np.loadtxt(ksz_file, unpack = 1)
+    dl_ksz *= 3.
+
+    tr, tc = 10, 1
+    rspan = 6
+    rspan2 = tr-rspan
+
+    ax = subplot2grid((tr,tc), (0,0), rowspan = rspan, yscale = 'log')
+    plot(el_camb,  cl_camb[:,0] * Dls_fac_camb, ls = '-', color = 'gray')#, label = r'Lensed CMB')
+    plot(el_ksz,  dl_ksz, ls = '-', color = 'royalblue', label = r'kSZ')
+
+
+    Nl_TT_arr, colorarr = [], []
+    for fcntr, fname in enumerate( fname_arr ):
+        if fcntr == 0:
+            colorval = 'darkgreen'
+        elif fcntr == 1:
+            colorval = 'orangered'
+        elif fcntr == 2:
+            colorval = 'black'
+        else:
+            colorval = 'm'
+        labval = lab_arr[fcntr]
+        #ILC noise
+        dic = np.load(fname, allow_pickle = 1).item()
+        el_nl, cl_residual = dic['el'], dic['cl_residual']
+        try:
+            Nl_TT, Nl_EE = cl_residual['TT'], cl_residual['EE']
+        except:
+            Nl_TT, Nl_EE = cl_residual['T'], cl_residual['P']
+        Dls_fac = el_nl * (el_nl + 1) / 2/ np.pi
+        Nl_TT_arr.append(Nl_TT)
+        colorarr.append(colorval)
+
+        lwval = 1.
+        plot(el_nl, Nl_TT * Dls_fac, ls = '-', color = colorval, label = labval, lw = lwval)
+        #plot(el_nl, Nl_TT_with_planck * Dls_fac, ls = '-', color = colorval, label = r'+{\it Planck}', lw = lwval)
+        #plot(el_nl, Nl_TT_with_planck * Dls_fac, ls = '-', color = colorval, label = r'%s + {\it Planck}' %(labval), lw = lwval)
+
+    if (0):
+        #Ultradeep only
+        dic = np.load(sptpolultradeep, allow_pickle = 1).item()
+        nl_fg_150 = dic['cl_dic']['TT'][(150, 150)]
+        plot(el_nl, nl_fg_150 * Dls_fac, ls = '-.', color = colorval, label = labval, lw = lwval)
+
+    xmin, xmax = 2000, 10000
+    xlim(xmin, xmax);ylim(1., 1e4)
+    #xlabel(r'Multipole $\ell$', fontsize = fsval)
+    setp(ax.get_xticklabels(which = 'both'), visible=False)
+    legend(loc = 2, fontsize = fsval - 4, fancybox = 1)#, ncol = 3)
+    ylabel(r'$D_{\ell}$ [$\mu K^{2}$]', fontsize = fsval)
+    title(r'SPTpol 100d ultradeep noise levels')
+
+    ax = subplot2grid((tr,tc), (rspan,0), rowspan = rspan2)#, yscale = 'log')
+
+    if (1): #Ultradeep only
+        dic = np.load(sptpolultradeep, allow_pickle = 1).item()
+        nl_fg_150 = dic['cl_dic']['TT'][(150, 150)]
+        plot(el_nl, nl_fg_150 * Dls_fac, ls = '-.', color = colorval, label = labval, lw = lwval)
+
+
+    Nl_TT_arr = np.asarray(Nl_TT_arr)
+    Nl_TT_arr = Nl_TT_arr / nl_fg_150
+    for ncntr in range(len(Nl_TT_arr)):
+        plot(el_nl, Nl_TT_arr[ncntr], ls = '-', color = colorarr[ncntr], lw = lwval)
+    xlim(xmin, xmax)#;ylim(1e-1, 1e3)
+    ylim(0.5, 1.05)
+    axhline(1.,lw=0.35)
+    ylabel(r'ILC/C$_{\ell}^{150}$', fontsize = fsval)
+    #plname = 'reports/s4_wide_deep_6bands_ilc_curves_for_Gil.png'
+    #savefig(plname, dpi = 200)
+    show()
+    sys.exit()
+    #show(); sys.exit()
+
+if (0):
     clf(); 
     fsval = 8
     lwval = 0.75

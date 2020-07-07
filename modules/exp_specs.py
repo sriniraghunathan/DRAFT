@@ -125,6 +125,38 @@ def get_exp_specs(expname, remove_atm = 0):
             white_noise_P_90 = white_noise_T_90 * np.sqrt(2.)
             white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
             white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
+        elif expname == 'sptpolultradeepplus3g':
+            #slide 3 of Lindsey https://pole.uchicago.edu/sptpol/images/Spt_des_clusters_july17_f2f.pdf
+            white_noise_T_90, white_noise_T_150, white_noise_T_220 = 10., 3.8, 30.
+
+            white_noise_P_90 = white_noise_T_90 * np.sqrt(2.)
+            white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
+            white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
+        elif expname == 'sptpolplusultradeep':
+            #slide 3 of Lindsey https://pole.uchicago.edu/sptpol/images/Spt_des_clusters_july17_f2f.pdf
+            white_noise_T_90, white_noise_T_220 = 10., 1e6
+            white_noise_T_150 = ( (1./3.8**2.) + (1./5**2.) )**-0.5
+
+            white_noise_P_90 = white_noise_T_90 * np.sqrt(2.)
+            white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
+            white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
+        elif expname == 'sptpolplusultradeepplus3g':
+            #slide 3 of Lindsey https://pole.uchicago.edu/sptpol/images/Spt_des_clusters_july17_f2f.pdf
+            white_noise_T_90, white_noise_T_220 = 10., 30.
+            white_noise_T_150 = ( (1./3.8**2.) + (1./5**2.) )**-0.5
+
+            white_noise_P_90 = white_noise_T_90 * np.sqrt(2.)
+            white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
+            white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
+        elif expname == 'sptpolplusultradeepplus3gfull':
+            #slide 3 of Lindsey https://pole.uchicago.edu/sptpol/images/Spt_des_clusters_july17_f2f.pdf
+            white_noise_T_90, white_noise_T_220 = 10., 10.
+            white_noise_T_150 = ( (1./3.8**2.) + (1./5**2.) )**-0.5
+
+            white_noise_P_90 = white_noise_T_90 * np.sqrt(2.)
+            white_noise_P_150 = white_noise_T_150 * np.sqrt(2.)
+            white_noise_P_220 = white_noise_T_220 * np.sqrt(2.)
+
         elif expname == 'sptpolsummer':
             white_noise_T_150 = 28.
             white_noise_T_90 = white_noise_T_150 * np.sqrt(2.)
