@@ -199,7 +199,13 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
         freqscale_fac = np.asarray( freqscale_fac )
 
         if final_comp.lower() == 'tsz': #tsz at 150 GHz
-            freqscale_fac = freqscale_fac / freqscale_fac[1]
+            freqarr = np.asarray( freqarr )
+            if 150 in freqarr:
+                freqind = np.where(freqarr == 150)[0]
+            elif 145 in freqarr:
+                freqind = np.where(freqarr == 145)[0]
+            freqscale_fac = freqscale_fac / freqscale_fac[freqind]
+
 
     elif final_comp.lower() == 'cib':
         freqscale_fac = []
@@ -348,7 +354,12 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
         freqscale_fac = np.asarray( freqscale_fac )
 
         if final_comp.lower() == 'tsz': #tsz at 150 GHz
-            freqscale_fac = freqscale_fac / freqscale_fac[1]
+            freqarr = np.asarray( freqarr )
+            if 150 in freqarr:
+                freqind = np.where(freqarr == 150)[0]
+            elif 145 in freqarr:
+                freqind = np.where(freqarr == 145)[0]
+            freqscale_fac = freqscale_fac / freqscale_fac[freqind]
 
     elif final_comp.lower() == 'cib':
         freqscale_fac = []
@@ -456,8 +467,10 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
     acap = get_acap_new(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
 
     if null_comp is not None:
+        total_comp_to_null = 0
         if np.ndim(null_comp) == 0:
             bcap = get_acap_new(freqarr, final_comp = null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+            total_comp_to_null += 1
         else:
             bcap = None
             for curr_null_comp in null_comp:
@@ -466,6 +479,7 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
                     bcap = np.copy( curr_bcap )
                 else:
                     bcap = np.column_stack( (bcap, curr_bcap) )
+                total_comp_to_null += 1
 
     nc = len(freqarr)
     #cl_residual = np.zeros( (len(el)) )
@@ -516,7 +530,8 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             '''
 
             G = np.column_stack( (acap, bcap) )
-            ncap = np.zeros( len(null_comp) + 1 )
+
+            ncap = np.zeros( total_comp_to_null + 1 )
             ncap[0] = 1.
             ncap = np.mat( ncap ).T
             
@@ -528,7 +543,8 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
 
             acap_sum = np.sum( np.asarray(acap) * np.asarray(weight) )
             bcap_1_sum = np.sum( np.asarray(bcap[:, 0]) * np.asarray(weight) )
-            bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
+            if total_comp_to_null == 2:
+                bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
 
         #ILC residuals
         #cl_residual[elcnt] = np.asarray(1./dr).squeeze()
@@ -598,7 +614,15 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
 
     weightsarr = np.asarray( weightsarr )
     cl_residual = np.asarray( cl_residual )
-    print(weightsarr.shape)
+
+    if final_comp.lower() == 'tsz': #tsz at 150 GHz
+        freqarr = np.asarray( freqarr )
+        if 150 in freqarr:
+            freqind = np.where(freqarr == 150)[0]
+        elif 145 in freqarr:
+            freqind = np.where(freqarr == 145)[0]
+        ysz_Tsz_conv_fac = compton_y_to_delta_Tcmb(freqarr[freqind] * 1e9)
+        cl_residual = cl_residual / (ysz_Tsz_conv_fac**2.)
 
     #from IPython import embed; embed()
 
