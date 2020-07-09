@@ -102,7 +102,8 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax 
 ################################################################################################################
 
 def fn_dB_dT(nu, nu0 = None, temp = 2.725):
-    nu *= 1e9
+    if nu<1e3: nu *= 1e9
+
     x=h*nu/(k_B*temp)
     dBdT = x**4. * np.exp(x) / (np.exp(x)-1)**2.
 
@@ -115,11 +116,12 @@ def fn_dB_dT(nu, nu0 = None, temp = 2.725):
         return dBdT
 
 def fn_BnuT(nu, temp = 2.725):
-    nu *= 1e9
+    if nu<1e3: nu *= 1e9
     x=h*nu/(k_B*temp)
 
     t1 = 2 * h * nu**3./ c**2.
     t2 = 1./ (np.exp(x)-1.)
+
     return t1 * t2
 
 def coth(x):
