@@ -96,18 +96,6 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             if 'dust' not in ignore_fg and 'tsz' not in ignore_fg:
                 cl = cl + cl_tsz_cib
 
-            if (1):
-                if (freq1 >= 600 or freq2>600) and which_spec == 'TT':
-                    print(freq1, freq2)
-                    cl_dust = cl_dg_po + cl_dg_clus
-                    labval = r'%s,%s' %(freq1, freq2)
-                    loglog(cl_cmb, 'gray')
-                    loglog(cl, 'k')
-                    loglog(cl_dust, ls = '--', label = labval)
-                    legend(loc=3, fontsize = 6)
-                    #title(labval)
-                    #show(); sys.exit()
-
 
             if include_gal:# and not pol: #get galactic dust and sync
 
@@ -213,6 +201,13 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
         if final_comp.lower() == 'tsz': #tsz at 150 GHz
             freqscale_fac = freqscale_fac / freqscale_fac[1]
 
+    elif final_comp.lower() == 'cib':
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+
     acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
 
     acap = np.mat(acap).T #should be teb_len*nc x teb_len
@@ -270,7 +265,7 @@ def get_clinv(freqarr, elcnt, cl_dic, which_spec):
 
     return clinv
 
-def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cmb', freqcalib_fac = None, lmin = 0, return_weights = 0):
+def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cmb', freqcalib_fac = None, lmin = 0, return_weights = 0, null_comp = None):
 
     try:
         lmin = param_dict['lmin']
@@ -307,6 +302,9 @@ def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cm
         dr = np.dot( acap.T, np.dot(clinv, acap) )
         drinv = sc.linalg.pinv2(dr)
         weight = np.dot(nr, drinv)
+
+        print(weight, el)
+        sys.exit()
 
         #ILC residuals
         cl_residual[elcnt] = np.asarray(1./dr).squeeze()
@@ -352,6 +350,14 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
         if final_comp.lower() == 'tsz': #tsz at 150 GHz
             freqscale_fac = freqscale_fac / freqscale_fac[1]
 
+    elif final_comp.lower() == 'cib':
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            val = get_cib_freq_dep(freq * 1e9)
+            freqscale_fac.append( val )
+        freqscale_fac = np.asarray( freqscale_fac )
+        freqscale_fac /= max(freqscale_fac)
+
     acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
 
     if teb_len>1:
@@ -360,7 +366,10 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
 
         #acap = np.mat(np.eye(len(acap)) * acap)
         acap_full[0,:len(acap)] = acap
-        acap_full[1,len(acap):] = acap
+        if final_comp.lower() == 'cmb':
+            acap_full[1,len(acap):] = acap
+        else: #polarisation weights are zero for other foregrounds
+            acap_full[1,len(acap):] = 0.
 
         '''
         acap_full[0,len(acap):] = acap/10.
@@ -374,10 +383,19 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
     
     return acap
 
+def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, spec_index_dg = 1.505):
+    if nu<1e3: nu *= 1e9
+
+    bnu1 = fg.fn_BnuT(nu, temp = Tcib)
+    dbdt = fg.fn_dB_dT(nu)
+    value = (nu**spec_index_dg) * bnu1 / dbdt
+
+    return value
+
 def get_teb_spec_combination(cl_dic):
     pspec_arr = sorted( list( cl_dic.keys() ) )
 
-    if pspec_arr == 'TT': #only TT is supplied
+    if pspec_arr == ['TT'] or pspec_arr == ['EE']: #only TT is supplied
         teb_len = 1
     elif pspec_arr == sorted(['TT', 'EE']) or pspec_arr == sorted(['TT', 'EE', 'TE']): #TT/EE/TE are supplied
         teb_len = 2
@@ -386,6 +404,7 @@ def get_teb_spec_combination(cl_dic):
     else:
         teb_len = 1
         pspec_arr = None
+
     return teb_len, pspec_arr
 
 def create_clmat_new(freqarr, elcnt, cl_dic):
@@ -430,11 +449,23 @@ def get_clinv_new(freqarr, elcnt, cl_dic, return_clmat = 0):
     else:
         return clinv
 
-def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcalib_fac = None, lmin = 0, return_weights = 0):
+def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcalib_fac = None, lmin = 10, return_weights = 0, null_comp = None):
 
     #acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
     teb_len, pspec_arr = get_teb_spec_combination(cl_dic) #20200527 - teb
     acap = get_acap_new(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+
+    if null_comp is not None:
+        if np.ndim(null_comp) == 0:
+            bcap = get_acap_new(freqarr, final_comp = null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+        else:
+            bcap = None
+            for curr_null_comp in null_comp:
+                curr_bcap = get_acap_new(freqarr, final_comp = curr_null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+                if bcap is None:
+                    bcap = np.copy( curr_bcap )
+                else:
+                    bcap = np.column_stack( (bcap, curr_bcap) )
 
     nc = len(freqarr)
     #cl_residual = np.zeros( (len(el)) )
@@ -470,16 +501,42 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             medval = np.median( np.asarray(clmat) )
             imshow(clmat, vmin = medval * 0.5, vmax = medval * 2.); colorbar(); title(r'$\ell$ = %s' %(el)); show()
         '''
+        if null_comp is None:
+            nr = np.dot(clinv, acap)
+            dr = np.dot( acap.T, np.dot(clinv, acap) )
 
-        nr = np.dot(clinv, acap)
-        dr = np.dot( acap.T, np.dot(clinv, acap) )
-        drinv = sc.linalg.pinv2(dr)
-        weight = np.dot(nr, drinv)
+            drinv = sc.linalg.pinv2(dr)
+            weight = np.dot(nr, drinv)
+        else:
+
+            
+            '''
+            G = np.column_stack( (acap, bcap) )
+            ncap = np.mat([1., 0.]).T
+            '''
+
+            G = np.column_stack( (acap, bcap) )
+            ncap = np.zeros( len(null_comp) + 1 )
+            ncap[0] = 1.
+            ncap = np.mat( ncap ).T
+            
+            nr = np.dot(clinv, G)
+            dr = np.dot( G.T, np.dot(clinv, G) )
+
+            drinv = np.dot( sc.linalg.pinv2(dr), ncap)
+            weight = np.dot(nr, drinv)
+
+            acap_sum = np.sum( np.asarray(acap) * np.asarray(weight) )
+            bcap_1_sum = np.sum( np.asarray(bcap[:, 0]) * np.asarray(weight) )
+            bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
 
         #ILC residuals
-        #cl_residual[elcnt] = np.asarray(1./dr).squeeze()        
-        cl_residual_tt, cl_residual_ee, cl_residual_te = drinv[0,0], drinv[1,1], drinv[0,1]
-        cl_residual[:, elcnt] = cl_residual_tt, cl_residual_ee, cl_residual_te
+        #cl_residual[elcnt] = np.asarray(1./dr).squeeze()
+        if teb_len>1:
+            cl_residual_tt, cl_residual_ee, cl_residual_te = drinv[0,0], drinv[1,1], drinv[0,1]
+            cl_residual[:, elcnt] = cl_residual_tt, cl_residual_ee, cl_residual_te
+        else:
+            cl_residual[0, elcnt] = drinv[0]
 
         #weightsarr[:, elcnt] = np.asarray(nr/dr).squeeze()
         weightsarr[:, :, elcnt] = weight
@@ -552,7 +609,6 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
         return cl_residual, weightsarr
     else:
         return cl_residual
-
 
 ################################################################################################################
 
