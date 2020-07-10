@@ -472,6 +472,7 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             bcap = get_acap_new(freqarr, final_comp = null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
             total_comp_to_null += 1
         else:
+            #from IPython import embed; embed()
             bcap = None
             for curr_null_comp in null_comp:
                 curr_bcap = get_acap_new(freqarr, final_comp = curr_null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
@@ -480,6 +481,12 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
                 else:
                     bcap = np.column_stack( (bcap, curr_bcap) )
                 total_comp_to_null += 1
+            bcap = np.mat(bcap)
+            #from IPython import embed; embed()
+            #bcap = get_acap_new(freqarr, final_comp = null_comp[0], freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+            #print(bcap)
+            #sys.exit()
+
 
     nc = len(freqarr)
     #cl_residual = np.zeros( (len(el)) )
@@ -523,28 +530,31 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             weight = np.dot(nr, drinv)
         else:
 
-            
             '''
             G = np.column_stack( (acap, bcap) )
             ncap = np.mat([1., 0.]).T
             '''
-
             G = np.column_stack( (acap, bcap) )
-
+            G = np.mat(G)
             ncap = np.zeros( total_comp_to_null + 1 )
             ncap[0] = 1.
             ncap = np.mat( ncap ).T
-            
+
             nr = np.dot(clinv, G)
             dr = np.dot( G.T, np.dot(clinv, G) )
 
             drinv = np.dot( sc.linalg.pinv2(dr), ncap)
             weight = np.dot(nr, drinv)
 
-            acap_sum = np.sum( np.asarray(acap) * np.asarray(weight) )
-            bcap_1_sum = np.sum( np.asarray(bcap[:, 0]) * np.asarray(weight) )
-            if total_comp_to_null == 2:
-                bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
+            if (0):
+                acap_sum = np.sum( np.asarray(acap) * np.asarray(weight) )
+                bcap_1_sum = np.sum( np.asarray(bcap[:, 0]) * np.asarray(weight) )
+                if total_comp_to_null == 2:
+                    bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
+                    print(weight, G, ncap, acap_sum, bcap_1_sum, bcap_2_sum)
+                else:
+                    print(weight, G, ncap, acap_sum, bcap_1_sum)
+                sys.exit()
 
         #ILC residuals
         #cl_residual[elcnt] = np.asarray(1./dr).squeeze()
