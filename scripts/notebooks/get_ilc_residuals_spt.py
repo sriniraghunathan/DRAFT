@@ -250,7 +250,7 @@ if expname.find('spt4')>-1:
     colordic[225] = 'goldenrod'
     colordic[286] = 'orangered'
     colordic[345] = 'maroon'
-if expname.find('herschel')>-1:
+elif expname.find('herschel')>-1:
     colordic = {}
     colordic[90] = 'navy'
     colordic[150] = 'green'
@@ -524,8 +524,8 @@ for cntr, which_spec in enumerate( which_spec_arr ):
                 el, cl_curr_fg = fg.get_cl_galactic(param_dict, 'sync', 145, 145, 'EE', bl_dic = bl_dic, el = el)
             plot(el, cl_curr_fg, lw = 0.5, ls = '--', label = r'150: %s' %(curr_fg), alpha = 0.4)
         '''
-    #for freq in freqarr:
-    #    plot(el, cl_dic[which_spec][(freq,freq)], color = colordic[freq], lw = 0.5, ls = '-', label = r'%s' %(freq), alpha = 1.)        
+    for freq in freqarr:
+        plot(el, cl_dic[which_spec][(freq,freq)], color = colordic[freq], lw = 0.5, ls = '-', label = r'%s' %(freq), alpha = 1.)        
     for freq in freqarr:
         if which_spec == 'TT':
             nl = nl_dic['T'][(freq, freq)]
