@@ -651,7 +651,8 @@ def coth(x):
 
 ################################################################################################################
 
-def compton_y_to_delta_Tcmb(nu, Tcmb = 2.73, h=6.62607004e-34, k_B=1.38064852e-23):
+#def compton_y_to_delta_Tcmb(nu, Tcmb = 2.73, h=6.62607004e-34, k_B=1.38064852e-23):
+def compton_y_to_delta_Tcmb(nu, Tcmb = 2.73, h=6.626e-34, k_B=1.38e-23):
 
     if nu<1e3: nu *= 1e9
 
