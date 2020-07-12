@@ -172,9 +172,6 @@ for TP in TParr:
         elknee_dic[TP][freq] = [elknee, alphaknee]
 
 
-# In[10]:
-
-
 #get beam deconvolved noise nls
 nl_dic = {}
 for TP in TParr:
@@ -236,8 +233,6 @@ for which_spec in which_spec_arr:
         el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr,                 nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic,                 cib_corr_coeffs = cib_corr_coeffs)
     else:
         el, cl_dic[which_spec] = ilc.get_analytic_covariance                    (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic)
-print(cl_dic.keys())
-
 
 # In[13]:
 
