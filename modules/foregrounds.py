@@ -248,6 +248,32 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
 
     return el, cl_rg
 
+
+def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2.):
+    websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 217, 545: 545, 600:545, 857: 857}
+    fname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/websky/cl_websky_cib_masked.npy'
+    websky_freq1 = websky_freq_dic[freq1]
+    websky_freq2 = websky_freq_dic[freq2]
+    cl_cib = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][(websky_freq1, websky_freq2)]
+    if units.lower() == 'k':
+        cl_cib /= 1e12
+    cl_cib *= websky_scaling_power
+    el = np.arange( len(cl_cib) )
+
+    return el, cl_cib
+
+def get_cl_cib_mdlp2(freq1, freq2, units = 'uk'):
+    exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 857: 'planck'}
+    fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/MDLP2_CIB/'
+    fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], freq1, exp_freq_dic[freq2], freq2)
+
+    cl_cib = np.loadtxt(fname)#/(2.73**2.)
+    if units.lower() == 'k':
+        cl_cib /= 1e12
+    el = np.arange( len(cl_cib) )
+
+    return el, cl_cib
+    
 def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
 
     #fix: pol not working yet
