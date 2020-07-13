@@ -3,9 +3,9 @@ import numpy as np, sys, os
 pgmname = 'get_ilc_residuals_spt.py'
 
 
-if (1):
-    exparr = ['spt3g', 'spt4_C1', 'spt4_C2', 'spt4_C3', 'spt4_C4', 'spt4_C5']
-    exparr = ['spt4_C5_v2']
+if (0):
+    #exparr = ['spt3g', 'spt4_C1', 'spt4_C2', 'spt4_C3', 'spt4_C4', 'spt4_C5']
+    exparr = ['spt3g', 'spt4_C5_v2']
     #exparr = ['spt3gplusherschel', 'spt4_C1plusherschel', 'spt4_C5']
     null_comp_arr = [None, 'cib', 'cmb', 'cib cmb']
     #null_comp_arr = ['cib cmb']
@@ -13,20 +13,22 @@ if (1):
 
     for expname in exparr:
         for null_comp in null_comp_arr:
-            cmd = 'python %s -expname %s -null_comp %s -final_comp %s ' %(pgmname, expname, null_comp, final_comp)
+            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s ' %(pgmname, expname, null_comp, final_comp)
             print('\n###############\n%s\n' %(cmd))
             os.system(cmd)
             #sys.exit()
 
-if (0):
-    exparr = ['spt3g', 'spt4_C1', 'spt4_C2', 'spt4_C3', 'spt4_C4', 'spt4_C5']
+if (1):
+    #exparr = ['spt3g', 'spt4_C1', 'spt4_C2', 'spt4_C3', 'spt4_C4', 'spt4_C5']
+    exparr = ['spt3g', 'spt4_C3']
+    exparr = ['sptpolplusultradeepplus3gplusherschel']
     #null_comp_arr = [None, 'y', 'cib', 'cib y']
-    null_comp_arr = ['y', 'cib', 'cib y']
+    null_comp_arr = ['cib y', 'cib', 'cib y']
     final_comp = 'cmb'
 
     for expname in exparr:
         for null_comp in null_comp_arr:
-            cmd = 'python %s -expname %s -null_comp %s -final_comp %s ' %(pgmname, expname, null_comp, final_comp)
+            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s ' %(pgmname, expname, null_comp, final_comp)
             print('\n###############\n%s\n' %(cmd))
             os.system(cmd)
             #sys.exit()
