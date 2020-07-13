@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -28,12 +28,15 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             #get dust
             el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+            cl_dust = cl_dg_po + cl_dg_clus
+            if use_websky_cib:
+                el,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el)
+                cib_corr_coeffs = None #do not use this as websky already takes it into account
+
             if which_spec == 'EE':
-                cl_dg_po = cl_dg_po * pol_frac_per_cent_dust**2.
-                cl_dg_clus = cl_dg_clus * pol_frac_per_cent_dust**2.
+                cl_dust = cl_dust * pol_frac_per_cent_dust**2.
             elif which_spec == 'TE':
-                cl_dg_po = cl_dg_po * 0.
-                cl_dg_clus = cl_dg_clus * 0.
+                cl_dust = cl_dust * 0.
 
             #include CIB decorrelation if available
             if cib_corr_coeffs is not None:
@@ -44,8 +47,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                         corr_coeff = cib_corr_coeffs[(freq1, freq2)]
                     elif (freq2, freq1) in cib_corr_coeffs:
                         corr_coeff = cib_corr_coeffs[(freq2, freq1)]
-                cl_dg_po *= corr_coeff
-                cl_dg_clus *= corr_coeff
+                cl_dust *= corr_coeff
 
             #get tsz
             el, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
@@ -92,7 +94,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cl = cl + cl_radio
             if 'dust' not in ignore_fg:
                 #print('dust')
-                cl = cl + cl_dg_po + cl_dg_clus
+                cl = cl + cl_dust
             if 'dust' not in ignore_fg and 'tsz' not in ignore_fg:
                 cl = cl + cl_tsz_cib
 
