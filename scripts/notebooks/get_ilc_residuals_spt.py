@@ -43,6 +43,7 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('-expname', dest='expname', action='store', help='expname', type=str, required=True)
 parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, required=True)
 parser.add_argument('-null_comp', dest='null_comp', action='store', help='null_comp', nargs='+', default=None)
+parser.add_argument('-use_websky_cib', dest='use_websky_cib', action='store', help='use_websky_cib', type = int, default=0)
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -122,8 +123,8 @@ specs_dic, corr_noise_bands, rho, corr_noise, cib_corr_coeffs = exp_specs.get_ex
 print(specs_dic)
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
-
 freqcalib_fac = None
+#use_websky_cib = 1
 
 if final_comp == 'y':
     TParr = ['T']
@@ -230,9 +231,9 @@ print(ignore_fg)
 cl_dic = {}
 for which_spec in which_spec_arr:
     if which_spec == 'TT':
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr,                 nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic,                 cib_corr_coeffs = cib_corr_coeffs)
+        el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, cib_corr_coeffs = cib_corr_coeffs, use_websky_cib = use_websky_cib)
     else:
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance                    (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic)
+        el, cl_dic[which_spec] = ilc.get_analytic_covariance (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec, pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'], pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'], pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'], pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'], include_gal = include_gal, bl_dic = bl_dic, use_websky_cib = use_websky_cib)
 
 # In[13]:
 
@@ -385,6 +386,8 @@ if (0):
 freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
 which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 parent_folder = 'results/spt/20200708/'
+if use_websky_cib:
+    parent_folder = 'results/spt/20200708/websky_cib/'
 if expname.find('spt4')>-1:
     parent_folder = '%s/spt4' %(parent_folder)
 opfname = '%s/%s_ilc_%s_%s_%s.npy' %(parent_folder, expname, final_comp, freqarr_str, which_spec_arr_str)

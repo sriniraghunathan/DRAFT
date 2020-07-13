@@ -9,14 +9,16 @@ if (0):
     #exparr = ['spt3gplusherschel', 'spt4_C1plusherschel', 'spt4_C5']
     null_comp_arr = [None, 'cib', 'cmb', 'cib cmb']
     #null_comp_arr = ['cib cmb']
+    use_websky_cib_arr = [0]##, 1]
     final_comp = 'y'
 
     for expname in exparr:
-        for null_comp in null_comp_arr:
-            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s ' %(pgmname, expname, null_comp, final_comp)
-            print('\n###############\n%s\n' %(cmd))
-            os.system(cmd)
-            #sys.exit()
+        for use_websky_cib in use_websky_cib_arr:
+            for null_comp in null_comp_arr:
+                cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib)
+                print('\n###############\n%s\n' %(cmd))
+                os.system(cmd)
+                #sys.exit()
 
 if (1):
     #exparr = ['spt3g', 'spt4_C1', 'spt4_C2', 'spt4_C3', 'spt4_C4', 'spt4_C5']
@@ -24,14 +26,16 @@ if (1):
     exparr = ['sptpolplusultradeepplus3gplusherschel']
     #null_comp_arr = [None, 'y', 'cib', 'cib y']
     null_comp_arr = ['cib y', 'cib', 'cib y']
+    use_websky_cib_arr = [0, 1]
     final_comp = 'cmb'
 
     for expname in exparr:
-        for null_comp in null_comp_arr:
-            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s ' %(pgmname, expname, null_comp, final_comp)
-            print('\n###############\n%s\n' %(cmd))
-            os.system(cmd)
-            #sys.exit()
+        for use_websky_cib in use_websky_cib_arr:
+            for null_comp in null_comp_arr:
+                cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib)
+                print('\n###############\n%s\n' %(cmd))
+                os.system(cmd)
+                #sys.exit()
 
 sys.exit()
 
