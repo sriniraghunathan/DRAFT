@@ -249,7 +249,8 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
     return el, cl_rg
 
 
-def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None):
+#def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None):
+def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
     websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 217, 545: 545, 600: 545, 857: 857}
     fname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/websky/cl_websky_cib_masked.npy'
     websky_freq1 = websky_freq_dic[freq1]
@@ -267,20 +268,31 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
     return el_cib, cl_cib
 
 def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
+
+    #conversion factors: Kcmb-to-Mjy/Sr for maps
+    #mdplp2_spt_conv = {90: 221.832, 150: 394.862, 220: 468.451}
+    mdplp2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
+
     exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 857: 'planck'}
     fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/MDLP2_CIB/'
     fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], freq1, exp_freq_dic[freq2], freq2)
 
     cl_cib = np.loadtxt(fname)#/(2.73**2.)
+    cl_cib = cl_cib[:4096]
     if units.lower() == 'k':
         cl_cib /= 1e12
+
+    conv1  = 1./mdplp2_conv[freq1]
+    conv2 = 1./mdplp2_conv[freq2]
+    conv = np.sqrt(conv1 * conv2)**2.
+    cl_cib *= conv
 
     el_cib = np.arange( len(cl_cib) )
     if el is not None:
         cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = 0.)
         el_cib = np.copy( el )
 
-    return el, cl_cib
+    return el_cib, cl_cib
     
 def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
 
