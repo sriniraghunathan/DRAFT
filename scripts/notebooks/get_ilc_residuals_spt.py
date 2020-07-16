@@ -44,6 +44,8 @@ parser.add_argument('-expname', dest='expname', action='store', help='expname', 
 parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, required=True)
 parser.add_argument('-null_comp', dest='null_comp', action='store', help='null_comp', nargs='+', default=None)
 parser.add_argument('-use_websky_cib', dest='use_websky_cib', action='store', help='use_websky_cib', type = int, default=0)
+parser.add_argument('-use_545', dest='use_545', action='store', help='use_545', type = int, default=0)
+
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -120,7 +122,17 @@ if (0):
 
 remove_atm = 0
 specs_dic, corr_noise_bands, rho, corr_noise, cib_corr_coeffs = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
-print(specs_dic)
+if use_websky_cib:
+    use_545 = 1
+
+if use_545:
+    if 600 in specs_dic:
+        print('\n\n\t\tModifying 600 GHz to 545 GHz currently when using websky\n\n\n')
+        specs_dic[545] = specs_dic[600]
+        corr_noise_bands[545] = corr_noise_bands[600]
+        specs_dic.pop(600)
+        corr_noise_bands.pop(600)
+        
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
 freqcalib_fac = None
@@ -254,6 +266,7 @@ elif expname.find('herschel')>-1:
     colordic[225] = 'goldenrod'
     colordic[286] = 'orangered'
     colordic[345] = 'maroon'
+    colordic[545] = 'darkorchid'
     colordic[600] = 'm'
     colordic[857] = 'lime'
     colordic[1200] = 'cyan'
@@ -388,6 +401,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 parent_folder = 'results/spt/20200708/'
 if use_websky_cib:
     parent_folder = 'results/spt/20200708/websky_cib/'
+elif use_545:
+    parent_folder = 'results/spt/20200708/with_545/'
 if expname.find('spt4')>-1:
     parent_folder = '%s/spt4' %(parent_folder)
 opfname = '%s/%s_ilc_%s_%s_%s.npy' %(parent_folder, expname, final_comp, freqarr_str, which_spec_arr_str)

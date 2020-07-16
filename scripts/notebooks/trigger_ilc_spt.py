@@ -23,10 +23,12 @@ if (0):
 if (1):
     #exparr = ['spt3g', 'spt4_C1', 'spt4_C2', 'spt4_C3', 'spt4_C4', 'spt4_C5']
     exparr = ['spt3g', 'spt4_C3']
-    exparr = ['sptpolplusultradeepplus3gplusherschel']
+    #exparr = ['spt3g', 'sptpolplusultradeepplus3gplusherschel']#, 'spt4_C3'] #CIB at spt4 bands are not computed for websky
+    exparr = ['sptpolplusultradeepplus3gplusherschel']#, 'spt4_C3'] #CIB at spt4 bands are not computed for websky
     #null_comp_arr = [None, 'y', 'cib', 'cib y']
-    null_comp_arr = ['cib y', 'cib', 'cib y']
-    use_websky_cib_arr = [0, 1]
+    #null_comp_arr = ['cibpo cibclus y']
+    null_comp_arr = ['cibpo cibclus']
+    use_websky_cib_arr = [1]#0, 1]
     final_comp = 'cmb'
 
     for expname in exparr:
