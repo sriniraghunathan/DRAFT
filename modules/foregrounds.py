@@ -102,7 +102,7 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax 
 ################################################################################################################
 
 def fn_dB_dT(nu, nu0 = None, temp = 2.725):
-    if nu<1e3: nu *= 1e9
+    if nu<1e4: nu *= 1e9
 
     x=h*nu/(k_B*temp)
     dBdT = x**4. * np.exp(x) / (np.exp(x)-1)**2.
@@ -116,7 +116,7 @@ def fn_dB_dT(nu, nu0 = None, temp = 2.725):
         return dBdT
 
 def fn_BnuT(nu, temp = 2.725):
-    if nu<1e3: nu *= 1e9
+    if nu<1e4: nu *= 1e9
     x=h*nu/(k_B*temp)
 
     t1 = 2 * h * nu**3./ c**2.
@@ -137,10 +137,10 @@ def compton_y_to_delta_Tcmb(freq1, freq2 = None, Tcmb = 2.73):
     freq2 = None will force freq1 to be the centre frequency
     """
 
-    if freq1<1e3: freq1 = freq1 * 1e9
+    if freq1<1e4: freq1 = freq1 * 1e9
 
     if not freq2 is None:
-        if freq2<1e3: freq2 = freq2 * 1e9
+        if freq2<1e4: freq2 = freq2 * 1e9
         freq = np.arange(freq1,freq2,delta_nu)
     else:
         freq = np.asarray([freq1])
@@ -271,19 +271,22 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
 
     #conversion factors: Kcmb-to-Mjy/Sr for maps
     #mdplp2_spt_conv = {90: 221.832, 150: 394.862, 220: 468.451}
+    mdplp2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 220, 545: 545, 600: 545, 857: 857}
+    mdlp2_freq1 = mdplp2_freq_dic[freq1]
+    mdlp2_freq2 = mdplp2_freq_dic[freq2]
     mdplp2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
 
-    exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 857: 'planck'}
+    exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 600: 'planck', 857: 'planck'}
     fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/MDLP2_CIB/'
-    fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], freq1, exp_freq_dic[freq2], freq2)
+    fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], mdlp2_freq1, exp_freq_dic[freq2], mdlp2_freq2)
 
     cl_cib = np.loadtxt(fname)#/(2.73**2.)
     cl_cib = cl_cib[:4096]
     if units.lower() == 'k':
         cl_cib /= 1e12
 
-    conv1  = 1./mdplp2_conv[freq1]
-    conv2 = 1./mdplp2_conv[freq2]
+    conv1  = 1./mdplp2_conv[mdlp2_freq1]
+    conv2 = 1./mdplp2_conv[mdlp2_freq2]
     conv = np.sqrt(conv1 * conv2)**2.
     cl_cib *= conv
 
@@ -476,6 +479,56 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
 
     return el_gal, cl_gal
 
+def dB_dt_new(freq, tcmb = 2.725):
+
+    h, k_B, c=6.626e-34,1.38e-23, 3e8
+
+    x = (h/k_B)*(freq*1e9/tcmb)
+    t1 = 2 * (h/c/tcmb)**2. * (1/k_B) * (freq*1e9)**4
+    t2 = np.exp(x) / (np.exp(x) - 1)**2.
+
+    dB_dt = t1 * t2 * 1e26
+
+    return dB_dt
+
+def lagache_scalings(cl, freq1, freq2, freq0):
+
+
+    if freq1 == 90: freq1 = 95
+    if freq2 == 90: freq2 = 95
+
+    if freq1 == 600: freq1 = 545
+    if freq2 == 600: freq2 = 545
+
+    conv_MJyperSr_Kcmb_dic_spt_spire = {95: 234.042, 150: 413.540, 220: 477.017, 857: 2.124, 545: 42.275, 600: 41.275}
+
+    sed_conv = {(95, 150): 0.2553, (95, 220): 0.08713, (150, 220): 0.3413, (857, 95): 294.03, (857, 150): 75.08, (857, 220): 25.62, (545, 95): 147.85, (545, 150): 37.75, (545, 220): 12.88}
+
+    conv1 = conv_MJyperSr_Kcmb_dic_spt_spire[freq1]
+    conv2 = conv_MJyperSr_Kcmb_dic_spt_spire[freq2]
+    conv0 = conv_MJyperSr_Kcmb_dic_spt_spire[freq0]
+
+    if (freq1, freq0) in sed_conv:
+        sed_conv1 = sed_conv[(freq1, freq0)]
+    elif (freq0, freq1) in sed_conv:
+        sed_conv1 = 1./sed_conv[(freq0, freq1)]
+    elif freq1 == freq0:
+        sed_conv1 = 1.
+
+    if (freq2, freq0) in sed_conv:
+        sed_conv2 = sed_conv[(freq2, freq0)]
+    elif (freq0, freq2) in sed_conv:
+        sed_conv2 = 1./sed_conv[(freq0, freq2)]
+    elif freq2 == freq0:
+        sed_conv2 = 1.
+
+    #print(freq1, freq2, freq0, conv1, conv2, conv0, sed_conv1, sed_conv2)
+    #sys.exit()
+
+    scaled_cl =  cl * (conv0/conv0/conv1*conv2) * ((sed_conv1*sed_conv2))
+
+    return scaled_cl
+
 def scale_cl_dust_galactic(cl, freq1, freq2 = None, freq0 = 278., Tdust = 19.6, spec_index_dust = 1.6):
 
     if freq2 is None:
@@ -485,6 +538,17 @@ def scale_cl_dust_galactic(cl, freq1, freq2 = None, freq0 = 278., Tdust = 19.6, 
     dr = fn_dB_dT(freq1) * fn_dB_dT(freq2)
 
     epsilon_nu1_nu2 = nr/dr
+
+    if (0):
+        t1 = dB_dt_new(freq0)
+        t2 = dB_dt_new(freq1)
+        nr = t1**2.
+        dr = t2**2.
+        epsilon_nu1_nu2 = nr/dr
+
+        print(t1, t2, epsilon_nu1_nu2)
+
+        sys.exit()
 
     bnu1 = fn_BnuT(freq1, temp = Tdust)
     bnu2 = fn_BnuT(freq2, temp = Tdust)
@@ -524,7 +588,6 @@ def get_cl_dust_galactic(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., e
         dl_fac = el * (el+1)/2/np.pi
         cl_dust = dl_dust / dl_fac
     return cl_dust
-
 
 """
 els = np.arange(1,100)
