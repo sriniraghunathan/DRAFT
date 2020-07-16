@@ -208,13 +208,20 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
                 freqind = np.where(freqarr == 145)[0]
             freqscale_fac = freqscale_fac / freqscale_fac[freqind]
 
-
-    elif final_comp.lower() == 'cib':
+    elif final_comp.lower() == 'cib' or final_comp.lower() == 'cibpo':
         freqscale_fac = []
         for freq in sorted( freqarr ):
             freqscale_fac.append( get_cib_freq_dep(freq * 1e9) )
 
         freqscale_fac = np.asarray( freqscale_fac )
+
+    elif final_comp.lower() == 'cibclus':
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, spec_index = 2.505) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+
 
     acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
 
@@ -363,13 +370,21 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
                 freqind = np.where(freqarr == 145)[0]
             freqscale_fac = freqscale_fac / freqscale_fac[freqind]
 
-    elif final_comp.lower() == 'cib':
+    elif final_comp.lower() == 'cib' or final_comp.lower() == 'cibpo':
         freqscale_fac = []
         for freq in sorted( freqarr ):
-            val = get_cib_freq_dep(freq * 1e9)
-            freqscale_fac.append( val )
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9) )
+
         freqscale_fac = np.asarray( freqscale_fac )
-        freqscale_fac /= max(freqscale_fac)
+        freqscale_fac /= np.max(freqscale_fac)
+        
+    elif final_comp.lower() == 'cibclus':
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, spec_index = 2.505) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+        freqscale_fac /= np.max(freqscale_fac)
 
     acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
 
@@ -396,12 +411,12 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
     
     return acap
 
-def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, spec_index_dg = 1.505):
-    if nu<1e3: nu *= 1e9
+def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, spec_index = 1.505):
+    if nu<1e4: nu *= 1e9    
 
     bnu1 = fg.fn_BnuT(nu, temp = Tcib)
     dbdt = fg.fn_dB_dT(nu)
-    value = (nu**spec_index_dg) * bnu1 / dbdt
+    value = (nu**spec_index) * bnu1 / dbdt
 
     return value
 
@@ -554,6 +569,10 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
                 if total_comp_to_null == 2:
                     bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
                     print(weight, G, ncap, acap_sum, bcap_1_sum, bcap_2_sum)
+                elif total_comp_to_null == 3:
+                    bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
+                    bcap_3_sum = np.sum( np.asarray(bcap[:, 2]) * np.asarray(weight) )
+                    print(weight, G, ncap, acap_sum, bcap_1_sum, bcap_2_sum, bcap_3_sum)
                 else:
                     print(weight, G, ncap, acap_sum, bcap_1_sum)
                 sys.exit()
