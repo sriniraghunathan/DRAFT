@@ -1,7 +1,7 @@
-import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc
+import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc, re, flatsky
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -32,6 +32,64 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             if use_websky_cib:
                 el,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
+            if use_sptspire_for_hfbands:
+                cl_dust_ori = np.copy(cl_dust)
+                if freq1>500 or freq2>500:
+                    el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
+                    if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
+                        nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
+                    cib_corr_coeffs = None #do not use this as websky already takes it into account
+                #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
+                reqd_freq = 600 ##220 ##150 ##90
+                if freq1 == reqd_freq or freq2 == reqd_freq: 
+                    #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                    #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                    #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                    if (0):#which_spec == 'TT': 
+                        freq_combs = []
+                        color_dic = {}
+                        shades_90 = [cm.Blues(int(d)) for d in np.linspace(100, 255, 5)]
+                        shades_150 = [cm.Purples(int(d)) for d in np.linspace(100, 255, 4)]
+                        shades_220 = [cm.Greens(int(d)) for d in np.linspace(100, 255, 3)]
+                        shades_600 = ['red', 'maroon']
+                        shades_857 = ['black']
+                        shadearr = np.vstack( (shades_90, shades_150, shades_220 ))#, shades_600, shades_857) )
+                        shadearr = shadearr.tolist()
+                        shadearr.extend( shades_600 )
+                        shadearr.extend( shades_857 )
+
+                        for fcntr1, f1 in enumerate( freqarr ):
+                            for fcntr2, f2 in enumerate( freqarr ):
+                                if (f2, f1) in freq_combs: continue
+                                freq_combs.append((f1,f2))
+
+                        freq_combs = np.asarray( freq_combs )
+                        colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(freq_combs))]
+                        colorarr = np.asarray( colorarr )
+                        if freq1 == 90:
+                            ls = ':'
+                        elif freq1 == 150:
+                            ls = '-.'
+                        elif freq1 == 220:
+                            ls = '--'
+                        else:
+                            ls = '-'
+
+                        ls = '-'
+
+                        cind = np.where( (freq_combs[:,0] == freq1) & (freq_combs[:,1] == freq2) )[0][0]
+                        #colorval = colorarr[cind]
+                        colorval = shadearr[cind]
+                        #print(colorval)
+                        ax = subplot(111, yscale = 'log', xscale = 'log')
+                        print(freq1, freq2)
+                        plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
+                        plot(el, cl_dust_ori, color = colorval, ls = ':')
+                        axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
+                        #ax.yaxis.set_major_locator(MaxNLocator(nbins=10))
+                        xlabel(r'Multipole $\ell$', fontsize = 14)
+                        ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
+                        title(r'CIB spectra: SPT + SPTxSPIRE')
 
             if which_spec == 'EE':
                 cl_dust = cl_dust * pol_frac_per_cent_dust**2.
@@ -218,10 +276,31 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
     elif final_comp.lower() == 'cibclus':
         freqscale_fac = []
         for freq in sorted( freqarr ):
-            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, spec_index = 2.505) )
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, beta = 2.505) )
 
         freqscale_fac = np.asarray( freqscale_fac )
 
+    elif final_comp.lower().find('misc_cib')>-1:
+
+        #default values
+        misc_tcib = 20.
+        misc_beta = 1.505
+        tcib_tmp =  re.findall('tcib\d*\.?\d+', final_comp.lower())
+        if len(tcib_tmp)>0:
+            tcib_tmp = tcib_tmp[0]
+            misc_tcib = float(tcib_tmp.replace('tcib', ''))
+
+        beta_tmp =  re.findall('beta\d*\.?\d+', final_comp.lower())
+        if len(beta_tmp)>0:
+            beta_tmp = beta_tmp[0]
+            misc_beta = float(beta_tmp.replace('beta', ''))
+
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, Tcib = misc_tcib, beta = misc_beta) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+        freqscale_fac /= np.max(freqscale_fac)
 
     acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
 
@@ -381,7 +460,29 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
     elif final_comp.lower() == 'cibclus':
         freqscale_fac = []
         for freq in sorted( freqarr ):
-            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, spec_index = 2.505) )
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, beta = 2.505) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+        freqscale_fac /= np.max(freqscale_fac)
+
+    elif final_comp.lower().find('misc_cib')>-1:
+
+        #default values
+        misc_tcib = 20.
+        misc_beta = 1.505
+        tcib_tmp =  re.findall('tcib\d*\.?\d+', final_comp.lower())
+        if len(tcib_tmp)>0:
+            tcib_tmp = tcib_tmp[0]
+            misc_tcib = float(tcib_tmp.replace('tcib', ''))
+
+        beta_tmp =  re.findall('beta\d*\.?\d+', final_comp.lower())
+        if len(beta_tmp)>0:
+            beta_tmp = beta_tmp[0]
+            misc_beta = float(beta_tmp.replace('beta', ''))
+
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( get_cib_freq_dep(freq * 1e9, Tcib = misc_tcib, beta = misc_beta) )
 
         freqscale_fac = np.asarray( freqscale_fac )
         freqscale_fac /= np.max(freqscale_fac)
@@ -411,12 +512,14 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
     
     return acap
 
-def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, spec_index = 1.505):
-    if nu<1e4: nu *= 1e9    
+def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, beta = 1.505):
+    if nu<1e4: nu *= 1e9
+
+    print(Tcib, beta) 
 
     bnu1 = fg.fn_BnuT(nu, temp = Tcib)
     dbdt = fg.fn_dB_dT(nu)
-    value = (nu**spec_index) * bnu1 / dbdt
+    value = (nu**beta) * bnu1 / dbdt
 
     return value
 
@@ -684,7 +787,7 @@ def compton_y_to_delta_Tcmb(nu, Tcmb = 2.73, h=6.626e-34, k_B=1.38e-23):
 
 ################################################################################################################
 
-def get_ilc_map(final_comp, el, map_dic, bl_dic, nside, lmax, cl_dic = None, nl_dic = None, lmin = 10, freqcalib_fac = None, ignore_fg = [], full_sky = 1, estimate_covariance = 0, mapparams = None, apod_mask = None):
+def get_ilc_map(final_comp, el, map_dic, bl_dic, nside, lmax, cl_dic = None, nl_dic = None, lmin = 10, freqcalib_fac = None, ignore_fg = [], full_sky = 0, estimate_covariance = 0, mapparams = None, apod_mask = None, weightsarr = None):
 
     """
     inputs:
@@ -745,7 +848,8 @@ def get_ilc_map(final_comp, el, map_dic, bl_dic, nside, lmax, cl_dic = None, nl_
 
 
     #get weights
-    weightsarr = get_multipole_weightsarr(final_comp, freqarr, el, cl_dic, lmin, freqcalib_fac)#, ignore_fg)
+    if weightsarr is None:
+        weightsarr = get_multipole_weightsarr(final_comp, freqarr, el, cl_dic, lmin, freqcalib_fac)#, ignore_fg)
     weightsarr_1d = np.copy(weightsarr)
 
     #convert weights to 2D if flat-sky
@@ -757,7 +861,6 @@ def get_ilc_map(final_comp, el, map_dic, bl_dic, nside, lmax, cl_dic = None, nl_
             currW_2D = flatsky.cl_to_cl2d(el, currW, mapparams) 
             weightsarr_2D.append(currW_2D)
         weightsarr = np.asarray( weightsarr_2D )
-
 
     #rebeaming
     rebeamarr = misc.rebeam( bl_dic )
