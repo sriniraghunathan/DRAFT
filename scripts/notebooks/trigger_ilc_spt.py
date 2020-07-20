@@ -27,17 +27,30 @@ if (1):
     exparr = ['sptpolplusultradeepplus3gplusherschel']#, 'spt4_C3'] #CIB at spt4 bands are not computed for websky
     #null_comp_arr = [None, 'y', 'cib', 'cib y']
     #null_comp_arr = ['cibpo cibclus y']
-    null_comp_arr = ['cibpo cibclus']
-    use_websky_cib_arr = [1]#0, 1]
+    #null_comp_arr = ['cibpo cibclus']
+    #null_comp_arr = ['misc_cib_tcib18_beta2.0']
+    #null_comp_arr = ['misc_cib_tcib18_beta2.0 misc_cib_tcib20_beta1.5_nulled']
+
+    #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5_nulled']
+    #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5_nulled']
+    #null_comp_arr = ['misc_cib_tcib20_beta1.5 misc_cib_tcib20_beta2.5_nulled']
+    #null_comp_arr = ['misc_cib_tcib18_beta1.5 misc_cib_tcib18_beta2.5_nulled']
+    null_comp_arr = ['misc_cib_tcib25_beta1.5 misc_cib_tcib25_beta2.5_nulled']
+    null_comp_arr = [ null_comp_arr[0], 'y %s' %(null_comp_arr[0]) ]
+    split_cross = 0 ###1
+
+    #null_comp_arr = ['cibpo cibclus y']
+
+    use_websky_cib = 1 ## ###0 ##1
+    use_sptspire_for_hfbands = 0 ##1 ##0
     final_comp = 'cmb'
 
     for expname in exparr:
-        for use_websky_cib in use_websky_cib_arr:
-            for null_comp in null_comp_arr:
-                cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib)
-                print('\n###############\n%s\n' %(cmd))
-                os.system(cmd)
-                #sys.exit()
+        for null_comp in null_comp_arr:
+            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s -use_sptspire_for_hfbands %s -split_cross %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib, use_sptspire_for_hfbands, split_cross)
+            print('\n###############\n%s\n' %(cmd))
+            os.system(cmd)
+            #sys.exit()
 
 sys.exit()
 

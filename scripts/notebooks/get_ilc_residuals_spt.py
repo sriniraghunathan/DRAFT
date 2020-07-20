@@ -45,6 +45,8 @@ parser.add_argument('-final_comp', dest='final_comp', action='store', help='fina
 parser.add_argument('-null_comp', dest='null_comp', action='store', help='null_comp', nargs='+', default=None)
 parser.add_argument('-use_websky_cib', dest='use_websky_cib', action='store', help='use_websky_cib', type = int, default=0)
 parser.add_argument('-use_545', dest='use_545', action='store', help='use_545', type = int, default=0)
+parser.add_argument('-use_sptspire_for_hfbands', dest='use_sptspire_for_hfbands', action='store', help='use_sptspire_for_hfbands', type = int, default=0)
+parser.add_argument('-split_cross', dest='split_cross', action='store', help='split_cross', type = int, default=0)
 
 
 args = parser.parse_args()
@@ -163,6 +165,10 @@ for freq in freqarr:
     alphakneearr_T.append(alphaknee_T)
     alphakneearr_P.append(alphaknee_P)    
 
+if split_cross:
+    noisearr_T = np.asarray(noisearr_T) * np.sqrt(2.)
+    noisearr_P = np.asarray(noisearr_P) * np.sqrt(2.)
+
 print(elkneearr_T)
 
 
@@ -208,7 +214,7 @@ for TP in TParr:
             nl_dic[TP][(freq1, freq2)] = nl
 print(nl_dic['T'].keys())
 
-
+sys.exit()
 # In[11]:
 
 
@@ -243,9 +249,10 @@ print(ignore_fg)
 cl_dic = {}
 for which_spec in which_spec_arr:
     if which_spec == 'TT':
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, cib_corr_coeffs = cib_corr_coeffs, use_websky_cib = use_websky_cib)
+        el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, cib_corr_coeffs = cib_corr_coeffs, use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands)
+        ###legend(loc = 3, ncol = 4, fontsize = 8);show(); sys.exit()
     else:
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec, pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'], pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'], pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'], pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'], include_gal = include_gal, bl_dic = bl_dic, use_websky_cib = use_websky_cib)
+        el, cl_dic[which_spec] = ilc.get_analytic_covariance (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec, pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'], pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'], pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'], pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'], include_gal = include_gal, bl_dic = bl_dic, use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands)
 
 # In[13]:
 
@@ -403,6 +410,8 @@ if use_websky_cib:
     parent_folder = 'results/spt/20200708/websky_cib/'
 elif use_545:
     parent_folder = 'results/spt/20200708/with_545/'
+elif use_sptspire_for_hfbands:
+    parent_folder = 'results/spt/20200708/spt_spire_cib_hf/'
 if expname.find('spt4')>-1:
     parent_folder = '%s/spt4' %(parent_folder)
 opfname = '%s/%s_ilc_%s_%s_%s.npy' %(parent_folder, expname, final_comp, freqarr_str, which_spec_arr_str)
@@ -415,8 +424,12 @@ if null_comp is not None:
         null_comp_str = '%s_nulled' %(null_comp)        
     else:
         null_comp_str = '%s_nulled' %('-'.join(null_comp))
+    null_comp_str = null_comp_str.replace('nulled_nulled', 'nulled')
         
     opfname = '%s_%s.npy' %(opfname.replace('.npy', ''), null_comp_str)
+
+if split_cross:
+    opfname = opfname.replace('.npy', '_splitcross.npy')
 
 plname = opfname.replace('.npy', '.png').replace(parent_folder, '%s/plots/' %(parent_folder))
 plfolder = '/'.join(plname.split('/')[:-1])
@@ -448,7 +461,7 @@ lwval = 0.75
 plot_weights = 1
 xmin, xmax = 20, 10000
 xmin, xmax = 100, 10000
-ymin, ymax = 1e-9, 1000.
+ymin, ymax = 1e-9, 100000.
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
     subplots_adjust(wspace=0.1, hspace = 0.1)
