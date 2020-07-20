@@ -1,4 +1,6 @@
 import numpy as np, sys, os, scipy as sc
+from scipy import interpolate as intrp
+from scipy import ndimage
 from pylab import *
 
 h, k_B, c=6.626e-34,1.38e-23, 3e8
@@ -296,6 +298,221 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
         el_cib = np.copy( el )
 
     return el_cib, cl_cib
+
+def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None):
+
+    spec_fname = '%s/spectrum_sptxspire.txt' %(fd)
+
+    ell_spt_spt = [2068, 2323, 2630, 2932, 3288, 3690, 4143, 4645, 5198, 5851, 6604, 7406, 8309, 9312, 10416]
+    ell_spt_spire = [900, 1100, 1300, 1500, 1700, 1900, 2100, 2350, 2650, 2950, 3300, 3700, 4150, 4650, 5200, 5849, 6599, 7399, 8299, 9299, 10399]
+    ell_spt_90_spire = [2100, 2350, 2650, 2950, 3300, 3700, 4150, 4650, 5200, 5849, 6599, 7399, 8299, 9299]
+    ell_spt_150_spire = [1100, 1300, 1500, 1700, 1900, 2100, 2350, 2650, 2950, 3300, 3700, 4150, 4650, 5200, 5849, 6599, 7399, 8299, 9299, 10399]
+    ell_spire = [700, 900, 1100, 1300, 1500, 1700, 1900, 2100, 2350, 2650, 2950, 3300, 3700, 4150, 4650, 5200, 5849, 6599, 7399, 8299, 9299, 10399]
+
+    ell_spt_spt = np.asarray( ell_spt_spt )
+    ell_spire = np.asarray( ell_spire )
+    ell_spt_spire = np.asarray( ell_spt_spire )
+    ell_spt_90_spire = np.asarray( ell_spt_90_spire )
+    ell_spt_150_spire = np.asarray( ell_spt_150_spire )
+
+    spt_freq_arr = np.asarray( [90, 150, 220] )
+    spire_freq_arr = np.asarray( [600, 857, 1200] )
+    spt_spire_freq_arr = np.asarray( [90, 150, 220, 600, 857, 1200] ) #GHz
+    spt_spire_freq_crosses = []
+    for f1 in spt_spire_freq_arr:
+        for f2 in spt_spire_freq_arr:
+            if (f2, f1) in spt_spire_freq_crosses: continue
+            spt_spire_freq_crosses.append( (f1, f2) )
+
+    tot_spec_combs = len( spt_spire_freq_crosses )
+
+    binno, sptspirecl = np.loadtxt( spec_fname, unpack = 1 )
+    break_inds = np.where(binno == 0)[0]
+    assert len(break_inds) == tot_spec_combs
+
+    units_scale_conv_factor_file = '%s/info.txt' %(fd)
+    scale_factor_arr, units_flag_arr = np.loadtxt(units_scale_conv_factor_file, skiprows = tot_spec_combs, unpack = 1, max_rows = tot_spec_combs)
+    #we will not use the scale_factor here.
+    conv_factor_arr = np.loadtxt(units_scale_conv_factor_file, skiprows = tot_spec_combs*2)
+
+    show_plot = 0
+    if show_plot: clf(); ax = subplot(111, yscale = 'log')
+
+    #now assign binned spectra to spt_spire_freq_crosses
+    spt_spire_freq_crosses_dic = {}
+    for cntr, (f1, f2) in enumerate( spt_spire_freq_crosses ):
+        if cntr+1 < len(break_inds):
+            inds_for_this_freq_comb = np.arange(break_inds[cntr], break_inds[cntr+1])
+        else:
+            inds_for_this_freq_comb = np.arange(break_inds[cntr], break_inds[cntr] + 22)
+
+        curr_binno, curr_cls = binno[inds_for_this_freq_comb], sptspirecl[inds_for_this_freq_comb]
+        curr_binno = curr_binno.astype(int)
+
+        #apply scale factor
+        scale_factor = scale_factor_arr[cntr]
+        curr_cls /= scale_factor
+
+        if f1 in spt_freq_arr and f2 in spt_freq_arr:
+            curr_els = ell_spt_spt[curr_binno]
+        elif f1 in spire_freq_arr and f2 in spire_freq_arr:
+            curr_els = ell_spire[curr_binno]
+        else:
+            curr_els = ell_spt_spire[curr_binno]
+            if f1 == 90 or f2 == 90:
+                curr_els = ell_spt_90_spire
+            elif f1 == 150 or f2 == 150:
+                curr_els = ell_spt_150_spire
+
+        dl_fac = curr_els*(curr_els+1)/2./np.pi
+
+
+        #check units based on unit_flag
+        f1_ind = np.where( spt_spire_freq_arr == f1)[0]
+        f2_ind = np.where( spt_spire_freq_arr == f2)[0]
+        #print(f1, f2, f1_ind, f2_ind)
+        #[MJy^2/sr] to [uk_CMB^2]
+        conv_factor_f1 = 1./(conv_factor_arr[f1_ind])
+        conv_factor_f2 = 1./(conv_factor_arr[f2_ind])
+        curr_conv_factor = np.sqrt( conv_factor_f1 * conv_factor_f2 )
+
+        if (0):#f1 == 857 and f2 == 857:
+            elind = 10
+            print(spt_spire_freq_arr, f1_ind, f2_ind)
+            print(curr_cls[elind]/1e3)
+            print(curr_cls[elind])
+            print(units)
+            print(curr_cls[elind]*(curr_conv_factor**2.))
+
+        if units_flag_arr[cntr] == 0:
+
+            #print(f1, f2, conv_factor_f1, conv_factor_f2, curr_conv_factor)
+            #curr_cls *= (curr_conv_factor)
+            if units == 'tcmb':
+                curr_cls *= (curr_conv_factor**2)
+
+        elif units_flag_arr[cntr] == 1:
+            curr_cls /= dl_fac
+            if units == 'flux':
+                curr_cls /= (curr_conv_factor**2)
+
+        #perform interpolation, if requested
+        if el_for_interp is not None:
+            '''
+            if (0): #smooth with polynomial fitting
+                poly_deg = 1
+                poly_fit_eq=np.polyfit(curr_els, curr_cls, poly_deg)
+                poly_fit=np.poly1d(poly_fit_eq)
+                curr_cls = poly_fit(curr_els)
+
+                if (0):#f1>500 or f2>500:
+                    clf()
+                    plot(curr_els, curr_cls)
+                    plot(curr_els, curr_cls_smoothed)
+                    show(); sys.exit()
+            '''
+            curr_els_ori = np.copy(curr_els)
+            if (0): #extrapolating to lower \ell as well
+                fn_curr_cls_ip = intrp.interp1d(curr_els, curr_cls, fill_value = 'extrapolate')
+                curr_cls_ip = fn_curr_cls_ip(el_for_interp)
+            else:
+                curr_cls_ip = np.interp(el_for_interp, curr_els, curr_cls, left = 0., right = curr_cls[-1])
+
+            '''
+            if (0): #smooth with polynomial fitting
+                poly_deg = 1
+                poly_fit_eq=np.polyfit(el_for_interp, curr_cls_ip, poly_deg)
+                poly_fit=np.poly1d(poly_fit_eq)
+                curr_cls_ip = poly_fit(curr_cls_ip)
+
+            if (0): #smooth the curves a bit
+                clf();loglog(curr_cls_ip)
+                curr_cls_ip = ndimage.gaussian_filter1d(curr_cls_ip, sigma = 10.)
+                loglog(curr_cls_ip)
+                show()
+                sys.exit()            
+            '''
+
+            if (1): # stitch it with a \ell^0.8 D_{\ell} spectra
+                #clf();loglog(el_for_interp, curr_cls_ip)
+                el_norm = min(curr_els)
+                dls_fac_ip = el_for_interp * (el_for_interp+1)/2/np.pi
+                curr_dls_ip = curr_cls_ip * dls_fac_ip
+                ext_inds = np.where(el_for_interp<el_norm)[0]
+                curr_dls_ip[ext_inds] = curr_dls_ip[el_for_interp == el_norm][0] * (1.*el_for_interp[ext_inds]/el_norm)**0.8
+                curr_cls_ip = curr_dls_ip / dls_fac_ip
+                #loglog(el_for_interp, curr_cls_ip);show();sys.exit()
+
+            curr_els = np.copy(el_for_interp)
+            curr_cls = np.copy(curr_cls_ip)
+            #curr_cls = np.nan_to_num(curr_cls)
+
+            if (1): #fit white + 1/f for Poisson and clustering component
+                def fitting_func_dust(p, p0, X, DATA = None, return_fit = 0, el_slope = 1.2):                    
+                    #fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**p[2])
+                    fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**el_slope)
+                    if not return_fit:
+                        return fitfunc(p, X) - DATA
+                    else:
+                        return fitfunc(p, X)
+
+                if (1): #smooth the curves
+                    import scipy.optimize as optimize
+                    el_knee_guess = 2000
+                    #low_ell_cls = np.median(curr_cls[curr_els<ell_for_splitting])
+                    #high_ell_cls = np.median(curr_cls[curr_els>ell_for_splitting])
+                    poi_level = np.median(curr_cls[curr_els>el_knee_guess])
+                    el_slope = 1.2 #0.8 for Dl and 1.2 for Cl
+                    p0 = [poi_level, el_knee_guess, 1.2]
+                    p1, success = optimize.leastsq(fitting_func_dust, p0, args=(p0, curr_els, curr_cls))
+                    curr_cls = fitting_func_dust(p1, p1, curr_els, return_fit = 1)
+
+                    if (0):##f1 == 90 and f2 == 857:
+                        clf()
+                        loglog(curr_cls)
+                        loglog(curr_cls_fit)
+                        title(r'%s,%s' %(f1, f2))
+                        show()
+                        sys.exit()
+
+        if (0):#f1 == 857 and f2 == 857:
+            elind = np.where(curr_els == 2950)[0]
+            print(spt_spire_freq_arr, f1_ind, f2_ind)
+            print(units)
+            print(curr_cls[elind])
+            sys.exit()
+
+        if show_plot:
+            #if f1 == f2 and f1>=600: 
+            if f1>=600 and f2>=600 and (f1 == f2):
+                print(f1, f2, curr_conv_factor)
+                #print(curr_els, curr_cls)
+                plot(curr_els, curr_cls, '.', label = r'%s,%s' %(f1, f2))
+                if el_for_interp is not None:
+                    plot(el_for_interp, curr_cls_ip, 'k-')
+        spt_spire_freq_crosses_dic[(f1, f2)] = spt_spire_freq_crosses_dic[(f2, f1)] = [curr_els, curr_cls]
+
+    if show_plot: 
+        xlabel(r'Multipole $\ell$', fontsize = 14); 
+        if units == 'tcmb':
+            ylabel(r'C$_{\ell}$ [$\mu K^{2}$]', fontsize = 14)
+        else:
+            ylabel(r'C$_{\ell}$ [MJy$^{2}$/Sr]', fontsize = 14)
+        legend(loc=3);
+        #xlim(500, 11e4); ylim(1e3, 1e6); 
+        title(r'SPIRE x SPIRE')
+        show(); sys.exit()
+    #now select the required freq
+    if freq1 is not None and freq2 is not None:
+        if (0):#freq1 == 857 and freq2 == 857:
+            elind = np.where(curr_els == 2950)[0]
+            print(spt_spire_freq_crosses_dic[(freq1, freq2)][1][elind])
+            #print(spt_spire_freq_crosses_dic[(freq1, freq2)][elind])
+            sys.exit()
+
+        return spt_spire_freq_crosses_dic[(freq1, freq2)]
+    else:
+        return spt_spire_freq_crosses_dic
     
 def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
 
