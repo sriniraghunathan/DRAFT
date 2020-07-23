@@ -227,7 +227,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
 
     return el, cl_tsz_cib
 
-def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg = -0.9):
+def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg = -0.9, null_highfreq_radio = 1):
 
     if fg_model == 'george15':
         el, cl_rg_freq0 = get_foreground_power_spt('RG', freq1 = freq0, freq2 = freq0)
@@ -247,6 +247,10 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
     cl_rg = dl_rg / dl_fac
 
     cl_rg[np.isnan(cl_rg)] = 0.
+
+    if null_highfreq_radio and (freq1>230 or freq2>230):
+        print('\n\tthis extrapolation does not work for high freqeuncy radio. Making cl_radio = 0 for these bands.')
+        cl_rg *= 0.
 
     return el, cl_rg
 

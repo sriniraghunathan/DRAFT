@@ -41,8 +41,8 @@ if (1):
 
     #null_comp_arr = ['cibpo cibclus y']
 
-    use_websky_cib = 1 ## ###0 ##1
-    use_sptspire_for_hfbands = 0 ##1 ##0
+    use_websky_cib = 0 ## ###0 ##1
+    use_sptspire_for_hfbands = 1 ##1 ##0
     final_comp = 'cmb'
 
     for expname in exparr:

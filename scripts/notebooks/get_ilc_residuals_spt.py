@@ -214,7 +214,6 @@ for TP in TParr:
             nl_dic[TP][(freq1, freq2)] = nl
 print(nl_dic['T'].keys())
 
-sys.exit()
 # In[11]:
 
 

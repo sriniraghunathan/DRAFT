@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc, re, flatsky
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, null_highfreq_radio = 1):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -115,7 +115,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cl_tsz = cl_tsz * 0.
 
             #get radio
-            el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])
+            el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], null_highfreq_radio = null_highfreq_radio)
             if which_spec == 'EE':
                 cl_radio = cl_radio * pol_frac_per_cent_radio**2.
             elif which_spec == 'TE':
@@ -515,7 +515,7 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
 def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, beta = 1.505):
     if nu<1e4: nu *= 1e9
 
-    print(Tcib, beta) 
+    #print(Tcib, beta) 
 
     bnu1 = fg.fn_BnuT(nu, temp = Tcib)
     dbdt = fg.fn_dB_dT(nu)
