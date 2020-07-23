@@ -249,7 +249,7 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
     cl_rg[np.isnan(cl_rg)] = 0.
 
     if null_highfreq_radio and (freq1>230 or freq2>230):
-        print('\n\tthis extrapolation does not work for high freqeuncy radio. Making cl_radio = 0 for these bands.')
+        #print('\n\tthis extrapolation does not work for high freqeuncy radio. Making cl_radio = 0 for these bands.')
         cl_rg *= 0.
 
     return el, cl_rg
