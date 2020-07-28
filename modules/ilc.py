@@ -37,7 +37,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 el,  cl_dust = fg.get_cl_cib_mdlp2(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
             if use_sptspire_for_hfbands:
-                if (1):#freq1>500 or freq2>500:
+                if freq1>500 or freq2>500:
                     el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
                     if (0):#which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
@@ -304,6 +304,13 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
         freqscale_fac = np.asarray( freqscale_fac )
         freqscale_fac /= np.max(freqscale_fac)
 
+    elif final_comp.lower() == 'radio':
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( get_radio_freq_dep(freq) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+
     acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
 
     acap = np.mat(acap).T #should be teb_len*nc x teb_len
@@ -490,6 +497,13 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
         freqscale_fac = np.asarray( freqscale_fac )
         freqscale_fac /= np.max(freqscale_fac)
 
+    elif final_comp.lower() == 'radio':
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( get_radio_freq_dep(freq) )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+
     acap = np.zeros(nc) + (freqscale_fac * freqcalib_fac) #assuming CMB is the same and calibrations factors are same for all channel
 
     if teb_len>1:
@@ -523,6 +537,20 @@ def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.3806
     bnu1 = fg.fn_BnuT(nu, temp = Tcib)
     dbdt = fg.fn_dB_dT(nu)
     value = (nu**beta) * bnu1 / dbdt
+
+    return value
+
+def get_radio_freq_dep(nu, nu0 = 150., spec_index_rg = -0.9, null_highfreq_radio = 1):
+
+    nr = fg.fn_dB_dT(nu0)
+    dr = fg.fn_dB_dT(nu)
+    epsilon_nu1_nu0 = nr/dr
+    scaling = (nu/nu0)**spec_index_rg
+    value = epsilon_nu1_nu0 * scaling
+
+    if null_highfreq_radio and (nu>230):
+        #print('\n\tthis extrapolation does not work for high freqeuncy radio. Making cl_radio = 0 for these bands.')
+        value = 0.
 
     return value
 

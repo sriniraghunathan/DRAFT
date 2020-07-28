@@ -313,25 +313,37 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
     return el_cib, cl_cib
 
 def smooth_cib_spectra(el, cl):
-    def fitting_func_dust(p, p0, X, DATA = None, return_fit = 0, el_slope = 1.2):                    
+    el = el.astype(np.float64)
+    def fitting_func_dust(p, X, DATA = None, return_fit = 0, el_slope = 1.2):
         #fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**p[2])
-        fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**el_slope)
+        fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**p[2])
         if not return_fit:
             return fitfunc(p, X) - DATA
         else:
             return fitfunc(p, X)
 
+    def fitfunc(x, p1, p2, p3):
+        return p1*( 1 + (p2/x)**p3)
+
     import scipy.optimize as optimize
-    el_knee_guess = 2000
+    el_knee_guess = 1500
     #low_ell_cls = np.median(curr_cls[curr_els<ell_for_splitting])
     #high_ell_cls = np.median(curr_cls[curr_els>ell_for_splitting])
     poi_level = np.median(cl[el>el_knee_guess])
     el_slope = 1.2 #0.8 for Dl and 1.2 for Cl
-    p0 = [poi_level, el_knee_guess, 1.2]
-    p1, success = optimize.leastsq(fitting_func_dust, p0, args=(p0, el, cl))
-    cl = fitting_func_dust(p1, p1, el, return_fit = 1)
+    p0 = np.asarray( [poi_level, el_knee_guess, 1.2] )
+    p1, cov, infodict, success, msg = optimize.leastsq(fitting_func_dust, p0, args=(el, cl), full_output = 1)
+    #print(p0, p1, success, msg)
+    #p1, pcov = optimize.curve_fit(fitfunc, el, cl, p0=p0)
+    #print(p0, p1);sys.exit()
+    cl_fit = fitting_func_dust(p1, el, return_fit = 1)
 
-    return cl
+    #from IPython import embed; embed()
+    cl_fit = ndimage.filters.gaussian_filter1d(cl, sigma = 10) 
+
+    #clf(); semilogy(cl); semilogy(cl_fit); show(); #sys.exit()
+
+    return cl_fit
 
 def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None, use_corr_coeff = 1):
 
