@@ -541,6 +541,14 @@ def get_teb_spec_combination(cl_dic):
 
     return teb_len, pspec_arr
 
+def fn_corr_from_cov(covmat):
+    diags = np.sqrt(np.diag(covmat))
+    corrmat = np.zeros_like(covmat)
+    for i in range(covmat.shape[0]):
+        for j in range(covmat.shape[0]):
+            corrmat[i, j] = covmat[i, j] / (diags[i] *  diags[j])
+    return corrmat
+
 def create_clmat_new(freqarr, elcnt, cl_dic):
     """
     freqarr  = array of frequency channel
@@ -572,14 +580,6 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
                     clmat[i, j] = curr_cl_dic[(freq1, freq2)][elcnt]
 
     if (1): #get correlation matrix
-
-        def fn_corr_from_cov(covmat):
-            diags = np.sqrt(np.diag(covmat))
-            corrmat = np.zeros_like(covmat)
-            for i in range(covmat.shape[0]):
-                for j in range(covmat.shape[0]):
-                    corrmat[i, j] = covmat[i, j] / (diags[i] *  diags[j])
-            return corrmat
 
         corr_mat = np.mat( fn_corr_from_cov( clmat ) )
         lower_tril = np.tril(corr_mat, k = -1)
