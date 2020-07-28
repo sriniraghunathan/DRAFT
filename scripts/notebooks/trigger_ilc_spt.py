@@ -29,25 +29,30 @@ if (1):
     #null_comp_arr = ['cibpo cibclus y']
     #null_comp_arr = ['cibpo cibclus']
     #null_comp_arr = ['misc_cib_tcib18_beta2.0']
-    #null_comp_arr = ['misc_cib_tcib18_beta2.0 misc_cib_tcib20_beta1.5_nulled']
+    #null_comp_arr = ['misc_cib_tcib18_beta2.0 misc_cib_tcib20_beta1.5']
 
-    #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5_nulled']
-    #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5_nulled']
-    #null_comp_arr = ['misc_cib_tcib20_beta1.5 misc_cib_tcib20_beta2.5_nulled']
-    #null_comp_arr = ['misc_cib_tcib18_beta1.5 misc_cib_tcib18_beta2.5_nulled']
-    null_comp_arr = ['misc_cib_tcib25_beta1.5 misc_cib_tcib25_beta2.5_nulled']
+    #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5']
+    #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5']
+    #null_comp_arr = ['misc_cib_tcib20_beta1.5 misc_cib_tcib20_beta2.5']
+    #null_comp_arr = ['misc_cib_tcib18_beta1.5 misc_cib_tcib18_beta2.5']
+    #null_comp_arr = ['misc_cib_tcib25_beta1.5 misc_cib_tcib25_beta2.5']
+
+    null_comp_arr = ['misc_cib_tcib20_beta1.5 misc_cib_tcib20_beta2.5 radio']
     null_comp_arr = [ null_comp_arr[0], 'y %s' %(null_comp_arr[0]) ]
+
+    #null_comp_arr = ['y', 'radio']
     split_cross = 0 ###1
 
     #null_comp_arr = ['cibpo cibclus y']
 
-    use_websky_cib = 0 ## ###0 ##1
-    use_sptspire_for_hfbands = 1 ##1 ##0
+    use_websky_cib = 1 ## ###0 ##1
+    use_sptspire_for_hfbands = 0 ###1 ##1 ##0
+    use_mdlp2_cib = 0
     final_comp = 'cmb'
 
     for expname in exparr:
         for null_comp in null_comp_arr:
-            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s -use_sptspire_for_hfbands %s -split_cross %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib, use_sptspire_for_hfbands, split_cross)
+            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s -use_sptspire_for_hfbands %s -use_mdlp2_cib %s -split_cross %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib, use_sptspire_for_hfbands, use_mdlp2_cib, split_cross)
             print('\n###############\n%s\n' %(cmd))
             os.system(cmd)
             #sys.exit()

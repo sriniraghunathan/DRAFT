@@ -44,6 +44,7 @@ parser.add_argument('-expname', dest='expname', action='store', help='expname', 
 parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, required=True)
 parser.add_argument('-null_comp', dest='null_comp', action='store', help='null_comp', nargs='+', default=None)
 parser.add_argument('-use_websky_cib', dest='use_websky_cib', action='store', help='use_websky_cib', type = int, default=0)
+parser.add_argument('-use_mdlp2_cib', dest='use_mdlp2_cib', action='store', help='use_mdlp2_cib', type = int, default=0)
 parser.add_argument('-use_545', dest='use_545', action='store', help='use_545', type = int, default=0)
 parser.add_argument('-use_sptspire_for_hfbands', dest='use_sptspire_for_hfbands', action='store', help='use_sptspire_for_hfbands', type = int, default=0)
 parser.add_argument('-split_cross', dest='split_cross', action='store', help='split_cross', type = int, default=0)
@@ -124,7 +125,7 @@ if (0):
 
 remove_atm = 0
 specs_dic, corr_noise_bands, rho, corr_noise, cib_corr_coeffs = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
-if use_websky_cib:
+if use_websky_cib or use_mdlp2_cib:
     use_545 = 1
 
 if use_545:
@@ -248,10 +249,10 @@ print(ignore_fg)
 cl_dic = {}
 for which_spec in which_spec_arr:
     if which_spec == 'TT':
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, cib_corr_coeffs = cib_corr_coeffs, use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands)
+        el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, cib_corr_coeffs = cib_corr_coeffs, use_websky_cib = use_websky_cib, use_mdlp2_cib = use_mdlp2_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands)
         ###legend(loc = 3, ncol = 4, fontsize = 8);show(); sys.exit()
     else:
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec, pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'], pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'], pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'], pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'], include_gal = include_gal, bl_dic = bl_dic, use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands)
+        el, cl_dic[which_spec] = ilc.get_analytic_covariance (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec, pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'], pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'], pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'], pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'], include_gal = include_gal, bl_dic = bl_dic, use_websky_cib = use_websky_cib, use_mdlp2_cib = use_mdlp2_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands)
 
 # In[13]:
 
@@ -407,6 +408,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 parent_folder = 'results/spt/20200708/'
 if use_websky_cib:
     parent_folder = 'results/spt/20200708/websky_cib/'
+elif use_mdlp2_cib:
+    parent_folder = 'results/spt/20200708/mdlp2_cib/'
 elif use_545:
     parent_folder = 'results/spt/20200708/with_545/'
 elif use_sptspire_for_hfbands:
