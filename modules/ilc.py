@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc, re, flatsky
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, null_highfreq_radio = 1):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdlp2_cib = 0, null_highfreq_radio = 1):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -29,67 +29,69 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             #get dust
             el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
             cl_dust = cl_dg_po + cl_dg_clus
+            cl_dust_ori = np.copy(cl_dust)
             if use_websky_cib:
                 el,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
+            if use_mdlp2_cib:
+                el,  cl_dust = fg.get_cl_cib_mdlp2(freq1, freq2, el = el)
+                cib_corr_coeffs = None #do not use this as websky already takes it into account
             if use_sptspire_for_hfbands:
-                cl_dust_ori = np.copy(cl_dust)
-                if freq1>500 or freq2>500:
+                if (1):#freq1>500 or freq2>500:
                     el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
-                    if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
+                    if (0):#which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
-                #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
-                reqd_freq = 600 ##220 ##150 ##90
-                if freq1 == reqd_freq or freq2 == reqd_freq: 
-                    #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
-                    #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
-                    #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
-                    if (0):#which_spec == 'TT': 
-                        freq_combs = []
-                        color_dic = {}
-                        shades_90 = [cm.Blues(int(d)) for d in np.linspace(100, 255, 5)]
-                        shades_150 = [cm.Purples(int(d)) for d in np.linspace(100, 255, 4)]
-                        shades_220 = [cm.Greens(int(d)) for d in np.linspace(100, 255, 3)]
-                        shades_600 = ['red', 'maroon']
-                        shades_857 = ['black']
-                        shadearr = np.vstack( (shades_90, shades_150, shades_220 ))#, shades_600, shades_857) )
-                        shadearr = shadearr.tolist()
-                        shadearr.extend( shades_600 )
-                        shadearr.extend( shades_857 )
+            #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
+            reqd_freq = 220 ##220 ##150 ##90
+            if (0):##freq1 == reqd_freq or freq2 == reqd_freq: 
+                #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                if (1):##which_spec == 'TT': 
+                    freq_combs = []
+                    color_dic = {}
+                    shades_90 = [cm.Blues(int(d)) for d in np.linspace(100, 255, 5)]
+                    shades_150 = [cm.Purples(int(d)) for d in np.linspace(100, 255, 4)]
+                    shades_220 = [cm.Greens(int(d)) for d in np.linspace(100, 255, 3)]
+                    shades_600 = ['red', 'maroon']
+                    shades_857 = ['black']
+                    shadearr = np.vstack( (shades_90, shades_150, shades_220 ))#, shades_600, shades_857) )
+                    shadearr = shadearr.tolist()
+                    shadearr.extend( shades_600 )
+                    shadearr.extend( shades_857 )
 
-                        for fcntr1, f1 in enumerate( freqarr ):
-                            for fcntr2, f2 in enumerate( freqarr ):
-                                if (f2, f1) in freq_combs: continue
-                                freq_combs.append((f1,f2))
+                    for fcntr1, f1 in enumerate( freqarr ):
+                        for fcntr2, f2 in enumerate( freqarr ):
+                            if (f2, f1) in freq_combs: continue
+                            freq_combs.append((f1,f2))
 
-                        freq_combs = np.asarray( freq_combs )
-                        colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(freq_combs))]
-                        colorarr = np.asarray( colorarr )
-                        if freq1 == 90:
-                            ls = ':'
-                        elif freq1 == 150:
-                            ls = '-.'
-                        elif freq1 == 220:
-                            ls = '--'
-                        else:
-                            ls = '-'
-
+                    freq_combs = np.asarray( freq_combs )
+                    colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(freq_combs))]
+                    colorarr = np.asarray( colorarr )
+                    if freq1 == 90:
+                        ls = ':'
+                    elif freq1 == 150:
+                        ls = '-.'
+                    elif freq1 == 220:
+                        ls = '--'
+                    else:
                         ls = '-'
 
-                        cind = np.where( (freq_combs[:,0] == freq1) & (freq_combs[:,1] == freq2) )[0][0]
-                        #colorval = colorarr[cind]
-                        colorval = shadearr[cind]
-                        #print(colorval)
-                        ax = subplot(111, yscale = 'log', xscale = 'log')
-                        print(freq1, freq2)
-                        plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
-                        plot(el, cl_dust_ori, color = colorval, ls = ':')
-                        axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
-                        #ax.yaxis.set_major_locator(MaxNLocator(nbins=10))
-                        xlabel(r'Multipole $\ell$', fontsize = 14)
-                        ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
-                        title(r'CIB spectra: SPT + SPTxSPIRE')
+                    ls = '-'
+
+                    cind = np.where( (freq_combs[:,0] == freq1) & (freq_combs[:,1] == freq2) )[0][0]
+                    #colorval = colorarr[cind]
+                    colorval = shadearr[cind]
+                    #print(colorval)
+                    ax = subplot(111, yscale = 'log', xscale = 'log')
+                    plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
+                    plot(el, cl_dust_ori, color = colorval, ls = ':')
+                    axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
+                    #ax.yaxis.set_major_locator(MaxNLocator(nbins=10))
+                    xlabel(r'Multipole $\ell$', fontsize = 14)
+                    ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
+                    title(r'CIB spectra: SPT + SPTxSPIRE')
 
             if which_spec == 'EE':
                 cl_dust = cl_dust * pol_frac_per_cent_dust**2.

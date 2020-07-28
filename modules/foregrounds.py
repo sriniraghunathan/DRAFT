@@ -261,7 +261,11 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el 
     fname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/websky/cl_websky_cib_masked.npy'
     websky_freq1 = websky_freq_dic[freq1]
     websky_freq2 = websky_freq_dic[freq2]
-    cl_cib = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][(websky_freq1, websky_freq2)]
+    cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
+    freq_key = (websky_freq1, websky_freq2)
+    if freq_key not in cl_cib_dic:
+        freq_key = (websky_freq2, websky_freq1)
+    cl_cib = cl_cib_dic[freq_key]
     if units.lower() == 'k':
         cl_cib /= 1e12
     cl_cib *= websky_scaling_power
@@ -283,8 +287,10 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
     mdplp2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
 
     exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 600: 'planck', 857: 'planck'}
-    fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/MDLP2_CIB/'
+    fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/MDLP2_CIB/'    
     fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], mdlp2_freq1, exp_freq_dic[freq2], mdlp2_freq2)
+    if not os.path.exists( fname ):
+        fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq2], mdlp2_freq2, exp_freq_dic[freq1], mdlp2_freq1)
 
     cl_cib = np.loadtxt(fname)#/(2.73**2.)
     cl_cib = cl_cib[:4096]
@@ -298,12 +304,34 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
 
     el_cib = np.arange( len(cl_cib) )
     if el is not None:
-        cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = 0.)
+        cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = cl_cib[-1])
         el_cib = np.copy( el )
 
     return el_cib, cl_cib
 
-def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None):
+def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None, use_corr_coeff = 1):
+
+    if (1):
+        cib_corr_coeffs= {}
+        cib_corr_coeffs[(90, 150)] = 0.53
+        cib_corr_coeffs[(90, 220)] = 0.68
+        cib_corr_coeffs[(90, 600)] = 0.46
+        cib_corr_coeffs[(90, 857)] = 0.40
+        cib_corr_coeffs[(90, 1200)] = 0.36
+
+        cib_corr_coeffs[(150, 220)] = 0.976
+        cib_corr_coeffs[(150, 600)] = 0.879
+        cib_corr_coeffs[(150, 857)] = 0.789
+        cib_corr_coeffs[(150, 1200)] = 0.650
+
+        cib_corr_coeffs[(220, 600)] = 0.879
+        cib_corr_coeffs[(220, 857)] = 0.786
+        cib_corr_coeffs[(220, 1200)] = 0.643
+
+        cib_corr_coeffs[(600, 857)] = 0.970
+        cib_corr_coeffs[(600, 1200)] = 0.861
+
+        cib_corr_coeffs[(857, 1200)] = 0.9551
 
     spec_fname = '%s/spectrum_sptxspire.txt' %(fd)
 
@@ -506,6 +534,23 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', 
         #xlim(500, 11e4); ylim(1e3, 1e6); 
         title(r'SPIRE x SPIRE')
         show(); sys.exit()
+
+    if (0):#use_corr_coeff:
+        for tmpf1 in spt_spire_freq_arr:
+            for tmpf2 in spt_spire_freq_arr:
+                if tmpf1 == tmpf2: continue
+                if (tmpf1,tmpf2) in cib_corr_coeffs:
+                    curr_coff_coeff = cib_corr_coeffs[(tmpf1, tmpf2)]
+                else:
+                    curr_coff_coeff = cib_corr_coeffs[(tmpf2, tmpf1)]
+                curr_auto_pspec_1 = spt_spire_freq_crosses_dic[(tmpf1,tmpf1)][1]
+                curr_auto_pspec_2 = spt_spire_freq_crosses_dic[(tmpf2,tmpf2)][1]
+
+                curr_cross_spec = np.sqrt( curr_auto_pspec_1 * curr_auto_pspec_2) * curr_coff_coeff
+                curr_cross_spec[np.isinf(curr_cross_spec)]=0.
+                curr_cross_spec = np.nan_to_num(curr_cross_spec)
+                spt_spire_freq_crosses_dic[(tmpf1,tmpf2)][1] = np.copy( curr_cross_spec )
+
     #now select the required freq
     if freq1 is not None and freq2 is not None:
         if (0):#freq1 == 857 and freq2 == 857:
