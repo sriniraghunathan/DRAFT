@@ -322,6 +322,7 @@ def create_clmat(freqarr, elcnt, cl_dic):
     for ncnt1, freq1 in enumerate(freqarr):
         for ncnt2, freq2 in enumerate(freqarr):
             clmat[ncnt2, ncnt1] = cl_dic[(freq1, freq2)][elcnt]
+
     return clmat
 
 def get_clinv(freqarr, elcnt, cl_dic, which_spec):
@@ -355,7 +356,7 @@ def get_clinv(freqarr, elcnt, cl_dic, which_spec):
         subplot(1,3,sbpldic[which_spec])
         imshow(clmat_dic[which_spec], vmin = None, vmax = None); colorbar(); title(which_spec);
 
-    clinv = sc.linalg.pinv2(clmat)
+    clinv = sc.linalg.pinv2(clmat)    
     #clinv = sc.linalg.inv(clmat)
 
 
@@ -569,6 +570,22 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
                     j, i = ncnt2 + nc, ncnt1
                     clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
                     clmat[i, j] = curr_cl_dic[(freq1, freq2)][elcnt]
+
+    if (1): #get correlation matrix
+
+        def fn_corr_from_cov(covmat):
+            diags = np.sqrt(np.diag(covmat))
+            corrmat = np.zeros_like(covmat)
+            for i in range(covmat.shape[0]):
+                for j in range(covmat.shape[0]):
+                    corrmat[i, j] = covmat[i, j] / (diags[i] *  diags[j])
+            return corrmat
+
+        corr_mat = np.mat( fn_corr_from_cov( clmat ) )
+        lower_tril = np.tril(corr_mat, k = -1)
+        if np.max(abs(lower_tril))>=1.: 
+            print(elcnt)
+
     return clmat
 
 def get_clinv_new(freqarr, elcnt, cl_dic, return_clmat = 0):
