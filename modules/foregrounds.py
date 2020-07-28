@@ -307,7 +307,31 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
         cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = cl_cib[-1])
         el_cib = np.copy( el )
 
+    if (1):
+        cl_cib = smooth_cib_spectra(el_cib, cl_cib)
+
     return el_cib, cl_cib
+
+def smooth_cib_spectra(el, cl):
+    def fitting_func_dust(p, p0, X, DATA = None, return_fit = 0, el_slope = 1.2):                    
+        #fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**p[2])
+        fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**el_slope)
+        if not return_fit:
+            return fitfunc(p, X) - DATA
+        else:
+            return fitfunc(p, X)
+
+    import scipy.optimize as optimize
+    el_knee_guess = 2000
+    #low_ell_cls = np.median(curr_cls[curr_els<ell_for_splitting])
+    #high_ell_cls = np.median(curr_cls[curr_els>ell_for_splitting])
+    poi_level = np.median(cl[el>el_knee_guess])
+    el_slope = 1.2 #0.8 for Dl and 1.2 for Cl
+    p0 = [poi_level, el_knee_guess, 1.2]
+    p1, success = optimize.leastsq(fitting_func_dust, p0, args=(p0, el, cl))
+    cl = fitting_func_dust(p1, p1, el, return_fit = 1)
+
+    return cl
 
 def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None, use_corr_coeff = 1):
 
@@ -480,32 +504,15 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', 
             #curr_cls = np.nan_to_num(curr_cls)
 
             if (1): #fit white + 1/f for Poisson and clustering component
-                def fitting_func_dust(p, p0, X, DATA = None, return_fit = 0, el_slope = 1.2):                    
-                    #fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**p[2])
-                    fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**el_slope)
-                    if not return_fit:
-                        return fitfunc(p, X) - DATA
-                    else:
-                        return fitfunc(p, X)
-
-                if (1): #smooth the curves
-                    import scipy.optimize as optimize
-                    el_knee_guess = 2000
-                    #low_ell_cls = np.median(curr_cls[curr_els<ell_for_splitting])
-                    #high_ell_cls = np.median(curr_cls[curr_els>ell_for_splitting])
-                    poi_level = np.median(curr_cls[curr_els>el_knee_guess])
-                    el_slope = 1.2 #0.8 for Dl and 1.2 for Cl
-                    p0 = [poi_level, el_knee_guess, 1.2]
-                    p1, success = optimize.leastsq(fitting_func_dust, p0, args=(p0, curr_els, curr_cls))
-                    curr_cls = fitting_func_dust(p1, p1, curr_els, return_fit = 1)
-
-                    if (0):##f1 == 90 and f2 == 857:
-                        clf()
-                        loglog(curr_cls)
-                        loglog(curr_cls_fit)
-                        title(r'%s,%s' %(f1, f2))
-                        show()
-                        sys.exit()
+                curr_cls = smooth_cib_spectra(curr_els, curr_cls)
+                
+                if (0):##f1 == 90 and f2 == 857:
+                    clf()
+                    loglog(curr_cls)
+                    loglog(curr_cls_fit)
+                    title(r'%s,%s' %(f1, f2))
+                    show()
+                    sys.exit()
 
         if (0):#f1 == 857 and f2 == 857:
             elind = np.where(curr_els == 2950)[0]

@@ -44,7 +44,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
             #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
             reqd_freq = 220 ##220 ##150 ##90
-            if (0):##freq1 == reqd_freq or freq2 == reqd_freq: 
+            if (0):#freq1 == reqd_freq or freq2 == reqd_freq: 
                 #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
@@ -583,8 +583,9 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
 
         corr_mat = np.mat( fn_corr_from_cov( clmat ) )
         lower_tril = np.tril(corr_mat, k = -1)
-        if np.max(abs(lower_tril))>=1.: 
-            print(elcnt)
+        if np.max(abs(lower_tril))>=0.99: 
+            print('Nulling cov for this \ell = %s' %elcnt)
+            clmat *= 0.
 
     return clmat
 
