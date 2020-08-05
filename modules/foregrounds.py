@@ -211,38 +211,44 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15'):
 
     return el, cl_tsz
 
-def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0):
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, cl_cib_dic = None):
 
     if fg_model == 'george15':
         corr_coeff = 0.1
     elif fg_mode == 'reichardt20':
         corr_coeff = 0.078
 
-    #get tSZ and CIB spectra for freq1
-    el, cl_dg_po_freq1_freq1, cl_dg_clus_freq1_freq1 = get_cl_dust(freq1, freq1, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
     el, cl_tsz_freq1_freq1 = get_cl_tsz(freq1, freq1, freq0 = freq0, fg_model = fg_model)
-    cl_dg_freq1_freq1 = cl_dg_po_freq1_freq1 + cl_dg_clus_freq1_freq1
-    #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
-    if use_websky_cib:
-        el,  cl_dg_freq1_freq1 = get_cl_cib_websky(freq1, freq1, el = el)
-    elif use_mdpl2_cib:
-        el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
-    elif use_sptspire_for_hfbands:
-        if freq1>500:
-            el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
+    if cl_cib_dic is not None:
+        el, cl_dg_freq1_freq1 = cl_cib_dic[(freq1, freq1)]
+    else:
+        #get tSZ and CIB spectra for freq1
+        el, cl_dg_po_freq1_freq1, cl_dg_clus_freq1_freq1 = get_cl_dust(freq1, freq1, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
+        cl_dg_freq1_freq1 = cl_dg_po_freq1_freq1 + cl_dg_clus_freq1_freq1
+        #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
+        if use_websky_cib:
+            el,  cl_dg_freq1_freq1 = get_cl_cib_websky(freq1, freq1, el = el)
+        elif use_mdpl2_cib:
+            el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
+        elif use_sptspire_for_hfbands:
+            if freq1>500:
+                el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
 
     #get tSZ and CIB spectra for freq2
-    el, cl_dg_po_freq2_freq2, cl_dg_clus_freq2_freq2 = get_cl_dust(freq2, freq2, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
     el, cl_tsz_freq2_freq2 = get_cl_tsz(freq2, freq2, freq0 = freq0, fg_model = fg_model)
-    cl_dg_freq2_freq2 = cl_dg_po_freq2_freq2 + cl_dg_clus_freq2_freq2
-    #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
-    if use_websky_cib:
-        el,  cl_dg_freq2_freq2 = get_cl_cib_websky(freq2, freq2, el = el)
-    elif use_mdpl2_cib:
-        el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
-    elif use_sptspire_for_hfbands:
-        if freq2>500:
-            el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)    
+    if cl_cib_dic is not None:
+        el, cl_dg_freq2_freq2 = cl_cib_dic[(freq2, freq2)]
+    else:
+        el, cl_dg_po_freq2_freq2, cl_dg_clus_freq2_freq2 = get_cl_dust(freq2, freq2, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
+        cl_dg_freq2_freq2 = cl_dg_po_freq2_freq2 + cl_dg_clus_freq2_freq2
+        #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
+        if use_websky_cib:
+            el,  cl_dg_freq2_freq2 = get_cl_cib_websky(freq2, freq2, el = el)
+        elif use_mdpl2_cib:
+            el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
+        elif use_sptspire_for_hfbands:
+            if freq2>500:
+                el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)    
 
     cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
 
@@ -380,9 +386,10 @@ def smooth_cib_spectra(el, cl, min_el = 200):
     el_slope = 1.2 #0.8 for Dl and 1.2 for Cl
     p0 = np.asarray( [poi_level, el_knee_guess, el_slope] )
     p1, cov, infodict, success, msg = optimize.leastsq(fitting_func_dust, p0, args=(el, cl), full_output = 1)
-    #print(p0, p1, success, msg)
+    if p1[1]<0:
+        p1 = p0
     #p1, pcov = optimize.curve_fit(fitfunc, el, cl, p0=p0)
-    #print(p0, p1);#sys.exit()
+    #print(p0, p1);sys.exit()
     cl_fit = fitting_func_dust(p1, el, return_fit = 1)
 
     #from IPython import embed; embed()
@@ -394,7 +401,7 @@ def smooth_cib_spectra(el, cl, min_el = 200):
 
     return cl_fit
 
-def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None, use_corr_coeff = 1):
+def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None, use_corr_coeff = 0, comps_to_subtract = None, param_dict = None):
 
     if (1):
         cib_corr_coeffs= {}
@@ -550,30 +557,43 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', 
                 sys.exit()            
             '''
 
-            if (1): # stitch it with a \ell^0.8 D_{\ell} spectra
-                #clf();loglog(el_for_interp, curr_cls_ip)
-                el_norm = min(curr_els)
-                dls_fac_ip = el_for_interp * (el_for_interp+1)/2/np.pi
-                curr_dls_ip = curr_cls_ip * dls_fac_ip
-                ext_inds = np.where(el_for_interp<el_norm)[0]
-                curr_dls_ip[ext_inds] = curr_dls_ip[el_for_interp == el_norm][0] * (1.*el_for_interp[ext_inds]/el_norm)**0.8
-                curr_cls_ip = curr_dls_ip / dls_fac_ip
-                #loglog(el_for_interp, curr_cls_ip);show();sys.exit()
-
+            el_norm = min(curr_els)
             curr_els = np.copy(el_for_interp)
             curr_cls = np.copy(curr_cls_ip)
-            #curr_cls = np.nan_to_num(curr_cls)
+            curr_cls[np.isinf(curr_cls)] = 0.
+            curr_cls[np.isnan(curr_cls)] = 0.
 
-            if (1): #fit white + 1/f for Poisson and clustering component
-                curr_cls = smooth_cib_spectra(curr_els, curr_cls)
-                
-                if (0):##f1 == 90 and f2 == 857:
+            if comps_to_subtract is not None:
+                for comp in comps_to_subtract:
+                    if comp.lower() == 'cmb':
+                        el, curr_cl_to_subtract = get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+                    elif comp.lower() == 'ksz':
+                        el, curr_cl_to_subtract = get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+                    elif comp.lower() == 'radio':
+                        el, curr_cl_to_subtract = get_cl_radio(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], reduce_radio_power_150 = param_dict['reduce_radio_power_150'])
+                    elif comp.lower() == 'tsz':
+                        el, curr_cl_to_subtract = get_cl_tsz(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+                    curr_cls = curr_cls - curr_cl_to_subtract
+
+            if (1): # stitch it with a \ell^0.8 D_{\ell} or \ell^-1.2 C_{\ell}spectra
+                ext_inds = np.where(curr_els<el_norm)[0]
+                curr_cls[ext_inds] = curr_cls[curr_els == el_norm][0] * (1.*el_norm/curr_els[ext_inds])**1.2
+
+                curr_cls[np.isinf(curr_cls)] = 0.
+                curr_cls[np.isnan(curr_cls)] = 0.
+
+            if (1): #fit white + 1/f for Poisson and clustering component                
+                if (0):#f1 == 90 and f2 == 600:
+                    print(curr_cls)
+                    curr_cls_fit = smooth_cib_spectra(curr_els, curr_cls)
                     clf()
                     loglog(curr_cls)
                     loglog(curr_cls_fit)
                     title(r'%s,%s' %(f1, f2))
                     show()
                     sys.exit()
+
+                curr_cls = smooth_cib_spectra(curr_els, curr_cls)
 
         if (0):#f1 == 857 and f2 == 857:
             elind = np.where(curr_els == 2950)[0]
@@ -603,7 +623,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', 
         title(r'SPIRE x SPIRE')
         show(); sys.exit()
 
-    if (0):#use_corr_coeff:
+    if use_corr_coeff:
         for tmpf1 in spt_spire_freq_arr:
             for tmpf2 in spt_spire_freq_arr:
                 if tmpf1 == tmpf2: continue
