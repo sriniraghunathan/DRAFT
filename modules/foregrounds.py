@@ -4,6 +4,9 @@ from scipy import ndimage
 from pylab import *
 
 h, k_B, c=6.626e-34,1.38e-23, 3e8
+data_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data'
+if not os.path.exists(data_folder):
+    data_folder = '/data48/sri/git/DRAFT/data/'
 ################################################################################################################
 
 def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax = None):
@@ -57,8 +60,8 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax 
     try:
         filename = 'george_plot_bestfit_line.sav'
         data = readsav(filename)
-    except:        
-        filename = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/george_plot_bestfit_line.sav'
+    except:
+        filename = '%s/george_plot_bestfit_line.sav' %(data_folder)
         data = readsav(filename)
 
 
@@ -208,29 +211,49 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15'):
 
     return el, cl_tsz
 
-def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20.):
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdlp2_cib = 0):
 
     if fg_model == 'george15':
         corr_coeff = 0.1
     elif fg_mode == 'reichardt20':
         corr_coeff = 0.078
 
+    #get tSZ and CIB spectra for freq1
     el, cl_dg_po_freq1_freq1, cl_dg_clus_freq1_freq1 = get_cl_dust(freq1, freq1, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
     el, cl_tsz_freq1_freq1 = get_cl_tsz(freq1, freq1, freq0 = freq0, fg_model = fg_model)
     cl_dg_freq1_freq1 = cl_dg_po_freq1_freq1 + cl_dg_clus_freq1_freq1
+    #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
+    if use_websky_cib:
+        el,  cl_dg_freq1_freq1 = get_cl_cib_websky(freq1, freq1, el = el)
+    elif use_mdlp2_cib:
+        el,  cl_dg_freq1_freq1 = get_cl_cib_mdlp2(freq1, freq1, el = el)
+    elif use_sptspire_for_hfbands:
+        if freq1>500:
+            el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
 
+    #get tSZ and CIB spectra for freq2
     el, cl_dg_po_freq2_freq2, cl_dg_clus_freq2_freq2 = get_cl_dust(freq2, freq2, freq0 = freq0, fg_model = fg_model, spec_index_dg_po = spec_index_dg_po, spec_index_dg_clus = spec_index_dg_clus, Tcib = Tcib)
     el, cl_tsz_freq2_freq2 = get_cl_tsz(freq2, freq2, freq0 = freq0, fg_model = fg_model)
     cl_dg_freq2_freq2 = cl_dg_po_freq2_freq2 + cl_dg_clus_freq2_freq2
+    #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
+    if use_websky_cib:
+        el,  cl_dg_freq2_freq2 = get_cl_cib_websky(freq2, freq2, el = el)
+    elif use_mdlp2_cib:
+        el,  cl_dg_freq2_freq2 = get_cl_cib_mdlp2(freq2, freq2, el = el)
+    elif use_sptspire_for_hfbands:
+        if freq2>500:
+            el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)    
 
     cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
 
     return el, cl_tsz_cib
 
-def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg = -0.9, null_highfreq_radio = 1):
+def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg = -0.9, null_highfreq_radio = 1, reduce_radio_power_150 = None):
 
     if fg_model == 'george15':
         el, cl_rg_freq0 = get_foreground_power_spt('RG', freq1 = freq0, freq2 = freq0)
+        if reduce_radio_power_150 is not None:
+            cl_rg_freq0 /= reduce_radio_power_150
         el_norm = 3000
 
     #conert to Dls
@@ -258,7 +281,7 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
 #def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None):
 def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
     websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 217, 545: 545, 600: 545, 857: 857}
-    fname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/websky/cl_websky_cib_masked.npy'
+    fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
     websky_freq1 = websky_freq_dic[freq1]
     websky_freq2 = websky_freq_dic[freq2]
     cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
@@ -277,7 +300,7 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el 
 
     return el_cib, cl_cib
 
-def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
+def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els = 1):
 
     #conversion factors: Kcmb-to-Mjy/Sr for maps
     #mdplp2_spt_conv = {90: 221.832, 150: 394.862, 220: 468.451}
@@ -287,13 +310,13 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
     mdplp2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
 
     exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 600: 'planck', 857: 'planck'}
-    fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/MDLP2_CIB/'    
+    fd = '%s/MDLP2_CIB/' %(data_folder)
     fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], mdlp2_freq1, exp_freq_dic[freq2], mdlp2_freq2)
     if not os.path.exists( fname ):
         fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq2], mdlp2_freq2, exp_freq_dic[freq1], mdlp2_freq1)
 
     cl_cib = np.loadtxt(fname)#/(2.73**2.)
-    cl_cib = cl_cib[:4096]
+    #cl_cib = cl_cib[:4096]
     if units.lower() == 'k':
         cl_cib /= 1e12
 
@@ -303,45 +326,71 @@ def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None):
     cl_cib *= conv
 
     el_cib = np.arange( len(cl_cib) )
+
+    if extend_to_higher_els: #extend the Poisson power with random values centered on Poisson mean and using Poisson std. dev.
+        max_el = 12000
+        el_cib_tmp = np.arange(max_el)
+        pad_len = len(el_cib_tmp) - len(el_cib)
+        if pad_len>1:
+            el_poi = 3500
+            poi_inds = np.where(el_cib>=el_poi)[0]
+            cl_poi_mean_val, cl_poi_std_val = np.median(cl_cib[poi_inds]), np.std(cl_cib[poi_inds])
+            cl_cib_tmp_ext_vals = np.random.standard_normal(pad_len) * cl_poi_std_val/10. + cl_poi_mean_val
+            cl_cib_tmp = np.concatenate( (cl_cib, cl_cib_tmp_ext_vals) )
+            #clf();loglog(el_cib, cl_cib); loglog(el_cib_tmp, cl_cib_tmp, lw = 0.2); show()
+
+            el_cib = np.copy(el_cib_tmp )
+            cl_cib = np.copy( cl_cib_tmp )
+
     if el is not None:
-        cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = cl_cib[-1])
+        cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = 0.)
         el_cib = np.copy( el )
 
-    if (1):
+    if (0):
         cl_cib = smooth_cib_spectra(el_cib, cl_cib)
 
     return el_cib, cl_cib
 
-def smooth_cib_spectra(el, cl):
-    el = el.astype(np.float64)
-    def fitting_func_dust(p, X, DATA = None, return_fit = 0, el_slope = 1.2):
-        #fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**p[2])
-        fitfunc = lambda p, x: p[0]*( 1 + (p[1]/X)**p[2])
-        if not return_fit:
-            return fitfunc(p, X) - DATA
-        else:
-            return fitfunc(p, X)
+def smooth_cib_spectra(el, cl, min_el = 200):
+    el_ori = np.copy(el)
+    non_zero_ind = np.where(el>min_el)[0]
+    el = el[non_zero_ind]
+    cl = cl[non_zero_ind]
 
-    def fitfunc(x, p1, p2, p3):
-        return p1*( 1 + (p2/x)**p3)
+    el = el.astype(np.float64)
+    def fitting_func_dust(p, x, DATA = None, return_fit = 0, el_slope = 1.2):
+        fitfunc = lambda p, x: p[0]*( 1 + (p[1]/x)**p[2])
+        #fitfunc = lambda p, x: p[0]*( 1 + (p[1]/x)**el_slope)
+        if not return_fit:
+            val = fitfunc(p, x) - DATA
+            val[np.isinf(val)] = 0.
+            val[np.isnan(val)] = 0.
+            return val
+        else:
+            return fitfunc(p, x)
+
+    def fitfunc(x, p1, p2, p3):        
+        return p1*( 1. + (p2/x)**p3)
 
     import scipy.optimize as optimize
-    el_knee_guess = 1500
+    el_knee_guess = 2000
     #low_ell_cls = np.median(curr_cls[curr_els<ell_for_splitting])
     #high_ell_cls = np.median(curr_cls[curr_els>ell_for_splitting])
     poi_level = np.median(cl[el>el_knee_guess])
     el_slope = 1.2 #0.8 for Dl and 1.2 for Cl
-    p0 = np.asarray( [poi_level, el_knee_guess, 1.2] )
+    p0 = np.asarray( [poi_level, el_knee_guess, el_slope] )
     p1, cov, infodict, success, msg = optimize.leastsq(fitting_func_dust, p0, args=(el, cl), full_output = 1)
     #print(p0, p1, success, msg)
     #p1, pcov = optimize.curve_fit(fitfunc, el, cl, p0=p0)
-    #print(p0, p1);sys.exit()
+    #print(p0, p1);#sys.exit()
     cl_fit = fitting_func_dust(p1, el, return_fit = 1)
 
     #from IPython import embed; embed()
-    cl_fit = ndimage.filters.gaussian_filter1d(cl, sigma = 10) 
+    #cl_fit = ndimage.filters.gaussian_filter1d(cl, sigma = 10) 
 
-    #clf(); semilogy(cl); semilogy(cl_fit); show(); #sys.exit()
+    #clf(); semilogy(cl); semilogy(cl_fit); show(); sys.exit()
+
+    cl_fit = np.interp(el_ori, el, cl_fit, left = 0., right = 0.)
 
     return cl_fit
 
