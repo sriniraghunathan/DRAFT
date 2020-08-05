@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc, re, flatsky
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdlp2_cib = 0, null_highfreq_radio = 1):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdlp2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -30,20 +30,24 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
             cl_dust = cl_dg_po + cl_dg_clus
             cl_dust_ori = np.copy(cl_dust)
+            tit = 'G15/R20 CIB'
             if use_websky_cib:
                 el,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
+                tit = 'Websky CIB'
             if use_mdlp2_cib:
                 el,  cl_dust = fg.get_cl_cib_mdlp2(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
+                tit = 'MDPL2 CIB'
             if use_sptspire_for_hfbands:
                 if freq1>500 or freq2>500:
                     el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
-                    if (0):#which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
+                    if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
+                tit = 'SPTxSPIRE CIB'
             #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
-            reqd_freq = 220 ##220 ##150 ##90
+            reqd_freq = 90 ##220 ##150 ##90
             if (0):#freq1 == reqd_freq or freq2 == reqd_freq: 
                 #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
@@ -87,11 +91,12 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                     ax = subplot(111, yscale = 'log', xscale = 'log')
                     plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
                     plot(el, cl_dust_ori, color = colorval, ls = ':')
-                    axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
+                    #axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
                     #ax.yaxis.set_major_locator(MaxNLocator(nbins=10))
                     xlabel(r'Multipole $\ell$', fontsize = 14)
                     ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
-                    title(r'CIB spectra: SPT + SPTxSPIRE')
+                    title(r'%s spectra' %(tit))
+                    ylim(1e-8, 1e5)
 
             if which_spec == 'EE':
                 cl_dust = cl_dust * pol_frac_per_cent_dust**2.
@@ -117,14 +122,14 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cl_tsz = cl_tsz * 0.
 
             #get radio
-            el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], null_highfreq_radio = null_highfreq_radio)
+            el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], null_highfreq_radio = null_highfreq_radio, reduce_radio_power_150 = reduce_radio_power_150)
             if which_spec == 'EE':
                 cl_radio = cl_radio * pol_frac_per_cent_radio**2.
             elif which_spec == 'TE':
                 cl_radio = cl_radio * 0.
 
             #get tSZ x CIB
-            el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+            el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdlp2_cib = use_mdlp2_cib)
             if which_spec == 'EE' or which_spec == 'TE':
                 cl_tsz_cib = cl_tsz_cib * 0.
             if (0):
@@ -183,6 +188,9 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             lmin = min(el)
             cl = np.concatenate( (np.zeros(lmin), cl) )
 
+            #change me: making cl to be simply dust
+            #cl = cl_dust
+
             #noise auto power spectrum
             if nl_dic is not None:
 
@@ -211,6 +219,9 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             cl[np.isnan(cl)] = 0.
             cl[np.isinf(cl)] = 0.
+
+            if (0):##freq1 == 90 or freq2 == 90:
+                print(cl[1000], cl_dust[1000], cl_tsz[1000], cl_radio[1000], cl_ksz[1000], cl_cmb[1000], cl_tsz_cib[1000], freq1, freq2)
 
             ##########################################################################################
             #20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
@@ -570,11 +581,12 @@ def get_teb_spec_combination(cl_dic):
     return teb_len, pspec_arr
 
 def fn_corr_from_cov(covmat):
-    diags = np.sqrt(np.diag(covmat))
+    diags = np.diag(covmat)
     corrmat = np.zeros_like(covmat)
     for i in range(covmat.shape[0]):
         for j in range(covmat.shape[0]):
-            corrmat[i, j] = covmat[i, j] / (diags[i] *  diags[j])
+            corrmat[i, j] = covmat[i, j] / np.sqrt( diags[i] *  diags[j] )
+    #corrmat = covmat / np.outer(np.sqrt(diags), np.sqrt(diags))
     return corrmat
 
 def create_clmat_new(freqarr, elcnt, cl_dic):
@@ -607,13 +619,16 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
                     clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
                     clmat[i, j] = curr_cl_dic[(freq1, freq2)][elcnt]
 
-    if (1): #get correlation matrix
+    if (0): #get correlation matrix
 
+        ##clmat = clmat + np.eye(len(clmat))+1.
         corr_mat = np.mat( fn_corr_from_cov( clmat ) )
         lower_tril = np.tril(corr_mat, k = -1)
-        if np.max(abs(lower_tril))>=0.99: 
-            print('Nulling cov for this \ell = %s' %elcnt)
-            clmat *= 0.
+        maxval = np.max(abs(lower_tril))
+        if elcnt == 1000: ##maxval>=1.: 
+            from IPython import embed; embed()
+            #print('Nulling cov for this \ell = %s; max(corr) is %s' %(elcnt, maxval))
+            #clmat *= 0.
 
     return clmat
 
