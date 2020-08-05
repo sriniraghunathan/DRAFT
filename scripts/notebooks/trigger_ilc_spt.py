@@ -33,14 +33,14 @@ if (1):
 
     #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5']
     #null_comp_arr = ['misc_cib_tcib20_beta2.0 misc_cib_tcib20_beta1.5']
-    null_comp_arr = ['misc_cib_tcib20_beta1.5 misc_cib_tcib20_beta2.5']
     #null_comp_arr = ['misc_cib_tcib18_beta1.5 misc_cib_tcib18_beta2.5']
     #null_comp_arr = ['misc_cib_tcib25_beta1.5 misc_cib_tcib25_beta2.5']
+    null_comp_arr = ['misc_cib_tcib20_beta1.5 misc_cib_tcib20_beta2.5']
 
     #null_comp_arr = ['misc_cib_tcib20_beta1.5 misc_cib_tcib20_beta2.5 radio']
     null_comp_arr = [ null_comp_arr[0], 'y %s' %(null_comp_arr[0]) ]
 
-    null_comp_arr = ['y', 'radio']
+    #null_comp_arr = ['y', 'radio']
     split_cross = 0 ###1
 
     #null_comp_arr = ['cibpo cibclus y']
