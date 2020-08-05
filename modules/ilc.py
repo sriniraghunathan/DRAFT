@@ -19,12 +19,30 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
     cl_dic = {}
     cl_ori = np.zeros(len(el))
+    if use_sptspire_for_hfbands:
+        param_dict['reduce_radio_power_150'] = reduce_radio_power_150
+        comps_to_subtract_from_spt_spire = ['CMB', 'kSZ', 'tSZ', 'radio']
+        spt_spire_freq_crosses_dic = fg.get_spt_spire_bandpower(el_for_interp = el, comps_to_subtract = comps_to_subtract_from_spt_spire, param_dict = param_dict)
     for freq1 in freqarr:
         for freq2 in freqarr:
 
             if (freq2, freq1) in cl_dic:
                 cl_dic[(freq1, freq2)] = cl_dic[(freq2, freq1)]
                 continue
+
+            #get tsz
+            el, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+            if which_spec == 'EE':
+                cl_tsz = cl_tsz * pol_frac_per_cent_tsz**2.
+            elif which_spec == 'TE':
+                cl_tsz = cl_tsz * 0.
+
+            #get radio
+            el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], null_highfreq_radio = null_highfreq_radio, reduce_radio_power_150 = reduce_radio_power_150)
+            if which_spec == 'EE':
+                cl_radio = cl_radio * pol_frac_per_cent_radio**2.
+            elif which_spec == 'TE':
+                cl_radio = cl_radio * 0.
 
             #get dust
             el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
@@ -41,14 +59,16 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 tit = 'MDPL2 CIB'
             if use_sptspire_for_hfbands:
                 if freq1>500 or freq2>500:
-                    el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
+                    #el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
+                    el, cl_spt_spire = spt_spire_freq_crosses_dic[(freq1, freq2)]
+                    cl_dust = np.copy( cl_spt_spire )
                     if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'SPTxSPIRE CIB'
             #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
             reqd_freq = 90 ##220 ##150 ##90
-            if (0):#freq1 == reqd_freq or freq2 == reqd_freq: 
+            if (0):###freq1 == reqd_freq or freq2 == reqd_freq: 
                 #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
@@ -89,6 +109,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                     colorval = shadearr[cind]
                     #print(colorval)
                     ax = subplot(111, yscale = 'log', xscale = 'log')
+                    #print(freq1, freq2, cl_dust)
                     plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
                     plot(el, cl_dust_ori, color = colorval, ls = ':')
                     #axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
@@ -96,7 +117,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                     xlabel(r'Multipole $\ell$', fontsize = 14)
                     ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
                     title(r'%s spectra' %(tit))
-                    ylim(1e-8, 1e5)
+                    ylim(1e-7, 1e5)
 
             if which_spec == 'EE':
                 cl_dust = cl_dust * pol_frac_per_cent_dust**2.
@@ -114,22 +135,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                         corr_coeff = cib_corr_coeffs[(freq2, freq1)]
                 cl_dust *= corr_coeff
 
-            #get tsz
-            el, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
-            if which_spec == 'EE':
-                cl_tsz = cl_tsz * pol_frac_per_cent_tsz**2.
-            elif which_spec == 'TE':
-                cl_tsz = cl_tsz * 0.
-
-            #get radio
-            el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], null_highfreq_radio = null_highfreq_radio, reduce_radio_power_150 = reduce_radio_power_150)
-            if which_spec == 'EE':
-                cl_radio = cl_radio * pol_frac_per_cent_radio**2.
-            elif which_spec == 'TE':
-                cl_radio = cl_radio * 0.
-
             #get tSZ x CIB
-            el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib)
+            el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic)
             if which_spec == 'EE' or which_spec == 'TE':
                 cl_tsz_cib = cl_tsz_cib * 0.
             if (0):
