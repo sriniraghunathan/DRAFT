@@ -211,7 +211,7 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15'):
 
     return el, cl_tsz
 
-def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdlp2_cib = 0):
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0):
 
     if fg_model == 'george15':
         corr_coeff = 0.1
@@ -225,8 +225,8 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
     #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
     if use_websky_cib:
         el,  cl_dg_freq1_freq1 = get_cl_cib_websky(freq1, freq1, el = el)
-    elif use_mdlp2_cib:
-        el,  cl_dg_freq1_freq1 = get_cl_cib_mdlp2(freq1, freq1, el = el)
+    elif use_mdpl2_cib:
+        el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
     elif use_sptspire_for_hfbands:
         if freq1>500:
             el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
@@ -238,8 +238,8 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
     #20200804: replace CIB with websky/MDPL2/SPTxSPIRE as requested
     if use_websky_cib:
         el,  cl_dg_freq2_freq2 = get_cl_cib_websky(freq2, freq2, el = el)
-    elif use_mdlp2_cib:
-        el,  cl_dg_freq2_freq2 = get_cl_cib_mdlp2(freq2, freq2, el = el)
+    elif use_mdpl2_cib:
+        el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
     elif use_sptspire_for_hfbands:
         if freq2>500:
             el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)    
@@ -300,28 +300,28 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el 
 
     return el_cib, cl_cib
 
-def get_cl_cib_mdlp2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els = 1):
+def get_cl_cib_mdpl2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els = 1):
 
     #conversion factors: Kcmb-to-Mjy/Sr for maps
     #mdplp2_spt_conv = {90: 221.832, 150: 394.862, 220: 468.451}
     mdplp2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 220, 545: 545, 600: 545, 857: 857}
-    mdlp2_freq1 = mdplp2_freq_dic[freq1]
-    mdlp2_freq2 = mdplp2_freq_dic[freq2]
+    mdpl2_freq1 = mdplp2_freq_dic[freq1]
+    mdpl2_freq2 = mdplp2_freq_dic[freq2]
     mdplp2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
 
     exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 600: 'planck', 857: 'planck'}
-    fd = '%s/MDLP2_CIB/' %(data_folder)
-    fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], mdlp2_freq1, exp_freq_dic[freq2], mdlp2_freq2)
+    fd = '%s/mdpl2_CIB/' %(data_folder)
+    fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], mdpl2_freq1, exp_freq_dic[freq2], mdpl2_freq2)
     if not os.path.exists( fname ):
-        fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq2], mdlp2_freq2, exp_freq_dic[freq1], mdlp2_freq1)
+        fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq2], mdpl2_freq2, exp_freq_dic[freq1], mdpl2_freq1)
 
     cl_cib = np.loadtxt(fname)#/(2.73**2.)
     #cl_cib = cl_cib[:4096]
     if units.lower() == 'k':
         cl_cib /= 1e12
 
-    conv1  = 1./mdplp2_conv[mdlp2_freq1]
-    conv2 = 1./mdplp2_conv[mdlp2_freq2]
+    conv1  = 1./mdplp2_conv[mdpl2_freq1]
+    conv2 = 1./mdplp2_conv[mdpl2_freq2]
     conv = np.sqrt(conv1 * conv2)**2.
     cl_cib *= conv
 

@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc, re, flatsky
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdlp2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
@@ -35,8 +35,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 el,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'Websky CIB'
-            if use_mdlp2_cib:
-                el,  cl_dust = fg.get_cl_cib_mdlp2(freq1, freq2, el = el)
+            if use_mdpl2_cib:
+                el,  cl_dust = fg.get_cl_cib_mdpl2(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'MDPL2 CIB'
             if use_sptspire_for_hfbands:
@@ -129,7 +129,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cl_radio = cl_radio * 0.
 
             #get tSZ x CIB
-            el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdlp2_cib = use_mdlp2_cib)
+            el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib)
             if which_spec == 'EE' or which_spec == 'TE':
                 cl_tsz_cib = cl_tsz_cib * 0.
             if (0):
