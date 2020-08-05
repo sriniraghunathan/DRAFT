@@ -25,6 +25,9 @@ if (1):
     exparr = ['spt3g', 'spt4_C3']
     #exparr = ['spt3g', 'sptpolplusultradeepplus3gplusherschel']#, 'spt4_C3'] #CIB at spt4 bands are not computed for websky
     exparr = ['sptpolplusultradeepplus3gplusherschel']#, 'spt4_C3'] #CIB at spt4 bands are not computed for websky
+
+    #exparr = ['sptpolplusultradeepplus3gplusherschel_v2', 'sptpolplusultradeepplus3gplusherschel_v3', 'sptpolplusultradeepplus3gplusherschel_v4'] #CIB at spt4 bands are not computed for websky
+
     #null_comp_arr = [None, 'y', 'cib', 'cib y']
     #null_comp_arr = ['cibpo cibclus y']
     #null_comp_arr = ['cibpo cibclus']
@@ -46,8 +49,8 @@ if (1):
     #null_comp_arr = ['cibpo cibclus y']
 
     use_websky_cib = 0 ## ###0 ##1
-    use_sptspire_for_hfbands = 0 ###1 ##1 ##0
-    use_mdpl2_cib = 1
+    use_sptspire_for_hfbands = 1 ###1 ##1 ##0
+    use_mdpl2_cib = 0
     final_comp = 'cmb'
 
     for expname in exparr:
