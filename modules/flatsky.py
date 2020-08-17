@@ -145,7 +145,7 @@ def cl2map(flatskymapparams, cl, el = None):
 
 ################################################################################################################
 
-def map2cl(flatskymapparams, flatskymap1, flatskymap2 = None, binsize = None):
+def map2cl(flatskymapparams, flatskymap1, flatskymap2 = None, binsize = None, mask = None, filter_2d = None):
 
     """
     map2cl module - get the power spectra of map/maps
@@ -181,6 +181,15 @@ def map2cl(flatskymapparams, flatskymap1, flatskymap2 = None, binsize = None):
 
     rad_prf = radial_profile(flatskymap_psd, (lx,ly), bin_size = binsize, minbin = 100, maxbin = 10000, to_arcmins = 0)
     el, cl = rad_prf[:,0], rad_prf[:,1]
+
+    if mask is not None:
+        fsky = np.mean(mask)
+        cl /= fsky
+
+    if filter_2d is not None:
+        rad_prf_filter_2d = radial_profile(filter_2d, (lx,ly), bin_size = binsize, minbin = 100, maxbin = 10000, to_arcmins = 0)
+        el, fl = rad_prf_filter_2d[:,0], rad_prf_filter_2d[:,1]
+        cl /= fl
 
     return el, cl
 
