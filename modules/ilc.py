@@ -23,6 +23,9 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
         param_dict['reduce_radio_power_150'] = reduce_radio_power_150
         comps_to_subtract_from_spt_spire = ['CMB', 'kSZ', 'tSZ', 'radio']
         spt_spire_freq_crosses_dic = fg.get_spt_spire_bandpower(el_for_interp = el, comps_to_subtract = comps_to_subtract_from_spt_spire, param_dict = param_dict)
+    else:
+        spt_spire_freq_crosses_dic = None
+        
     for freq1 in freqarr:
         for freq2 in freqarr:
 
