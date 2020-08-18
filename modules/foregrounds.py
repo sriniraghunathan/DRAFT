@@ -4,7 +4,7 @@ from scipy import ndimage
 from pylab import *
 
 h, k_B, c=6.626e-34,1.38e-23, 3e8
-data_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data'
+data_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/'
 if not os.path.exists(data_folder):
     data_folder = '/data48/sri/git/DRAFT/data/'
 ################################################################################################################
@@ -401,7 +401,8 @@ def smooth_cib_spectra(el, cl, min_el = 200):
 
     return cl_fit
 
-def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None, use_corr_coeff = 0, comps_to_subtract = None, param_dict = None):
+#def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', units = 'tcmb', el_for_interp = None, use_corr_coeff = 0, comps_to_subtract = None, param_dict = None):
+def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb', el_for_interp = None, use_corr_coeff = 0, comps_to_subtract = None, param_dict = None):
 
     if (1):
         cib_corr_coeffs= {}
@@ -425,6 +426,8 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = 'data/spt_spire/', 
 
         cib_corr_coeffs[(857, 1200)] = 0.9551
 
+    if fd is None:
+        fd = data_folder
     spec_fname = '%s/spectrum_sptxspire.txt' %(fd)
 
     ell_spt_spt = [2068, 2323, 2630, 2932, 3288, 3690, 4143, 4645, 5198, 5851, 6604, 7406, 8309, 9312, 10416]
