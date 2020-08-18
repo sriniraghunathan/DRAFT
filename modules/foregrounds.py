@@ -427,7 +427,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
         cib_corr_coeffs[(857, 1200)] = 0.9551
 
     if fd is None:
-        fd = data_folder
+        fd = '%s/spt_spire/' %(data_folder)
     spec_fname = '%s/spectrum_sptxspire.txt' %(fd)
 
     ell_spt_spt = [2068, 2323, 2630, 2932, 3288, 3690, 4143, 4645, 5198, 5851, 6604, 7406, 8309, 9312, 10416]
