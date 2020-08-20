@@ -284,9 +284,9 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
     return el, cl_rg
 
 
-#def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None):
-def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
-    websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 217, 545: 545, 600: 545, 857: 857}
+def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None):
+#def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
+    websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 278: 278, 353: 353, 545: 545, 600: 545, 857: 857}
     fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
     websky_freq1 = websky_freq_dic[freq1]
     websky_freq2 = websky_freq_dic[freq2]
