@@ -63,6 +63,8 @@ def rebeam(bl_dic, threshold = 1000.):
     rebeamarr = []
     for freq in freqarr:
         if freq is 'effective': continue
+        bad_inds = np.where(bl_dic[freq]<0)
+        bl_dic[freq][bad_inds] = 0.
         currinvbeamval = 1./bl_dic[freq]
         currinvbeamval[currinvbeamval>threshold] = threshold
         rebeamval = bl_eff * currinvbeamval
