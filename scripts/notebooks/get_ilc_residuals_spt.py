@@ -172,7 +172,6 @@ if split_cross:
 
 print(elkneearr_T)
 
-
 # In[9]:
 
 
@@ -265,7 +264,13 @@ if expname.find('spt4')>-1:
     colordic[225] = 'goldenrod'
     colordic[286] = 'orangered'
     colordic[345] = 'maroon'
-elif expname.find('herschel')>-1:
+    if expname.find('herschel')>-1 or expname.find('planck')>-1:
+        colordic[545] = 'darkorchid'
+        colordic[600] = 'm'
+        colordic[857] = 'lime'
+        colordic[1200] = 'cyan'
+
+elif expname.find('herschel')>-1 or expname.find('planck')>-1:
     colordic = {}
     colordic[90] = 'navy'
     colordic[150] = 'green'
@@ -282,7 +287,6 @@ else:
     colordic[90] = 'navy'
     colordic[150] = 'green'
     colordic[220] = 'darkred'
-
 
 # In[14]:
 
