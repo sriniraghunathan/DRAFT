@@ -70,8 +70,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'SPTxSPIRE CIB'
             #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
-            reqd_freq = 90 ##220 ##150 ##90
-            if (0):###freq1 == reqd_freq or freq2 == reqd_freq: 
+            reqd_freq = 345 ##220 ##150 ##90
+            if (0):##freq1 == reqd_freq or freq2 == reqd_freq: 
                 #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
@@ -93,7 +93,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                             if (f2, f1) in freq_combs: continue
                             freq_combs.append((f1,f2))
 
-                    freq_combs = np.asarray( freq_combs )
+                    freq_combs = np.asarray( freq_combs )                    
                     colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(freq_combs))]
                     colorarr = np.asarray( colorarr )
                     if freq1 == 90:
@@ -109,7 +109,10 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
                     cind = np.where( (freq_combs[:,0] == freq1) & (freq_combs[:,1] == freq2) )[0][0]
                     #colorval = colorarr[cind]
-                    colorval = shadearr[cind]
+                    if 345 in freqarr:
+                        colorval = colorarr[cind]
+                    else:
+                        colorval = shadearr[cind]
                     #print(colorval)
                     ax = subplot(111, yscale = 'log', xscale = 'log')
                     #print(freq1, freq2, cl_dust)
