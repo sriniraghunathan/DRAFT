@@ -273,7 +273,7 @@ if (0): #make ILC plot got Gil similar to Fig. 3 of https://arxiv.org/pdf/2006.0
     #show(); sys.exit()
 
 
-if (1): #make ILC plot for SPT
+if (0): #make ILC plot for SPT
 
     sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
     import misc
@@ -404,3 +404,102 @@ if (0):
         for label in ax.get_yticklabels(): label.set_fontsize(fsval)
         title(r'%s' %(which_spec))
     show()
+
+if (1): #make ILC plot for ACTD56 vs SPT-SZ
+
+    sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
+    import misc
+    clf()
+    subplots_adjust(hspace = 0.1)
+    fsval = 14
+    spt_ilc_folder = 'results/spt/20200708/'
+    
+
+    colorarr = ['orangered', 'darkred']
+    include_gal = 0
+
+    remove_atm = 1
+    if remove_atm:
+        sptsz = '%s/sptsz_ilc_cmb_90-150-220_TT-EE_noatmnoise_y_nulled.npy' %(spt_ilc_folder)
+        spt3g = '%s/spt3g20192020_ilc_cmb_90-150-220_TT-EE_noatmnoise_y_nulled.npy' %(spt_ilc_folder)
+        actd56 = '%s/actd56_ilc_cmb_90-150_TT-EE_noatmnoise_y_nulled.npy' %(spt_ilc_folder)
+        actBN = '%s/actBN_ilc_cmb_90-150_TT-EE_noatmnoise_y_nulled.npy' %(spt_ilc_folder)
+    else:
+        sptsz = '%s/sptsz_ilc_cmb_90-150-220_TT-EE_y_nulled.npy' %(spt_ilc_folder)
+        spt3g = '%s/spt3g20192020_ilc_cmb_90-150-220_TT-EE_y_nulled.npy' %(spt_ilc_folder)
+        actd56 = '%s/actd56_ilc_cmb_90-150_TT-EE_y_nulled.npy' %(spt_ilc_folder)
+        actBN = '%s/actBN_ilc_cmb_90-150_TT-EE_y_nulled.npy' %(spt_ilc_folder)
+
+    fname_arr = [sptsz, spt3g, actd56, actBN]
+    lab_arr = [r'SPT-SZ', r'SPT-3G: 2019/2020', r'ACT: D56', r'ACT: BN']
+
+    #camb CMB
+    dic = np.load(sptsz, allow_pickle = 1).item()
+    camb_file = '%s/%s' %(dic['param_dict']['data_folder'], dic['param_dict']['Dlfile_len'])
+    Tcmb= dic['param_dict']['T_cmb']
+    el_camb = np.loadtxt(camb_file, usecols = [0])
+    dl_camb = np.loadtxt(camb_file, usecols = [1,2,3,4])
+    cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,None] + 1) )
+    cl_camb *= 1e12
+    Dls_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+
+    dl_tt = cl_camb[:,0] * Dls_fac_camb
+
+    ax = subplot(111, yscale = 'log')
+    plot(el_camb,  dl_tt, ls = '-', color = 'gray')#, label = r'Lensed CMB')
+
+    Nl_TT_arr, colorarr = [], []
+    for fcntr, fname in enumerate( fname_arr ):
+        if fcntr == 0:
+            colorval = 'darkred'
+        elif fcntr == 1:
+            colorval = 'purple'
+        elif fcntr == 2:
+            colorval = 'goldenrod'
+        elif fcntr == 3:
+            colorval = 'darkgreen'
+        labval = lab_arr[fcntr]
+        #ILC noise
+        dic = np.load(fname, allow_pickle = 1).item()
+        el_nl, nl_tt = dic['el'], dic['cl_residual_nulled']['TT']        
+        dls_fac = el_nl * (el_nl + 1) / 2/ np.pi
+        nl_tt_dl = nl_tt * dls_fac
+
+        dl_tt_ip = np.interp(el_nl, el_camb,  dl_tt)
+        dl_tot = nl_tt_dl + dl_tt_ip
+
+        lwval = 1.
+        #plot(el_nl, nl_tt, ls = '-', color = colorval, label = labval, lw = lwval)
+        #plot(el_nl, nl_tt_dl, ls = '-', color = colorval, label = labval, lw = lwval)
+        plot(el_nl, dl_tot, ls = '-', color = colorval, label = labval, lw = lwval)
+
+    if (1): 
+        #tmp_noise_level = 59.
+        tmp_noise_level = 28.
+        nl_tmp = misc.get_nl(tmp_noise_level, el_nl, 1., use_beam_window = 0)
+        plot(el_nl, nl_tmp * dls_fac, ls = '-.', color = 'k', label = r'$\Delta_{T}$ = %d $\mu$K$^{\prime}$' %(tmp_noise_level))
+
+    xmin, xmax = 0, 6000
+    ymin, ymax = 1e2, 1e5
+    xlim(xmin, xmax);ylim(ymin, ymax)
+    xlabel(r'Multipole $\ell$', fontsize = fsval)
+    legend(loc = 2, fontsize = fsval - 3, fancybox = 1)#, ncol = 3)
+    ylabel(r'$D_{\ell}$ [$\mu K^{2}$]', fontsize = fsval)
+    title(r'SPT vs ACT')
+    show(); sys.exit()
+
+
+
+    Nl_TT_arr = np.asarray(Nl_TT_arr)
+    Nl_TT_arr = Nl_TT_arr / nl_fg_150
+    for ncntr in range(len(Nl_TT_arr)):
+        plot(el_nl, Nl_TT_arr[ncntr], ls = '-', color = colorarr[ncntr], lw = lwval)
+    xlim(xmin, xmax)#;ylim(1e-1, 1e3)
+    ylim(0.5, 1.05)
+    axhline(1.,lw=0.35)
+    ylabel(r'ILC/C$_{\ell}^{150}$', fontsize = fsval)
+    #plname = 'reports/s4_wide_deep_6bands_ilc_curves_for_Gil.png'
+    #savefig(plname, dpi = 200)
+    show()
+    sys.exit()
+    #show(); sys.exit()

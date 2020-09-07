@@ -48,6 +48,7 @@ parser.add_argument('-use_mdpl2_cib', dest='use_mdpl2_cib', action='store', help
 parser.add_argument('-use_545', dest='use_545', action='store', help='use_545', type = int, default=0)
 parser.add_argument('-use_sptspire_for_hfbands', dest='use_sptspire_for_hfbands', action='store', help='use_sptspire_for_hfbands', type = int, default=0)
 parser.add_argument('-split_cross', dest='split_cross', action='store', help='split_cross', type = int, default=0)
+parser.add_argument('-remove_atm', dest='remove_atm', action='store', help='remove_atm', type = int, default=0)
 
 
 args = parser.parse_args()
@@ -84,10 +85,11 @@ if not include_gal:
     param_dict['which_gal_mask'] = 3
 which_gal_mask = param_dict['which_gal_mask']
 s4like_mask = param_dict['s4like_mask']
-try:
-    remove_atm = param_dict['remove_atm']
-except:
-    remove_atm = 0    
+if not remove_atm:
+    try:
+        remove_atm = param_dict['remove_atm']
+    except:
+        remove_atm = 0
 
 #param_dict['ignore_fg'] = ['dust']
 
@@ -123,7 +125,6 @@ if (0):
     # In[7]:
 """
 
-remove_atm = 0
 specs_dic, corr_noise_bands, rho, corr_noise, cib_corr_coeffs = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
 if use_websky_cib or use_mdpl2_cib:
     use_545 = 1
