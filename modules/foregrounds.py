@@ -5,8 +5,12 @@ from pylab import *
 
 h, k_B, c=6.626e-34,1.38e-23, 3e8
 data_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/'
+websky_folder = '/Volumes/data_PHD_WD_babbloo/SPTpol/data/websky/'
+
 if not os.path.exists(data_folder):
     data_folder = '/data48/sri/git/DRAFT/data/'
+if not os.path.exists(websky_folder):
+    websky_folder = '/data19/sri/websky/'    
 ################################################################################################################
 
 def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax = None):
@@ -284,6 +288,45 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
     return el, cl_rg
 
 
+############################################################
+############################################################
+#all websky stuff
+def websky_cib_unit_conversion(freq, freq0 = 100e9):
+
+    x = freq/56.8e9
+    t_cmb = 2.7255 #kelvin
+    t1 = 1.05e3
+    t2 = (np.exp(x) - 1.)**2.
+    t3 = np.exp(-x)
+    t4 = (freq / freq0)**-4
+
+    return t1 * t2 * t3 * t4
+
+def mask_point_sources_in_websky_cib(hmap, mask_fname = '%s/spt_like_mask_6.4mJy_143GHz.fits' %(websky_folder)):
+    import healpy as H
+
+    mask = H.read_map( mask_fname, verbose = 0 )
+    mask_pixels = np.where(mask == 0.)[0]
+
+    nside = H.get_nside(hmap)
+    nearest_neighbours = H.get_all_neighbours(nside, mask_pixels)#mask_theta, mask_phi)
+    mean_values = np.mean(hmap[nearest_neighbours[:,None]], axis = 0)
+    hmap[mask_pixels] = mean_values
+
+    return hmap
+
+def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75):
+    import healpy as H
+    websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 286: 278, 345: 353, 545: 545, 600: 545, 857: 857}
+    mapname = '%s/cib_nu%04d.fits' %(websky_folder, websky_freq_dic[freq])
+    conv_factor = websky_cib_unit_conversion(freq * 1e9)
+    hmap = H.read_map(mapname)#, verbose = 0)
+    hmap *= conv_factor
+    hmap *= websky_scaling_map
+    hmap = mask_point_sources_in_websky_cib(hmap)
+
+    return hmap
+
 def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None):
 #def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
     websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 286: 278, 345: 353, 545: 545, 600: 545, 857: 857}
@@ -305,6 +348,9 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
         el_cib = np.copy( el )
 
     return el_cib, cl_cib
+
+############################################################
+############################################################
 
 def get_cl_cib_mdpl2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els = 1):
 
