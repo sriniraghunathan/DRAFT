@@ -169,3 +169,32 @@ def get_delta_cl(el, cl, nl, fsky = 1., delta_l = 1.):
 
     return delta_cl
 ################################################################################################################
+
+def get_apod_mask(ra_grid, dec_grid, mask_radius = 2., taper_radius = 6., in_arcmins = 1):
+
+    import scipy as sc
+    import scipy.ndimage as ndimage
+
+    if not in_arcmins:
+        ra_grid_arcmins = ra_grid * 60.
+        dec_grid_arcmins = dec_grid * 60.
+    else:
+        ra_grid_arcmins = np.copy( ra_grid )
+        dec_grid_arcmins = np.copy( dec_grid ) 
+
+    radius = np.sqrt( (ra_grid_arcmins**2. + dec_grid_arcmins**2.) )
+
+    mask = np.zeros( ra_grid_arcmins.shape )
+    if (1): #20180118
+        inds_to_mask = np.where((radius<=mask_radius)) #2arcmins - fix this for now
+        mask[inds_to_mask[0], inds_to_mask[1]] = 1.
+
+    ker=np.hanning(taper_radius)
+    ker2d=np.asarray( np.sqrt(np.outer(ker,ker)) )
+
+    mask=ndimage.convolve(mask, ker2d)
+    mask/=mask.max()
+
+    return mask
+
+################################################################################################################

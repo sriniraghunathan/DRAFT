@@ -6,11 +6,12 @@ from pylab import *
 h, k_B, c=6.626e-34,1.38e-23, 3e8
 data_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/'
 websky_folder = '/Volumes/data_PHD_WD_babbloo/SPTpol/data/websky/'
+mdpl2_folder = '/Volumes/data_PHD_WD_babbloo/SPTpol/data/mdpl2/v0.3/'
 
 if not os.path.exists(data_folder):
     data_folder = '/data48/sri/git/DRAFT/data/'
-if not os.path.exists(websky_folder):
-    websky_folder = '/data19/sri/websky/'    
+    websky_folder = '/data19/sri/websky/'
+    mdpl2_folder = '/data48/sri/mdpl2/v0.3/'
 ################################################################################################################
 
 def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax = None):
@@ -302,28 +303,49 @@ def websky_cib_unit_conversion(freq, freq0 = 100e9):
 
     return t1 * t2 * t3 * t4
 
-def mask_point_sources_in_websky_cib(hmap, mask_fname = '%s/spt_like_mask_6.4mJy_143GHz.fits' %(websky_folder)):
+def get_point_source_mask_in_healpix_cib(freq, hmap_Mjy_per_sr, threshold_mjy_freq0, freq0 = 150., spec_index_dg = 3.4):
     import healpy as H
 
-    mask = H.read_map( mask_fname, verbose = 0 )
-    mask_pixels = np.where(mask == 0.)[0]
+    nside = H.get_nside(hmap_Mjy_per_sr)
+    pix_area = H.nside2resol(nside)**2.
+    hmap_Mjy = np.copy( hmap_Mjy_per_sr ) * pix_area
+    MJy_mJy = 1e9
+    hmap_mjy = hmap_Mjy * MJy_mJy
+
+    scaling = (freq / freq0) ** spec_index_dg
+    threshold_mjy = threshold_mjy_freq0 * scaling
+
+    mask_pixels = np.where(hmap_mjy >= threshold_mjy)[0]
+
+    return mask_pixels
+
+def mask_point_sources_in_healpix_cib(freq, hmap, hmap_Mjy_per_sr = None, threshold_mjy_freq0 = None, mask_fname = '%s/spt_like_mask_6.4mJy_143GHz.fits' %(websky_folder)):
+    import healpy as H
 
     nside = H.get_nside(hmap)
+    if hmap_Mjy_per_sr is None:
+        mask = H.read_map( mask_fname, verbose = 0 )
+        nside_mask = H.get_nside(mask)
+        assert nside == nside_mask
+        mask_pixels = np.where(mask == 0.)[0]
+    else:
+        mask_pixels = get_point_source_mask_in_healpix_cib(freq, hmap_Mjy_per_sr, threshold_mjy_freq0)
+
     nearest_neighbours = H.get_all_neighbours(nside, mask_pixels)#mask_theta, mask_phi)
     mean_values = np.mean(hmap[nearest_neighbours[:,None]], axis = 0)
     hmap[mask_pixels] = mean_values
 
     return hmap
 
-def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75):
+def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75, threshold_mjy_freq0 = 1.5):
     import healpy as H
     websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 286: 278, 345: 353, 545: 545, 600: 545, 857: 857}
     mapname = '%s/cib_nu%04d.fits' %(websky_folder, websky_freq_dic[freq])
     conv_factor = websky_cib_unit_conversion(freq * 1e9)
-    hmap = H.read_map(mapname)#, verbose = 0)
-    hmap *= conv_factor
-    hmap *= websky_scaling_map
-    hmap = mask_point_sources_in_websky_cib(hmap)
+    hmap_raw = H.read_map(mapname)#, verbose = 0)
+    hmap = np.copy(hmap_raw) * conv_factor * websky_scaling_map
+    #hmap = mask_point_sources_in_healpix_cib(hmap)
+    hmap = mask_point_sources_in_healpix_cib(freq, hmap, hmap_Mjy_per_sr = hmap_raw, threshold_mjy_freq0 = threshold_mjy_freq0)
 
     return hmap
 
@@ -351,15 +373,66 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
 
 ############################################################
 ############################################################
+#all mdpl2 stuff
+mdpl2_freq_dic_for_spt = {90: 95, 95: 95, 150: 150, 220: 220, 545: 545, 600: 545, 857: 857}
+mdpl2_freq_dic_for_planck = {90: 100, 95: 100, 150: 143, 220: 217, 545: 545, 600: 545, 857: 857}
+
+#Mjy/Sr -> K
+mdpl2_flux_conv_planck = {100: 243.623, 143: 371.036, 217: 481.882, 353: 287.281, 545: 57.6963, 857: 2.26476}
+mdpl2_flux_conv_spt = {95: 208.973, 150: 375.876, 220: 472.522}
+mdpl2_flux_conv_herschel = {600: None, 857: 2.26476, 1200: None}
+
+#colour corrections
+mdpl2_col_corr_planck = {100: 1.1102, 143: 1.0324, 217: 1.1442, 353: 1.1398, 545: 1.1420, 857: 1.0439}
+mdpl2_col_corr_spt = {95: 0.9708, 150: 0.9442, 220: 1.0239}
+mdpl2_col_corr_herschel = {600: 1.1339, 857: 1.0955, 1200: 1.0815}
+
+#Planck to spt/herschle scalings
+mdpl2_planck_to_spt_herschel_scaling_power = {(143, 150): 0.423, (217, 220): 1.64, (545, 600): 1.32, (857, 857): 0.98}
+
+def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0 = 1.5):
+    import healpy as H
+    if which_set == 'spt':
+        mdpl2_freq_dic = mdpl2_freq_dic_for_spt
+    elif which_set == 'planck':
+        mdpl2_freq_dic = mdpl2_freq_dic_for_planck
+
+    mdpl2_freq = mdpl2_freq_dic[freq]
+    if mdpl2_freq in mdpl2_flux_conv_planck:
+        mapname = '%s/cibmap_sum_%03d_planck.fits' %(mdpl2_folder, mdpl2_freq)
+        conv_factor = mdpl2_flux_conv_planck[mdpl2_freq]
+        col_corr = mdpl2_col_corr_planck[mdpl2_freq]
+    elif mdpl2_freq in mdpl2_flux_conv_spt:
+        mapname = '%s/cibmap_sum_%03d.fits' %(mdpl2_folder, mdpl2_freq)
+        conv_factor = mdpl2_flux_conv_spt[mdpl2_freq]
+        col_corr = mdpl2_col_corr_spt[mdpl2_freq]
+
+    hmap_raw = H.read_map(mapname)#, verbose = 0)
+    hmap_raw /= 1e6 #go from Jy to MJy
+    hmap_raw *= col_corr
+
+
+    scaling_value_power = 1.
+    if (freq, mdpl2_freq) in mdpl2_planck_to_spt_herschel_scaling_power:
+        scaling_value_power = mdpl2_planck_to_spt_herschel_scaling_power[(freq, mdpl2_freq)]
+
+    scaling_value_map = scaling_value_power ** 0.5
+
+    hmap = np.copy(hmap_raw) * conv_factor * scaling_value_map
+    hmap = mask_point_sources_in_healpix_cib(freq, hmap, hmap_Mjy_per_sr = hmap_raw, threshold_mjy_freq0 = threshold_mjy_freq0)
+
+    hmap = hmap * 1e6 #K to uK
+
+    return hmap
 
 def get_cl_cib_mdpl2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els = 1):
 
     #conversion factors: Kcmb-to-Mjy/Sr for maps
-    #mdplp2_spt_conv = {90: 221.832, 150: 394.862, 220: 468.451}
-    mdplp2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 220, 545: 545, 600: 545, 857: 857}
-    mdpl2_freq1 = mdplp2_freq_dic[freq1]
-    mdpl2_freq2 = mdplp2_freq_dic[freq2]
-    mdplp2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
+    #mdpl2_spt_conv = {90: 221.832, 150: 394.862, 220: 468.451}
+    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 220, 545: 545, 600: 545, 857: 857}
+    mdpl2_freq1 = mdpl2_freq_dic[freq1]
+    mdpl2_freq2 = mdpl2_freq_dic[freq2]
+    mdpl2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
 
     exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 600: 'planck', 857: 'planck'}
     fd = '%s/mdpl2_CIB/' %(data_folder)
@@ -372,8 +445,8 @@ def get_cl_cib_mdpl2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els
     if units.lower() == 'k':
         cl_cib /= 1e12
 
-    conv1  = 1./mdplp2_conv[mdpl2_freq1]
-    conv2 = 1./mdplp2_conv[mdpl2_freq2]
+    conv1  = 1./mdpl2_conv[mdpl2_freq1]
+    conv2 = 1./mdpl2_conv[mdpl2_freq2]
     conv = np.sqrt(conv1 * conv2)**2.
     cl_cib *= conv
 
