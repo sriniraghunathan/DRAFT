@@ -437,7 +437,7 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
     freq_key = (mdpl2_freq1, mdpl2_freq2)
     if freq_key not in cl_cib_dic:
         freq_key = (mdpl2_freq2, mdpl2_freq1)
-    print(freq1, freq2, freq_key)
+    #print(freq1, freq2, freq_key)
     cl_cib = cl_cib_dic[freq_key]
     if units.lower() == 'k':
         cl_cib /= 1e12
