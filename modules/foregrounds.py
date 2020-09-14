@@ -234,7 +234,8 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
         if use_websky_cib:
             el,  cl_dg_freq1_freq1 = get_cl_cib_websky(freq1, freq1, el = el)
         elif use_mdpl2_cib:
-            el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
+            #el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
+            el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2_v0p3(freq1, freq1, el = el)
         elif use_sptspire_for_hfbands:
             if freq1>500:
                 el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
@@ -250,7 +251,8 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
         if use_websky_cib:
             el,  cl_dg_freq2_freq2 = get_cl_cib_websky(freq2, freq2, el = el)
         elif use_mdpl2_cib:
-            el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
+            #el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
+            el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2_v0p3(freq2, freq2, el = el)
         elif use_sptspire_for_hfbands:
             if freq2>500:
                 el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)    
@@ -374,17 +376,17 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
 ############################################################
 ############################################################
 #all mdpl2 stuff
-mdpl2_freq_dic_for_spt = {90: 95, 95: 95, 150: 150, 220: 220, 545: 545, 600: 545, 857: 857}
+mdpl2_freq_dic_for_spt = {90: 90, 95: 90, 150: 150, 220: 220, 221: 221, 286: 286, 345: 345, 545: 545, 600: 545, 857: 857}
 mdpl2_freq_dic_for_planck = {90: 100, 95: 100, 150: 143, 220: 217, 545: 545, 600: 545, 857: 857}
 
 #Mjy/Sr -> K
 mdpl2_flux_conv_planck = {100: 243.623, 143: 371.036, 217: 481.882, 353: 287.281, 545: 57.6963, 857: 2.26476}
-mdpl2_flux_conv_spt = {95: 208.973, 150: 375.876, 220: 472.522}
+mdpl2_flux_conv_spt = {90: 208.973, 150: 375.876, 220: 472.522, 221: 473.332, 286: 414.977, 345: 310.827}
 mdpl2_flux_conv_herschel = {600: None, 857: 2.26476, 1200: None}
 
 #colour corrections
 mdpl2_col_corr_planck = {100: 1.1102, 143: 1.0324, 217: 1.1442, 353: 1.1398, 545: 1.1420, 857: 1.0439}
-mdpl2_col_corr_spt = {95: 0.9708, 150: 0.9442, 220: 1.0239}
+mdpl2_col_corr_spt = {90: 0.9708, 150: 0.9442, 220: 1.0239, 221: 1.0284, 286: 1.0234, 345: 1.0047}
 mdpl2_col_corr_herschel = {600: 1.1339, 857: 1.0955, 1200: 1.0815}
 
 #Planck to spt/herschle scalings
@@ -399,11 +401,11 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
 
     mdpl2_freq = mdpl2_freq_dic[freq]
     if mdpl2_freq in mdpl2_flux_conv_planck:
-        mapname = '%s/cibmap_sum_%03d_planck.fits' %(mdpl2_folder, mdpl2_freq)
+        mapname = '%s/cibmap_sum_%d_planck.fits' %(mdpl2_folder, mdpl2_freq)
         conv_factor = mdpl2_flux_conv_planck[mdpl2_freq]
         col_corr = mdpl2_col_corr_planck[mdpl2_freq]
     elif mdpl2_freq in mdpl2_flux_conv_spt:
-        mapname = '%s/cibmap_sum_%03d.fits' %(mdpl2_folder, mdpl2_freq)
+        mapname = '%s/cibmap_sum_%d.fits' %(mdpl2_folder, mdpl2_freq)
         conv_factor = mdpl2_flux_conv_spt[mdpl2_freq]
         col_corr = mdpl2_col_corr_spt[mdpl2_freq]
 
@@ -413,17 +415,39 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
 
 
     scaling_value_power = 1.
-    if (freq, mdpl2_freq) in mdpl2_planck_to_spt_herschel_scaling_power:
-        scaling_value_power = mdpl2_planck_to_spt_herschel_scaling_power[(freq, mdpl2_freq)]
+    if (mdpl2_freq, freq) in mdpl2_planck_to_spt_herschel_scaling_power:
+        scaling_value_power = mdpl2_planck_to_spt_herschel_scaling_power[(mdpl2_freq, freq)]
 
     scaling_value_map = scaling_value_power ** 0.5
+    print(scaling_value_map)
 
-    hmap = np.copy(hmap_raw) * conv_factor * scaling_value_map
+    hmap = np.copy(hmap_raw) * scaling_value_map /  conv_factor
     hmap = mask_point_sources_in_healpix_cib(freq, hmap, hmap_Mjy_per_sr = hmap_raw, threshold_mjy_freq0 = threshold_mjy_freq0)
 
     hmap = hmap * 1e6 #K to uK
 
     return hmap
+
+def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5):
+    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 545: 545, 600: 600, 857: 857}
+    fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)
+    mdpl2_freq1 = mdpl2_freq_dic[freq1]
+    mdpl2_freq2 = mdpl2_freq_dic[freq2]
+    cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
+    freq_key = (mdpl2_freq1, mdpl2_freq2)
+    if freq_key not in cl_cib_dic:
+        freq_key = (mdpl2_freq2, mdpl2_freq1)
+    print(freq1, freq2, freq_key)
+    cl_cib = cl_cib_dic[freq_key]
+    if units.lower() == 'k':
+        cl_cib /= 1e12
+
+    el_cib = np.arange( len(cl_cib) )
+    if el is not None:
+        cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = 0.)
+        el_cib = np.copy( el )
+
+    return el_cib, cl_cib
 
 def get_cl_cib_mdpl2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els = 1):
 

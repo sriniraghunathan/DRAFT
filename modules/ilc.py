@@ -57,7 +57,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'Websky CIB'
             if use_mdpl2_cib:
-                el,  cl_dust = fg.get_cl_cib_mdpl2(freq1, freq2, el = el)
+                #el,  cl_dust = fg.get_cl_cib_mdpl2(freq1, freq2, el = el)
+                el,  cl_dust = fg.get_cl_cib_mdpl2_v0p3(freq1, freq2, el = el)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'MDPL2 CIB'
             if use_sptspire_for_hfbands:
@@ -70,8 +71,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'SPTxSPIRE CIB'
             #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
-            reqd_freq = 345 ##220 ##150 ##90
-            if (0):##freq1 == reqd_freq or freq2 == reqd_freq: 
+            reqd_freq = 150 ##220 ##150 ##90
+            if freq1 == reqd_freq or freq2 == reqd_freq: 
                 #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
