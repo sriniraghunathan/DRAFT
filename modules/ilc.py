@@ -693,8 +693,8 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
 
     cl_residual_tmp = []
 
-    for elcnt, el in enumerate(el):
-        if el <= lmin: continue ## or el>=lmax: continue
+    for elcnt, currel in enumerate(el):
+        if currel <= lmin: continue ## or el>=lmax: continue
         #clinv = get_clinv_new( freqarr, elcnt, cl_dic )
         clinv, clmat = get_clinv_new( freqarr, elcnt, cl_dic, return_clmat = 1 )
 

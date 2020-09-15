@@ -719,6 +719,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                         el, curr_cl_to_subtract = get_cl_radio(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], reduce_radio_power_150 = param_dict['reduce_radio_power_150'])
                     elif comp.lower() == 'tsz':
                         el, curr_cl_to_subtract = get_cl_tsz(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+                    curr_cl_to_subtract = curr_cl_to_subtract[:len(el_for_interp)]
                     curr_cls = curr_cls - curr_cl_to_subtract
 
             if (1): # stitch it with a \ell^0.8 D_{\ell} or \ell^-1.2 C_{\ell}spectra
