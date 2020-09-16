@@ -6,9 +6,11 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust']
     if len(ignore_fg)>0:
+        if 'cmb' in ignore_fg: ignore_fg.append('ksz')
         if not all( [ currfg in possible_ignore_fg for currfg in ignore_fg] ):
             print( '\n\t Alert: Elements of ignore_fg should be one of the following: %s\n\n' %(np.array2string(np.asarray(possible_ignore_fg))) )
             sys.exit()
+
 
     el, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
     el, cl_ksz = fg.get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
@@ -66,7 +68,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                     #el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
                     el, cl_spt_spire = spt_spire_freq_crosses_dic[(freq1, freq2)]
                     cl_dust = np.copy( cl_spt_spire )
-                    if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ): #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
+                    if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ) and freq1>500 or freq2>500: #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'SPTxSPIRE CIB'
@@ -515,12 +517,25 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
             beta_tmp = beta_tmp[0]
             misc_beta = float(beta_tmp.replace('beta', ''))
 
+        #freqarr = [30, 44, 70, 100, 150, 217, 353, 545]
         freqscale_fac = []
         for freq in sorted( freqarr ):
             freqscale_fac.append( get_cib_freq_dep(freq * 1e9, Tcib = misc_tcib, beta = misc_beta) )
 
         freqscale_fac = np.asarray( freqscale_fac )
         freqscale_fac /= np.max(freqscale_fac)
+
+        if (0):
+            norm_freq = 150
+            freqarr = np.asarray( freqarr )
+            norm_freq_ind = np.argmin( abs(freqarr - norm_freq) )
+            freqscale_fac /= freqscale_fac[norm_freq_ind]
+            
+            '''
+            loglog(freqarr, freqscale_fac, 'go'); xlim(10., 1e3); ylim(0.05, 400.); show()
+            print( freqscale_fac )
+            sys.exit()
+            '''
 
     elif final_comp.lower() == 'radio':
         freqscale_fac = []
@@ -556,8 +571,6 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
 
 def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, beta = 1.505):
     if nu<1e4: nu *= 1e9
-
-    #print(Tcib, beta) 
 
     bnu1 = fg.fn_BnuT(nu, temp = Tcib)
     dbdt = fg.fn_dB_dT(nu)
@@ -683,7 +696,6 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             #bcap = get_acap_new(freqarr, final_comp = null_comp[0], freqcalib_fac = freqcalib_fac, teb_len = teb_len)
             #print(bcap)
             #sys.exit()
-
 
     nc = len(freqarr)
     #cl_residual = np.zeros( (len(el)) )
