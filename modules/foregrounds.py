@@ -716,7 +716,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                     elif comp.lower() == 'ksz':
                         el, curr_cl_to_subtract = get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
                     elif comp.lower() == 'radio':
-                        el, curr_cl_to_subtract = get_cl_radio(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], reduce_radio_power_150 = param_dict['reduce_radio_power_150'])
+                        el, curr_cl_to_subtract = get_cl_radio(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])#, reduce_radio_power_150 = param_dict['reduce_radio_power_150'])
                     elif comp.lower() == 'tsz':
                         el, curr_cl_to_subtract = get_cl_tsz(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
                     curr_cl_to_subtract = curr_cl_to_subtract[:len(el_for_interp)]
