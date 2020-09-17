@@ -429,15 +429,14 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
     return hmap
 
 def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5):
-    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 545: 545, 600: 600, 857: 857}
+    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 545: 600, 600: 600, 857: 857}
     fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)
     mdpl2_freq1 = mdpl2_freq_dic[freq1]
     mdpl2_freq2 = mdpl2_freq_dic[freq2]
-    cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
+    cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']    
     freq_key = (mdpl2_freq1, mdpl2_freq2)
     if freq_key not in cl_cib_dic:
         freq_key = (mdpl2_freq2, mdpl2_freq1)
-    #print(freq1, freq2, freq_key)
     cl_cib = cl_cib_dic[freq_key]
     if units.lower() == 'k':
         cl_cib /= 1e12
@@ -446,6 +445,13 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
     if el is not None:
         cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = 0.)
         el_cib = np.copy( el )
+
+    if freq1 == freq2 and freq1 != mdpl2_freq1:
+        if (freq1, mdpl2_freq1) in mdpl2_planck_to_spt_herschel_scaling_power:
+            scale_fac_power = 1./mdpl2_planck_to_spt_herschel_scaling_power[(freq1, mdpl2_freq1)]
+        elif (mdpl2_freq1, freq1) in mdpl2_planck_to_spt_herschel_scaling_power:
+            scale_fac_power = mdpl2_planck_to_spt_herschel_scaling_power[(freq1, mdpl2_freq1)]
+        cl_cib = cl_cib / scale_fac_power
 
     return el_cib, cl_cib
 
