@@ -7,13 +7,14 @@ if str(os.getcwd()).find('sri')>-1:
 s4like_mask =0
 lat_steps_mask=0
 s4like_mask_v2=0
+spt3g_mask = 0
 
 nside, lmax = 2048, 3500
 t_only = 0
 
 zonca_sims = 1
 
-if (1):
+if (0):
     lat_steps_mask = 1
     nside, lmax = 4096, 10000 ##7000
 
@@ -23,6 +24,11 @@ if (0):
     s4like_mask_v2 = 1
     nside, lmax = 4096, 7000
     nside, lmax = 2048, 5000
+    t_only = 0
+
+if (1):
+    spt3g_mask = 1
+    nside, lmax = 2048, 6000
     t_only = 0
 
 
@@ -47,9 +53,11 @@ for which_comp in comp_arr:
                 searchstr = '%s/%s/0000/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
             else:
                 searchstr = '%s/%s/0000/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
-	elif s4like_mask_v2:
-	    searchstr = '%s/%s/0000/s4like_mask_v2/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
+        elif s4like_mask_v2:
+            searchstr = '%s/%s/0000/s4like_mask_v2/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
             searchstr = searchstr.replace('.npy', '_cos_el_40.npy')
+        elif spt3g_mask:
+            searchstr = '%s/%s/0000/spt3g/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
         else:
             searchstr = '%s/%s/0000/lat_steps/cls_galactic_sims_xxxx_maskplanck_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
 
@@ -57,6 +65,8 @@ for which_comp in comp_arr:
     curr_searchstr = searchstr.replace('xxxx', which_comp)
     curr_searchstr = curr_searchstr.replace('_synchrotron_', '_sync_')
     flist = sorted( glob.glob(curr_searchstr) )
+
+    #print(flist)
 
     opdic = {}
     opdic['cl_dic'] = {}
