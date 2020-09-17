@@ -198,7 +198,7 @@ if which_mask != -1:
     log_file = log_file.replace('.txt', '_mask%s.txt' %(which_mask))     
     opfname = opfname.replace('.npy', '_mask%s.npy' %(which_mask))
 
-if (1):##cos_el != 30:
+if not use_spt3g_mask:##cos_el != 30:
     log_file = log_file.replace('.txt', '_cos_el_%s.txt' %(cos_el))     
     opfname = opfname.replace('.npy', '_cos_el_%s.npy' %(cos_el))
 
