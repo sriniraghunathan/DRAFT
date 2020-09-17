@@ -26,6 +26,38 @@ def healpix_rotate_coords(hmap, coord):
 
     return rot_hmap
 
+def get_spt3g_mask(winter_field = 0, summer_field = 0, nside_out = 4096):
+
+    nside = 512 #this is okay to get a rough fsky number
+    npix = H.nside2npix(nside) #total number of pixels
+
+    if winter_field: #winter field
+        ra1, ra2 = -50., 50.
+        #dec1, dec2 = -70., -42.
+        dec1, dec2 = -64., -42.
+
+    if summer_field: #summer field
+        ra1, ra2 = 155., 205.
+        dec1, dec2 = -42., -28.
+
+    delra, deldec = 0.1, 0.1
+    raarr = np.arange(ra1, ra2, delra)
+    decarr = np.arange(dec1, dec2, deldec)
+
+    RA, DEC = np.meshgrid(raarr,decarr)
+    RA = RA.flatten()
+    DEC = DEC.flatten()
+
+    HMASK = np.zeros(npix)
+    P=H.pixelfunc.ang2pix(nside,np.radians(90.-DEC),np.radians(RA))
+    HMASK[P] = 1.
+    HMASK = H.smoothing(HMASK, fwhm = np.radians(2.))
+    HMASK[HMASK<1e-5] = 0.
+
+    HMASK = H.ud_grade(HMASK, nside_out)
+
+    return HMASK
+
 ############################################################
 ############################################################
 
@@ -55,6 +87,7 @@ parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='stor
 parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=0) #rough S4 mask
 parser.add_argument('-use_s4like_mask_v2', dest='use_s4like_mask_v2', action='store', help='use_s4like_mask_v2', type=int, default=1) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-cos_el', dest='cos_el', action='store', help='cos_el', type=int, default=40) #rough S4 mask v2: split footrpint into clean and unclean region
+parser.add_argument('-use_spt3g_mask', dest='use_spt3g_mask', action='store', help='use_spt3g_mask', type=int, default=0) #SPT-3G summer/winter field
 
 
 parser.add_argument('-testing', dest='testing', action='store', help='testing', type=int, default=0)
@@ -89,6 +122,7 @@ if testing and local:
     nside = 512
     ##nuarr = [ 145 ]#, 145]
     nuarr = [ 145 ]
+    t_only = 1
 
 '''
 if not local:
@@ -143,10 +177,13 @@ else:
         opfname = '%s/s4like_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask_v2:
         opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_spt3g_mask:
+        opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
 if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
+if use_spt3g_mask: os.system('mkdir %s/spt3g/' %(sim_folder))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
 log_file = 'tmp/pspec_%s.txt' %(dust_or_sync)
@@ -204,7 +241,7 @@ if testing or not local:
 
         map_dic[nu] = currmap
 
-    if (1): #get cmbs4 footprint        
+    if not use_spt3g_mask: #get cmbs4 footprint if not SPT
         cmbs4_hit_map_fname = '%s/high_cadence_hits_el%s_cosecant_modulation.fits' %(cmbs4_footprint_folder, cos_el)
         #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
         cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
@@ -284,6 +321,15 @@ if testing or not local:
 
         tot_masks = len(s4like_mask_arr)
 
+    elif use_spt3g_mask: #get SPT-3G summer/winter field mask
+
+        spt_mask_winter = get_spt3g_mask(winter_field = 1, nside_out = nside)
+        spt_mask_summer = get_spt3g_mask(summer_field = 1, nside_out = nside)
+
+        spt_mask_arr = [spt_mask_winter, spt_mask_summer]
+
+        tot_masks = len(spt_mask_arr)
+
     logline = '\tget masks now\n'
     lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
     print(logline)
@@ -304,15 +350,19 @@ if testing or not local:
 
             mask = s4like_mask_arr[mask_iter]
 
-        if (1):
+        elif use_spt3g_mask:
+
+            mask = spt_mask_arr[mask_iter]
+
+        if not use_spt3g_mask:
             mask = H.ud_grade(mask, 128)
             #simple rotation from gal to celestial
             mask = healpix_rotate_coords(mask, coord = ['G', 'C'])
             mask = H.smoothing(np.copy(mask), fwhm = np.radians(10.), verbose = verbose)#, lmax = lmax)
             mask = H.ud_grade(mask, nside_out = nside)
-        thresh = 0.4
-        mask[mask<thresh] = 0.
-        mask[mask!=0] = 1.
+            thresh = 0.4
+            mask[mask<thresh] = 0.
+            mask[mask!=0] = 1.
 
         mask_arr.append( mask )
 
@@ -381,6 +431,8 @@ if testing or not local:
                 else:
                     maskno = '%s(b)' %(mask_iter-3)
                 H.mollview(mask_arr[mask_iter], sub = (2, tot_masks/2,mask_iter+1), title = r'Mask: %s: f$_{\rm sky} = %.2f$' %(maskno, fsky), cbar = 0, title_fontsize = 10); 
+
+        show(); sys.exit()
         plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks.pdf'
         if use_lat_step_mask:
             plname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/reports/galactic_sims/maps_masks/masks_S4wide_cluster_search.pdf'
@@ -432,13 +484,14 @@ if testing or not local:
                 mask_arr.append( planck_rest_of_sky )
                 tot_masks = len(mask_arr)
 
+            vmin, vmax = 0., 200.
             for mask_iter in range(tot_masks):
                 fsky = np.mean(mask_arr[mask_iter])
-                tit = r'%s @ 145 GHz + Mask %s: f$_{\rm sky} = %.2f$' %(dust_or_sync, mask_iter, fsky)
+                tit = r'%s @ %s GHz + Mask %s: f$_{\rm sky} = %.2f$' %(dust_or_sync, nuarr[0], mask_iter, fsky)
                 if len(mask_str_arr)>0:
                     tit = r'%s %.2f' %(mask_str_arr[mask_iter], fsky)
                 #H.mollview(currmap[0] * mask_arr[mask_iter], sub = (1,tot_masks,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=True,); #unit = r'$\mu K$')
-                H.mollview(currmap[0] * mask_arr[mask_iter], sub = (3,1,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=False,); #unit = r'$\mu K$')
+                H.mollview(currmap[0] * mask_arr[mask_iter], sub = (3,2,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=False,); #unit = r'$\mu K$')
             
             if iter == 0:
                 if zonca_sims:
