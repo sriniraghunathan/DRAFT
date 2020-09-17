@@ -26,19 +26,27 @@ def healpix_rotate_coords(hmap, coord):
 
     return rot_hmap
 
-def get_spt3g_mask(winter_field = 0, summer_field = 0, nside_out = 4096):
+def get_spt3g_mask(which_field, nside_out = 4096):
 
     nside = 512 #this is okay to get a rough fsky number
     npix = H.nside2npix(nside) #total number of pixels
 
-    if winter_field: #winter field
+    if which_field == 'winter_field': #winter field
         ra1, ra2 = -50., 50.
         #dec1, dec2 = -70., -42.
         dec1, dec2 = -64., -42.
 
-    if summer_field: #summer field
+    elif which_field == 'summer_field_el1c_el2c': #summer field
         ra1, ra2 = 155., 205.
         dec1, dec2 = -42., -28.
+
+    elif which_field == 'summer_field_el1b_el2b': #summer field
+        ra1, ra2 = 0., 50.
+        dec1, dec2 = -42., -28.
+
+    elif which_field == 'summer_field_el1_el5': #summer field
+        ra1, ra2 = 50., 100.
+        dec1, dec2 = -63., -28.
 
     delra, deldec = 0.1, 0.1
     raarr = np.arange(ra1, ra2, delra)
@@ -116,6 +124,8 @@ if zonca_sims:
     name_dic[225] = 'HFL1'
     name_dic[278] = 'HFL2'
 
+if use_spt3g_mask:
+    nuarr = [93, 145, 225]
 
 if testing and local:
     lmax = 2000
@@ -123,9 +133,6 @@ if testing and local:
     ##nuarr = [ 145 ]#, 145]
     nuarr = [ 145 ]
     t_only = 1
-
-if use_spt3g_mask:
-    nuarr = [93, 145, 225]
 
 '''
 if not local:
@@ -326,10 +333,12 @@ if testing or not local:
 
     elif use_spt3g_mask: #get SPT-3G summer/winter field mask
 
-        spt_mask_winter = get_spt3g_mask(winter_field = 1, nside_out = nside)
-        spt_mask_summer = get_spt3g_mask(summer_field = 1, nside_out = nside)
+        spt_mask_winter = get_spt3g_mask('winter_field', nside_out = nside)
+        spt_mask_summer_el1c_el2c = get_spt3g_mask('summer_field_el1c_el2c', nside_out = nside)
+        spt_mask_summer_el1b_el2b = get_spt3g_mask('summer_field_el1b_el2b', nside_out = nside)
+        spt_mask_summer_el1_el5 = get_spt3g_mask('summer_field_el1_el5', nside_out = nside)
 
-        spt_mask_arr = [spt_mask_winter, spt_mask_summer]
+        spt_mask_arr = [spt_mask_winter, spt_mask_summer_el1c_el2c, spt_mask_summer_el1b_el2b, spt_mask_summer_el1_el5]
 
         tot_masks = len(spt_mask_arr)
 
@@ -458,7 +467,7 @@ if testing or not local:
                     vmin, vmax = -80., 80. #None, None
                 else:
                     if dust_or_sync == 'dust':
-                        vmin, vmax = 0., 500.
+                        vmin, vmax = 0., 100.
                     else:
                         vmin, vmax = None, None
             else:
@@ -487,14 +496,17 @@ if testing or not local:
                 mask_arr.append( planck_rest_of_sky )
                 tot_masks = len(mask_arr)
 
-            vmin, vmax = 0., 200.
+            if use_spt3g_mask:
+                mask_str_arr = ['Winter', 'Summer: el1c/el2c', 'Summer: el1b/el2b', 'Summer: el1-el5']
+
+            vmin, vmax = 0., 60.
             for mask_iter in range(tot_masks):
                 fsky = np.mean(mask_arr[mask_iter])
                 tit = r'%s @ %s GHz + Mask %s: f$_{\rm sky} = %.2f$' %(dust_or_sync, nuarr[0], mask_iter, fsky)
                 if len(mask_str_arr)>0:
-                    tit = r'%s %.2f' %(mask_str_arr[mask_iter], fsky)
+                    tit = r'%s @ %s GHz: %s: f$_{\rm sky}$=%.2f' %(dust_or_sync, nuarr[0], mask_str_arr[mask_iter], fsky)
                 #H.mollview(currmap[0] * mask_arr[mask_iter], sub = (1,tot_masks,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=True,); #unit = r'$\mu K$')
-                H.mollview(currmap[0] * mask_arr[mask_iter], sub = (3,2,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=False,); #unit = r'$\mu K$')
+                H.mollview(currmap * mask_arr[mask_iter], sub = (2,2,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=True, unit = r'$\mu K$')
             
             if iter == 0:
                 if zonca_sims:
