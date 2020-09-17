@@ -85,7 +85,7 @@ parser.add_argument('-which_mask', dest='which_mask', action='store', help='whic
 parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='store', help='use_lat_step_mask', type=int, default=0) #mask based on latitude
 
 parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=0) #rough S4 mask
-parser.add_argument('-use_s4like_mask_v2', dest='use_s4like_mask_v2', action='store', help='use_s4like_mask_v2', type=int, default=1) #rough S4 mask v2: split footrpint into clean and unclean region
+parser.add_argument('-use_s4like_mask_v2', dest='use_s4like_mask_v2', action='store', help='use_s4like_mask_v2', type=int, default=0) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-cos_el', dest='cos_el', action='store', help='cos_el', type=int, default=40) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-use_spt3g_mask', dest='use_spt3g_mask', action='store', help='use_spt3g_mask', type=int, default=0) #SPT-3G summer/winter field
 
@@ -123,6 +123,9 @@ if testing and local:
     ##nuarr = [ 145 ]#, 145]
     nuarr = [ 145 ]
     t_only = 1
+
+if use_spt3g_mask:
+    nuarr = [93, 145, 225]
 
 '''
 if not local:
