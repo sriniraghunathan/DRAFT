@@ -447,6 +447,7 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
         el_cib = np.copy( el )
 
     if freq1 == freq2 and freq1 != mdpl2_freq1:
+        scale_fac_power = 1.
         if (freq1, mdpl2_freq1) in mdpl2_planck_to_spt_herschel_scaling_power:
             scale_fac_power = 1./mdpl2_planck_to_spt_herschel_scaling_power[(freq1, mdpl2_freq1)]
         elif (mdpl2_freq1, freq1) in mdpl2_planck_to_spt_herschel_scaling_power:
@@ -806,7 +807,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
     
 def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
 
-    #fix: pol not working yet
+    gal_freq_dic = {20:20, 27:27, 39: 39, 93: 93, 90: 93, 145: 145, 150: 145, 225: 225, 220: 225, 278:278, }
 
     #https://healpy.readthedocs.io/en/1.5.0/generated/healpy.sphtfunc.anafast.html#healpy.sphtfunc.anafast
     spec_inds_dic = { 'TT':0, 'EE':1, 'BB':2, 'TE':3, 'EB':4, 'TB':5} #py2
@@ -838,11 +839,12 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
             pass
 
     cl_gal_dic = np.load(cl_gal_dic_fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][which_gal_mask]
-
+    freq1_to_use = gal_freq_dic[freq1]
+    freq2_to_use = gal_freq_dic[freq2]
     try:
-        cl_gal = cl_gal_dic[ (freq1, freq2) ]
+        cl_gal = cl_gal_dic[ (freq1_to_use, freq2_to_use) ]
     except:
-        cl_gal = cl_gal_dic[ (freq2, freq1) ]
+        cl_gal = cl_gal_dic[ (freq2_to_use, freq1_to_use) ]
 
     #pick the requested spectra: TT, EE, BB, TE, EB, TB.
     spec_ind = spec_inds_dic[which_spec]

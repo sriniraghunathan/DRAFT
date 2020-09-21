@@ -390,7 +390,7 @@ def get_clinv(freqarr, elcnt, cl_dic, which_spec):
         subplot(1,3,sbpldic[which_spec])
         imshow(clmat_dic[which_spec], vmin = None, vmax = None); colorbar(); title(which_spec);
 
-    clinv = sc.linalg.pinv2(clmat)    
+    clinv = sc.linalg.pinv2(clmat)
     #clinv = sc.linalg.inv(clmat)
 
 
@@ -662,8 +662,13 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
 def get_clinv_new(freqarr, elcnt, cl_dic, return_clmat = 0):
     clmat = np.mat( create_clmat_new(freqarr, elcnt, cl_dic) )
     #clmat = clmat + np.eye(len(clmat)) * np.min(np.diag(clmat)/1e3)
-    clinv = sc.linalg.pinv2(clmat)
-    #clinv = sc.linalg.inv(clmat)
+    #clinv = sc.linalg.pinv2(clmat)
+    clinv = sc.linalg.inv(clmat)
+
+    if (0):##elcnt == 1032:
+        from IPython import embed; embed()
+        print(elcnt, clinv)
+        #sys.exit()
 
     if return_clmat:
         return clinv, clmat

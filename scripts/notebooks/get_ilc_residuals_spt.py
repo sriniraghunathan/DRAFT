@@ -50,7 +50,6 @@ parser.add_argument('-use_sptspire_for_hfbands', dest='use_sptspire_for_hfbands'
 parser.add_argument('-split_cross', dest='split_cross', action='store', help='split_cross', type = int, default=0)
 parser.add_argument('-remove_atm', dest='remove_atm', action='store', help='remove_atm', type = int, default=0)
 
-
 args = parser.parse_args()
 args_keys = args.__dict__
 for kargs in args_keys:
@@ -74,17 +73,24 @@ Tcmb = 2.73 #Kelvin
 # In[5]:
 
 #params
-paramfile = 'params.ini'
+paramfile = 'params_spt.ini'
 
 # read and store param dict
 param_dict = misc.fn_get_param_dict(paramfile)
 el = np.arange(param_dict['lmax'])
-param_dict['include_gal'] = 0
+###param_dict['include_gal'] = 0
+
 include_gal = param_dict['include_gal'] ##1
 if not include_gal:
     param_dict['which_gal_mask'] = 3
+
+#get galaxy mask based on experiment name
+exp_sptmask_dic = {'spt3g_winter_2020': 0, 'spt3g_summer_el1c_el2c_2020': 1, 'spt3g_summer_el1b_el2b_2020': 2, 'spt3g_summer_el1_e5_2020': 3}
+if expname in exp_sptmask_dic and include_gal:
+    param_dict['which_gal_mask'] = exp_sptmask_dic[expname]
+
 which_gal_mask = param_dict['which_gal_mask']
-s4like_mask = param_dict['s4like_mask']
+#s4like_mask = param_dict['s4like_mask']
 if not remove_atm:
     try:
         remove_atm = param_dict['remove_atm']
@@ -438,6 +444,9 @@ if null_comp is not None:
 if split_cross:
     opfname = opfname.replace('.npy', '_splitcross.npy')
 
+if include_gal:
+    opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
+
 plname = opfname.replace('.npy', '.png').replace(parent_folder, '%s/plots/' %(parent_folder))
 plfolder = '/'.join(plname.split('/')[:-1])
 os.system('mkdir -p %s' %(plfolder))
@@ -590,7 +599,7 @@ if remove_atm:
 else:
     tit = 'Bands = %s' %(str(freqarr))
 suptitle(r'%s: %s' %(expname.replace('_','\_').upper(), final_comp))
-#show()
+#show(); #sys.exit()
 savefig(plname)
 
 

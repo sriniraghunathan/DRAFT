@@ -102,6 +102,96 @@ if (0): #make raito plots of baseline vs other configurations
     sys.exit()
     #show(); sys.exit()
 
+if (1): #make raito plots of different SPT-3G winter / summer fields
+    import glob
+
+    camb_file = '../data/output_planck_r_0.0_2015_cosmo_lensedCls.dat'
+    Tcmb= 2.73
+    el_camb = np.loadtxt(camb_file, usecols = [0])
+    dl_camb = np.loadtxt(camb_file, usecols = [1,2,3,4])
+    cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,None] + 1) )
+    cl_camb *= 1e12
+    Dls_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+
+    clf()
+    fig = figure(figsize=(8, 5))
+    subplots_adjust(wspace = 0.05, hspace = 0.2)
+    fsval = 14
+    ilc_folder = 'results/spt/20200708/'
+
+    expname_arr = ['spt3g_summer_el1b_el2b_2020', 'spt3g_winter_2020', 'spt3g_summer_el1_e5_2020', 'spt3g_summer_el1c_el2c_2020']
+    expname_dic = {'spt3g_winter_2020': 'Winter', 'spt3g_summer_el1c_el2c_2020': 'Summer: el1c-el2c', 'spt3g_summer_el1b_el2b_2020': 'Summer: el1b-el2b', 'spt3g_summer_el1_e5_2020': 'Summer: el1-el5'}
+
+    colorarr = ['navy', 'darkgreen', 'goldenrod', 'darkred']
+    tr,tc = 10, 2
+    rspan = 7
+    xmin, xmax = 50, 5800
+    ymin, ymax = 1e-6, .1
+    pl_dic = {}
+    for expcntr, expname in enumerate( expname_arr ):
+        fname_arr = glob.glob('%s/%s*.npy' %(ilc_folder, expname))
+        pl_dic[expname] = {}
+        for fname in fname_arr:
+            print(fname)
+            dic = np.load(fname, allow_pickle = 1).item()
+            el_nl, cl_residual = dic['el'], dic['cl_residual']
+            #Nl_TT, Nl_EE, Nl_TE = cl_residual['TT'], cl_residual['EE'], cl_residual['TE']
+            Nl_TT, Nl_EE = cl_residual['TT'], cl_residual['EE']
+            Nl_TE = np.copy( Nl_EE ) * 0.
+
+            if fname.find('galmask') == -1:
+                pl_dic[expname]['no_galaxy'] = Nl_TT, Nl_EE, Nl_TE
+            else:
+                pl_dic[expname]['with_galaxy'] = Nl_TT, Nl_EE, Nl_TE
+
+    ax = subplot2grid((tr,tc), (0,0), rowspan = rspan, yscale = 'log')
+    for expcntr, expname in enumerate( expname_arr ):
+        Nl_TT, Nl_EE, Nl_TE = pl_dic[expname]['no_galaxy']
+        labval = expname_dic[expname] #fname.split('/')[-1].split('_')[5].upper()
+        plot(el_nl, Nl_TT, ls = '-', color = colorarr[expcntr], label = r'%s' %(labval))
+
+    plot(el_camb, cl_camb[:,0], lw = 2., color = 'gray', alpha = 0.5)
+    title(r'TT (No galaxy)', fontsize = 12)
+    legend(loc = 1, fontsize = 10)
+    ylim(ymin, ymax); xlim(xmin, xmax)
+    setp(ax.get_xticklabels(which = 'both'), visible=False)
+    ylabel(r'C$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 12)
+
+    ax = subplot2grid((tr,tc), (0,1), rowspan = rspan, yscale = 'log')
+    for expcntr, expname in enumerate( expname_arr ):
+        Nl_TT, Nl_EE, Nl_TE = pl_dic[expname]['no_galaxy']
+        plot(el_nl, Nl_EE, ls = '-', color = colorarr[expcntr])#, label = r'%s' %(labval))
+    plot(el_camb, cl_camb[:,1], lw = 2., color = 'gray', alpha = 0.5)
+    ylim(ymin, ymax); xlim(xmin, xmax)
+    setp(ax.get_yticklabels(which = 'both'), visible=False)
+    setp(ax.get_xticklabels(which = 'both'), visible=False)
+    title(r'EE (No galaxy)', fontsize = 12)
+
+    ax = subplot2grid((tr,tc), (rspan,0), rowspan = tr-rspan)
+    for expcntr, expname in enumerate( expname_arr ):
+        Nl_TT_baseline, Nl_EE_baseline, Nl_TE_baseline = pl_dic[expname]['no_galaxy']
+        Nl_TT, Nl_EE, Nl_TE = pl_dic[expname]['with_galaxy']
+        plot(el_nl, Nl_TT/Nl_TT_baseline, ls = '-', color = colorarr[expcntr])#, label = r'%s' %(labval))
+    axhline(1., lw = 0.25)
+    ylim(0.8, 1.6); xlim(xmin, xmax)
+    ylabel(r'With/Without galaxy', fontsize = 10)
+    xlabel(r'Multipole $\ell$', fontsize = 12)
+
+    ax = subplot2grid((tr,tc), (rspan,1), rowspan = tr-rspan)
+    for expcntr, expname in enumerate( expname_arr ):
+        Nl_TT_baseline, Nl_EE_baseline, Nl_TE_baseline = pl_dic[expname]['no_galaxy']
+        Nl_TT, Nl_EE, Nl_TE = pl_dic[expname]['with_galaxy']
+        plot(el_nl, Nl_EE/Nl_EE_baseline, ls = '-', color = colorarr[expcntr])#, label = r'%s' %(labval))
+    axhline(1., lw = 0.25)
+    ylim(0.8, 1.6); xlim(xmin, xmax)
+    setp(ax.get_yticklabels(which = 'both'), visible=False)
+    xlabel(r'Multipole $\ell$', fontsize = 12)
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=8))
+
+    plname = 'reports/spt/spt3g_winter_summer_effect_of_galaxy.png'
+    savefig(plname, dpi = 200)
+    sys.exit()
+    show(); sys.exit()
 
 if (0): #make ratio plot of ILC for TTEE vs TTEETE
     clf()
