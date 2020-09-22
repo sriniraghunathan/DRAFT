@@ -390,7 +390,8 @@ def get_clinv(freqarr, elcnt, cl_dic, which_spec):
         subplot(1,3,sbpldic[which_spec])
         imshow(clmat_dic[which_spec], vmin = None, vmax = None); colorbar(); title(which_spec);
 
-    clinv = sc.linalg.pinv2(clmat)
+    #clinv = sc.linalg.pinv2(clmat)
+    clinv = np.linalg.pinv(clmat)
     #clinv = sc.linalg.inv(clmat)
 
 
@@ -431,7 +432,8 @@ def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cm
 
         nr = np.dot(clinv, acap)
         dr = np.dot( acap.T, np.dot(clinv, acap) )
-        drinv = sc.linalg.pinv2(dr)
+        #drinv = sc.linalg.pinv2(dr)
+        drinv = np.linalg.pinv(dr)
         weight = np.dot(nr, drinv)
 
         print(weight, el)
@@ -663,7 +665,8 @@ def get_clinv_new(freqarr, elcnt, cl_dic, return_clmat = 0):
     clmat = np.mat( create_clmat_new(freqarr, elcnt, cl_dic) )
     #clmat = clmat + np.eye(len(clmat)) * np.min(np.diag(clmat)/1e3)
     #clinv = sc.linalg.pinv2(clmat)
-    clinv = sc.linalg.inv(clmat)
+    #clinv = sc.linalg.inv(clmat)
+    clinv = np.linalg.pinv(clmat)
 
     if (0):##elcnt == 1032:
         from IPython import embed; embed()
@@ -740,7 +743,8 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             nr = np.dot(clinv, acap)
             dr = np.dot( acap.T, np.dot(clinv, acap) )
 
-            drinv = sc.linalg.pinv2(dr)
+            #drinv = sc.linalg.pinv2(dr)
+            drinv = np.linalg.pinv(dr)
             weight = np.dot(nr, drinv)
         else:
 
@@ -757,10 +761,12 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             nr = np.dot(clinv, G)
             dr = np.dot( G.T, np.dot(clinv, G) )
 
-            drinv = np.dot( sc.linalg.pinv2(dr), ncap)
+            #drinv = np.dot( sc.linalg.pinv2(dr), ncap)
+            drinv = np.dot( np.linalg.pinv(dr), ncap)
             weight = np.dot(nr, drinv)
 
             if (0):
+                from IPython import embed; embed()
                 acap_sum = np.sum( np.asarray(acap) * np.asarray(weight) )
                 bcap_1_sum = np.sum( np.asarray(bcap[:, 0]) * np.asarray(weight) )
                 if total_comp_to_null == 2:
@@ -781,6 +787,7 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             cl_residual[:, elcnt] = cl_residual_tt, cl_residual_ee, cl_residual_te
         else:
             cl_residual[0, elcnt] = drinv[0]
+
 
         #weightsarr[:, elcnt] = np.asarray(nr/dr).squeeze()
         weightsarr[:, :, elcnt] = weight
@@ -835,10 +842,10 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
         print(te_tt_w[:,dummyel], np.sum(te_tt_w[:,dummyel]))
         print(te_ee_w[:,dummyel], np.sum(te_ee_w[:,dummyel]))
 
-    from IPython import embed; embed()
-
     sys.exit()
     '''
+
+    ###from IPython import embed; embed()
 
     weightsarr = np.asarray( weightsarr )
     cl_residual = np.asarray( cl_residual )
