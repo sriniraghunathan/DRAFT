@@ -429,7 +429,7 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
     return hmap
 
 def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5):
-    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 545: 600, 600: 600, 857: 857}
+    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
     fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)
     mdpl2_freq1 = mdpl2_freq_dic[freq1]
     mdpl2_freq2 = mdpl2_freq_dic[freq2]
