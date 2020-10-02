@@ -161,6 +161,7 @@ def compton_y_to_delta_Tcmb(freq1, freq2 = None, Tcmb = 2.73):
     return Tcmb * np.mean(g_nu)
 
 def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20.):
+#def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505, spec_index_dg_clus = 2.51, Tcib = 20.):
     if fg_model == 'george15':
         el, cl_dg_po_freq0 = get_foreground_power_spt('DG-Po', freq1 = freq0, freq2 = freq0)
         el, cl_dg_clus_freq0 = get_foreground_power_spt('DG-Cl', freq1 = freq0, freq2 = freq0)
@@ -198,6 +199,32 @@ def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_
     cl_dg_clus[np.isinf(cl_dg_clus)] = 0.
 
     return el, cl_dg_po, cl_dg_clus
+
+def scale_cl_dust(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slope, el_norm = 3000):
+        
+    #conert to Dls
+    dl_fac = el * (el+1)/2/np.pi
+    dl_dust_freq0 = dl_fac * cl_dust_freq0
+
+    nr = ( fn_dB_dT(freq0) )**2.
+    dr = fn_dB_dT(freq1) * fn_dB_dT(freq2)
+
+    epsilon_nu1_nu2 = nr/dr
+
+    bnu1 = fn_BnuT(freq1, temp = Tcib)
+    bnu2 = fn_BnuT(freq2, temp = Tcib)
+    bnu0 = fn_BnuT(freq0, temp = Tcib)
+
+    etanu1 = ((1.*freq1*1e9)**beta) * bnu1
+    etanu2 = ((1.*freq2*1e9)**beta) * bnu2
+    etanu0 = ((1.*freq0*1e9)**beta) * bnu0
+
+    dl_dust = dl_dust_freq0[el == el_norm][0] * epsilon_nu1_nu2 * (1.*etanu1 * etanu2 / etanu0 /etanu0) * (el*1./el_norm)**el_slope
+
+    cl_dust = dl_dust / dl_fac
+    cl_dust[np.isnan(cl_dust)] = 0.
+
+    return el, cl_dust
 
 def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15'):
 
@@ -351,7 +378,7 @@ def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75, threshold_
 
     return hmap
 
-def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None):
+def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0):
 #def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
     websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 286: 278, 345: 353, 545: 545, 600: 545, 857: 857}
     fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
@@ -362,6 +389,12 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
     if freq_key not in cl_cib_dic:
         freq_key = (websky_freq2, websky_freq1)
     cl_cib = cl_cib_dic[freq_key]
+
+    if remove_cib_decorr:
+        cl_cib1 = cl_cib_dic[(websky_freq1, websky_freq1)]
+        cl_cib2 = cl_cib_dic[(websky_freq2, websky_freq2)]
+        cl_cib = np.sqrt( cl_cib1 * cl_cib2 )
+
     if units.lower() == 'k':
         cl_cib /= 1e12
     cl_cib *= websky_scaling_power
@@ -428,7 +461,7 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
 
     return hmap
 
-def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5):
+def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0):
     mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
     fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)
     mdpl2_freq1 = mdpl2_freq_dic[freq1]
@@ -438,6 +471,12 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
     if freq_key not in cl_cib_dic:
         freq_key = (mdpl2_freq2, mdpl2_freq1)
     cl_cib = cl_cib_dic[freq_key]
+
+    if remove_cib_decorr:
+        cl_cib1 = cl_cib_dic[(mdpl2_freq1, mdpl2_freq1)]
+        cl_cib2 = cl_cib_dic[(mdpl2_freq2, mdpl2_freq2)]
+        cl_cib = np.sqrt( cl_cib1 * cl_cib2 )
+
     if units.lower() == 'k':
         cl_cib /= 1e12
 
