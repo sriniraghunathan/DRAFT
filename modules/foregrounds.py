@@ -378,7 +378,7 @@ def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75, threshold_
 
     return hmap
 
-def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0):
+def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0, perform_smoothing = 0):
 #def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
     websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 286: 278, 345: 353, 545: 545, 600: 545, 857: 857}
     fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
@@ -403,6 +403,10 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
     if el is not None:
         cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = 0.)
         el_cib = np.copy( el )
+
+    if perform_smoothing: 
+        cl_cib = smooth_cib_spectra(el_cib, cl_cib)
+        #cl_cib[el_cib<200] = 0.
 
     return el_cib, cl_cib
 
@@ -461,7 +465,7 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
 
     return hmap
 
-def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0):
+def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0, perform_smoothing = 0):
     mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
     fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)
     mdpl2_freq1 = mdpl2_freq_dic[freq1]
@@ -492,6 +496,9 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
         elif (mdpl2_freq1, freq1) in mdpl2_planck_to_spt_herschel_scaling_power:
             scale_fac_power = mdpl2_planck_to_spt_herschel_scaling_power[(freq1, mdpl2_freq1)]
         cl_cib = cl_cib / scale_fac_power
+
+    if perform_smoothing: 
+        cl_cib = smooth_cib_spectra(el_cib, cl_cib)
 
     return el_cib, cl_cib
 
