@@ -53,6 +53,15 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             #sys.exit()
             el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
             cl_dust = cl_dg_po + cl_dg_clus
+            if remove_cib_decorr:
+                el,  cl_dg_po1, cl_dg_clus1 = fg.get_cl_dust(freq1, freq1, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+                el,  cl_dg_po2, cl_dg_clus2 = fg.get_cl_dust(freq2, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+                cl_dust1 = cl_dg_po1 + cl_dg_clus1
+                cl_dust2 = cl_dg_po2 + cl_dg_clus2
+                cl_dust = np.sqrt( cl_dust1 * cl_dust2 )
+                cib_corr_coeffs = None
+
+            cl_dust[np.isnan(cl_dust)] = 0.
             cl_dust_ori = np.copy(cl_dust)
             tit = 'G15/R20 CIB'
             if use_websky_cib:
