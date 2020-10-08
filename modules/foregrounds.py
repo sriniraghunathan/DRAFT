@@ -857,7 +857,65 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
         return spt_spire_freq_crosses_dic[(freq1, freq2)]
     else:
         return spt_spire_freq_crosses_dic
-    
+
+
+def get_cib_decorrelations_via_intrp(freqarr, f1f2 = None):
+
+    #Table 1 of https://arxiv.org/pdf/1810.10643.pdf
+    spt_spire_bands = np.asarray( [90, 150, 220, 600, 857, 1200] )
+    spt_spire_cib_corr_coeffs= {}
+    spt_spire_cib_corr_coeffs[(90, 150)] = 0.53
+    spt_spire_cib_corr_coeffs[(90, 220)] = 0.68
+    spt_spire_cib_corr_coeffs[(90, 600)] = 0.46
+    spt_spire_cib_corr_coeffs[(90, 857)] = 0.40
+    spt_spire_cib_corr_coeffs[(90, 1200)] = 0.36
+
+    spt_spire_cib_corr_coeffs[(150, 220)] = 0.976
+    spt_spire_cib_corr_coeffs[(150, 600)] = 0.879
+    spt_spire_cib_corr_coeffs[(150, 857)] = 0.789
+    spt_spire_cib_corr_coeffs[(150, 1200)] = 0.650
+
+    spt_spire_cib_corr_coeffs[(220, 600)] = 0.879
+    spt_spire_cib_corr_coeffs[(220, 857)] = 0.786
+    spt_spire_cib_corr_coeffs[(220, 1200)] = 0.643
+
+    spt_spire_cib_corr_coeffs[(600, 857)] = 0.970
+    spt_spire_cib_corr_coeffs[(600, 1200)] = 0.861
+
+    spt_spire_cib_corr_coeffs[(857, 1200)] = 0.9551
+
+    spt_spire_cib_corr_grid = []
+    for f1 in spt_spire_bands:
+        for f2 in spt_spire_bands:
+            if (f1, f2) in spt_spire_cib_corr_coeffs:
+                currval = spt_spire_cib_corr_coeffs[(f1,f2)]
+            elif (f2, f1) in spt_spire_cib_corr_coeffs:
+                currval = spt_spire_cib_corr_coeffs[(f2,f1)]
+            elif f1 == f2:
+                currval = 1.
+            spt_spire_cib_corr_grid.append(currval)
+    X, Y = np.meshgrid( spt_spire_bands, spt_spire_bands )
+    Z = np.asarray( spt_spire_cib_corr_grid ).reshape(X.shape)
+
+    freqarr = [90, 150, 220, 225, 286, 345]
+    #Z_ip, nc = [], len(freqarr)
+    cib_corr_coeffs = {}
+    for freq1 in freqarr:
+        for freq2 in freqarr:
+            if freq1 == freq2:
+                curr_ip_val = 1.
+            else:
+                curr_ip_val = intrp.RectBivariateSpline( Y[:,0], X[0,:], Z, kx = 1, ky = 1).ev(freq1, freq2).tolist()
+            curr_ip_val = round(curr_ip_val, 3)
+            cib_corr_coeffs[(freq1, freq2)] = curr_ip_val
+            #Z_ip.append( curr_ip_val )
+    #Z_ip = np.asarray( Z_ip ).reshape( (nc, nc) )
+
+    if f1f2 is not None:
+        return cib_corr_coeffs[f1f2]
+
+    return cib_corr_coeffs
+
 def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
 
     gal_freq_dic = {20:20, 27:27, 39: 39, 93: 93, 90: 93, 145: 145, 150: 145, 225: 225, 220: 225, 278:278, }
