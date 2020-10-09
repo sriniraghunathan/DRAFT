@@ -897,7 +897,6 @@ def get_cib_decorrelations_via_intrp(freqarr, f1f2 = None):
     X, Y = np.meshgrid( spt_spire_bands, spt_spire_bands )
     Z = np.asarray( spt_spire_cib_corr_grid ).reshape(X.shape)
 
-    freqarr = [90, 150, 220, 225, 286, 345]
     #Z_ip, nc = [], len(freqarr)
     cib_corr_coeffs = {}
     for freq1 in freqarr:
