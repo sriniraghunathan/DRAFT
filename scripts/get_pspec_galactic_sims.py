@@ -146,6 +146,10 @@ else:
 mask_folder = 'cmbs4/masks/planck/'
 cmbs4_footprint_folder = 'cmbs4/footprints/'
 
+if local:
+    mask_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/masks/planck/'
+    cmbs4_footprint_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/footprints/'
+
 if not zonca_sims:
     if local:
         sim_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/galactic/CUmilta/ampmod_maps/'
@@ -171,6 +175,8 @@ else:
     '''
 
     sim_folder = 'cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    if local:
+        sim_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
 
     if dust_or_sync == 'dust':
         sim_folder = '%s/dust/' %(sim_folder)
