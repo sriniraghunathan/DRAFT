@@ -226,7 +226,7 @@ def scale_cl_dust(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slope, 
 
     return el, cl_dust
 
-def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15'):
+def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15', reduce_tsz_power = None):
 
     if fg_model == 'george15':
         el, cl_tsz_freq0 = get_foreground_power_spt('tSZ', freq1 = freq0, freq2 = freq0)
@@ -241,16 +241,19 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15'):
     cl_tsz[np.isnan(cl_tsz)] = 0.
     cl_tsz[np.isinf(cl_tsz)] = 0.
 
+    if reduce_tsz_power is not None:
+        cl_tsz /= reduce_tsz_power
+
     return el, cl_tsz
 
-def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, cl_cib_dic = None):
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, cl_cib_dic = None, reduce_tsz_power = None):
 
     if fg_model == 'george15':
         corr_coeff = 0.1
     elif fg_mode == 'reichardt20':
         corr_coeff = 0.078
 
-    el, cl_tsz_freq1_freq1 = get_cl_tsz(freq1, freq1, freq0 = freq0, fg_model = fg_model)
+    el, cl_tsz_freq1_freq1 = get_cl_tsz(freq1, freq1, freq0 = freq0, fg_model = fg_model, reduce_tsz_power = reduce_tsz_power)
     if cl_cib_dic is not None:
         el, cl_dg_freq1_freq1 = cl_cib_dic[(freq1, freq1)]
     else:
