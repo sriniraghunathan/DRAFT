@@ -102,7 +102,7 @@ if (0): #make raito plots of baseline vs other configurations
     sys.exit()
     #show(); sys.exit()
 
-if (1): #make raito plots of different SPT-3G winter / summer fields
+if (0): #make raito plots of different SPT-3G winter / summer fields
     import glob
 
     camb_file = '../data/output_planck_r_0.0_2015_cosmo_lensedCls.dat'
@@ -520,8 +520,12 @@ if (1): #make ILC plot for ACTD56 vs SPT-SZ
         actd56 = '%s/actd56_ilc_cmb_90-150_TT-EE_y_nulled.npy' %(spt_ilc_folder)
         actBN = '%s/actBN_ilc_cmb_90-150_TT-EE_y_nulled.npy' %(spt_ilc_folder)
 
-    fname_arr = [sptsz, spt3g, actd56, actBN]
-    lab_arr = [r'SPT-SZ', r'SPT-3G: 2019/2020', r'ACT: D56', r'ACT: BN']
+    #fname_arr = [sptsz, spt3g, actd56, actBN]
+    #lab_arr = [r'SPT-SZ', r'SPT-3G: 2019/2020', r'ACT: D56', r'ACT: BN']
+
+    fname_arr = [sptsz, actd56, actBN]
+    lab_arr = [r'SPT-SZ (90/150/220 GHz)', r'ACT: D56 (90/150 GHz)', r'ACT: BN (90/150 GHz)']
+
 
     #camb CMB
     dic = np.load(sptsz, allow_pickle = 1).item()
@@ -541,13 +545,13 @@ if (1): #make ILC plot for ACTD56 vs SPT-SZ
     Nl_TT_arr, colorarr = [], []
     for fcntr, fname in enumerate( fname_arr ):
         if fcntr == 0:
-            colorval = 'darkred'
+            colorval = 'darkred'            
         elif fcntr == 1:
-            colorval = 'purple'
+            colorval = 'goldenrod' #'purple'
         elif fcntr == 2:
-            colorval = 'goldenrod'
+            colorval = 'darkgreen' #'goldenrod'
         elif fcntr == 3:
-            colorval = 'darkgreen'
+            colorval = 'purple' #'darkgreen'
         labval = lab_arr[fcntr]
         #ILC noise
         dic = np.load(fname, allow_pickle = 1).item()
@@ -561,21 +565,22 @@ if (1): #make ILC plot for ACTD56 vs SPT-SZ
         lwval = 1.
         #plot(el_nl, nl_tt, ls = '-', color = colorval, label = labval, lw = lwval)
         #plot(el_nl, nl_tt_dl, ls = '-', color = colorval, label = labval, lw = lwval)
-        plot(el_nl, dl_tot, ls = '-', color = colorval, label = labval, lw = lwval)
+        plot(el_nl, dl_tot, ls = '-', color = colorval, label = r'\textsc{%s}' %labval, lw = lwval)
 
     if (1): 
-        #tmp_noise_level = 59.
-        tmp_noise_level = 28.
-        nl_tmp = misc.get_nl(tmp_noise_level, el_nl, 1., use_beam_window = 0)
-        plot(el_nl, nl_tmp * dls_fac, ls = '-.', color = 'k', label = r'$\Delta_{T}$ = %d $\mu$K$^{\prime}$' %(tmp_noise_level))
+        tmp_noise_level_arr = [59.]#, 100.]
+        for tmp_noise_level in tmp_noise_level_arr:
+            #tmp_noise_level = 28.
+            nl_tmp = misc.get_nl(tmp_noise_level, el_nl, 1., use_beam_window = 0)
+            plot(el_nl, nl_tmp * dls_fac, ls = '-.', color = 'k', label = r'$\Delta_{T}$ = %d $\mu$K$^{\prime}$' %(tmp_noise_level))
 
     xmin, xmax = 0, 6000
     ymin, ymax = 1e2, 1e5
     xlim(xmin, xmax);ylim(ymin, ymax)
-    xlabel(r'Multipole $\ell$', fontsize = fsval)
+    xlabel(r'\textsc{Multipole $\ell$}', fontsize = fsval)
     legend(loc = 2, fontsize = fsval - 3, fancybox = 1)#, ncol = 3)
     ylabel(r'$D_{\ell}$ [$\mu K^{2}$]', fontsize = fsval)
-    title(r'SPT vs ACT')
+    title(r'SPT vs ACT: tSZ nulled: Constrained ILC residuals')
     show(); sys.exit()
 
 
