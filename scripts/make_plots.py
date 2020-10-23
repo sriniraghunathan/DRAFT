@@ -495,7 +495,7 @@ if (0):
         title(r'%s' %(which_spec))
     show()
 
-if (1): #make ILC plot for ACTD56 vs SPT-SZ
+if (0): #make ILC plot for ACTD56 vs SPT-SZ
 
     sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
     import misc
@@ -598,3 +598,93 @@ if (1): #make ILC plot for ACTD56 vs SPT-SZ
     show()
     sys.exit()
     #show(); sys.exit()
+
+if (1): #make ILC plot for S4-wide vs S4-Ultradeep
+
+    sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
+    import misc
+    clf()
+    subplots_adjust(hspace = 0.1)
+    fsval = 14
+    ilc_folder = 'results/20200701/s4like_mask_v2/TT-EE/baseline/'
+    
+
+    s4_wide_gal0 = '%s/s4wide_ilc_galaxy0_27-39-93-145-225-278_TT-EE.npy' %(ilc_folder)
+    s4_wide_gal1_galmask2 = '%s/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask2_AZ.npy' %(ilc_folder)
+    s4_wide_gal1_galmask5 = '%s/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask5_AZ.npy' %(ilc_folder)
+    s4deepv3r025_wide_gal0 = '%s/s4deepv3r025_ilc_galaxy0_27-39-93-145-225-278_TT-EE.npy' %(ilc_folder)
+
+    fname_arr = [s4deepv3r025_wide_gal0, s4_wide_gal0, s4_wide_gal1_galmask2, s4_wide_gal1_galmask5]
+    lab_arr = [r'S4-Ultra deep (No galaxy)', r'S4-Wide (No galaxy)', r'S4-Wide (Clean)', r'S4-Wide (Dirty)']
+
+
+    #camb CMB
+    dic = np.load(s4_wide_gal0, allow_pickle = 1).item()
+    camb_file = '%s/%s' %(dic['param_dict']['data_folder'], dic['param_dict']['Dlfile_len'])
+    Tcmb= dic['param_dict']['T_cmb']
+    el_camb = np.loadtxt(camb_file, usecols = [0])
+    dl_camb = np.loadtxt(camb_file, usecols = [1,2,3,4])
+    cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,None] + 1) )
+    cl_camb *= 1e12
+    dl_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+
+    cl_tt, cl_ee = cl_camb[:,0], cl_camb[:,1] 
+
+    clf()
+    fsval = 12
+    fig = figure(figsize=(8, 5))
+    subplots_adjust(wspace = 0.1)
+
+    which_spec_arr = ['TT', 'EE']
+    for which_spec_cntr, which_spec in enumerate( which_spec_arr ):
+        ax = subplot(1,2,which_spec_cntr + 1, yscale = 'log')
+        if which_spec == 'TT':
+            plot(el_camb,  cl_tt * dl_fac_camb, ls = '-', color = 'gray')#, label = r'Lensed CMB')
+        elif which_spec == 'EE':
+            plot(el_camb,  cl_ee * dl_fac_camb, ls = '-', color = 'gray')#, label = r'Lensed CMB')
+
+        for fcntr, fname in enumerate( fname_arr ):
+            if fcntr == 0:
+                colorval = 'black'            
+            elif fcntr == 1:
+                colorval = 'darkgreen' #'purple'
+            elif fcntr == 2:
+                colorval = 'goldenrod' #'goldenrod'
+            elif fcntr == 3:
+                colorval = 'darkred' #'darkgreen'
+            labval = lab_arr[fcntr]
+            #ILC noise
+            dic = np.load(fname, allow_pickle = 1).item()
+            el_nl, nl_tt = dic['el'], dic['cl_residual'][which_spec]        
+            dls_fac = el_nl * (el_nl + 1) / 2/ np.pi
+
+            if (0):
+                nl_tt_dl = nl_tt * dls_fac
+                dl_tt_ip = np.interp(el_nl, el_camb,  dl_tt)
+                dl_tot = nl_tt_dl + dl_tt_ip
+
+            lwval = 1.
+            plot(el_nl, nl_tt * dls_fac, ls = '-', color = colorval, label = r'\textsc{%s}' %labval, lw = lwval)
+
+        for label in ax.get_xticklabels(): label.set_fontsize(fsval-2)
+        for label in ax.get_yticklabels(): label.set_fontsize(fsval-2)
+
+        grid(True, which='major', axis = 'x', lw = 0.5, alpha = 0.1)
+        grid(True, which='both', axis = 'y', lw = 0.5, alpha = 0.1)
+
+        xmin, xmax = 50, 5000
+        ymin, ymax = 0.001, 1e3
+        xlim(xmin, xmax);ylim(ymin, ymax)
+        xlabel(r'\textsc{Multipole $\ell$}', fontsize = fsval)
+        if which_spec == 'TT':
+            ylabel(r'$D_{\ell}$ [$\mu K^{2}$]', fontsize = fsval)
+            legend(loc = 3, fontsize = fsval - 2, fancybox = 1)#, ncol = 3)
+        else:
+            setp(ax.get_yticklabels(which = 'both'), visible=False)
+        title(r'%s' %(which_spec), fontsize = fsval+2)
+    #suptitle(r'S4-Ultradeep vs S4-Wide ILC residuals', fontsize = fsval+2)
+    plfolder = 'reports/20200701/s4like_mask_v2/'
+    if not os.path.exists(plfolder): os.system('mkdir -p %s' %(plfolder))
+    plname = '%s/s4_wide_ultradeep_ilc_nl.png' %(plfolder,)
+    savefig(plname, dpi = 200.)
+    show(); sys.exit()
