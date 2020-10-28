@@ -381,10 +381,13 @@ def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75, threshold_
 
     return hmap
 
-def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0, perform_smoothing = 0):
+def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0, perform_smoothing = 0, threshold_mjy = 6.4):
 #def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
     websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 278: 278, 286: 278, 345: 353, 545: 545, 600: 545, 857: 857}
-    fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
+    if threshold_mjy:
+        fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
+    else:
+        fname = '%s/websky/cl_websky_cib_masked%.2fmJy.npy' %(data_folder, threshold_mjy)
     null_cib = 0
     if freq1 < np.min( list(websky_freq_dic.keys()) )  or freq2 < np.min( list(websky_freq_dic.keys()) ):
         null_cib = 1
