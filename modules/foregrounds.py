@@ -442,7 +442,19 @@ mdpl2_col_corr_herschel = {600: 1.1339, 857: 1.0955, 1200: 1.0815}
 #Planck to spt/herschle scalings
 mdpl2_planck_to_spt_herschel_scaling_power = {(143, 150): 0.423, (217, 220): 1.64, (545, 600): 1.32, (857, 857): 0.98}
 
-def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0 = 1.5):
+def select_mdpl2_sources(freq = 150, threshold_mjy = 1.5, return_mask = True):
+
+    hmap_raw = get_mdpl2_healpix(freq, return_flux_map = True)
+    source_pixels = get_point_source_mask_in_healpix_cib(freq, hmap_raw, threshold_mjy, freq0 = 150., spec_index_dg = 3.4)
+
+    if return_mask:
+        hmask = np.ones( len(hmap_raw) )
+        hmask[source_pixels] = 0.
+        return hmask
+    else:
+        return source_pixels
+
+def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0 = 1.5, mask = None, return_flux_map = False):
     import healpy as H
     if which_set == 'spt':
         mdpl2_freq_dic = mdpl2_freq_dic_for_spt
@@ -463,6 +475,8 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
     hmap_raw /= 1e6 #go from Jy to MJy
     hmap_raw *= col_corr
 
+    if return_flux_map:
+        return hmap_raw
 
     scaling_value_power = 1.
     if (mdpl2_freq, freq) in mdpl2_planck_to_spt_herschel_scaling_power:
@@ -472,7 +486,10 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
     print(scaling_value_map)
 
     hmap = np.copy(hmap_raw) * scaling_value_map /  conv_factor
-    hmap = mask_point_sources_in_healpix_cib(freq, hmap, hmap_Mjy_per_sr = hmap_raw, threshold_mjy_freq0 = threshold_mjy_freq0)
+    if mask is None:
+        hmap = mask_point_sources_in_healpix_cib(freq, hmap, hmap_Mjy_per_sr = hmap_raw, threshold_mjy_freq0 = threshold_mjy_freq0)
+    else:
+        hmap = hmap * mask
 
     hmap = hmap * 1e6 #K to uK
 
