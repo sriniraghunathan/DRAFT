@@ -383,7 +383,7 @@ def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75, threshold_
 
 def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0, perform_smoothing = 0, threshold_mjy = 6.4):
 #def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
-    websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 278: 278, 286: 278, 345: 353, 545: 545, 600: 545, 857: 857}
+    websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 278: 278, 286: 278, 345: 353, 353: 353, 545: 545, 600: 545, 857: 857}
     if threshold_mjy == 6.4:
         fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
     else:
@@ -496,15 +496,20 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
     return hmap
 
 def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0, perform_smoothing = 0):
-    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
-    fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)
-    mdpl2_freq1 = mdpl2_freq_dic[freq1]
-    mdpl2_freq2 = mdpl2_freq_dic[freq2]
+    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
+    fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)    
     cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']    
-    freq_key = (mdpl2_freq1, mdpl2_freq2)
-    if freq_key not in cl_cib_dic:
-        freq_key = (mdpl2_freq2, mdpl2_freq1)
-    cl_cib = cl_cib_dic[freq_key]
+
+    if freq1<90 or freq2<90:
+        mdpl2_freq1, mdpl2_freq2 = 150, 150
+        cl_cib = np.copy(cl_cib_dic[(150, 150)]) * 0.
+    else:
+        mdpl2_freq1 = mdpl2_freq_dic[freq1]
+        mdpl2_freq2 = mdpl2_freq_dic[freq2]
+        freq_key = (mdpl2_freq1, mdpl2_freq2)
+        if freq_key not in cl_cib_dic:
+            freq_key = (mdpl2_freq2, mdpl2_freq1)
+        cl_cib = cl_cib_dic[freq_key]
 
     if remove_cib_decorr:
         cl_cib1 = cl_cib_dic[(mdpl2_freq1, mdpl2_freq1)]
@@ -940,7 +945,7 @@ def get_cib_decorrelations_via_intrp(freqarr, f1f2 = None):
 
 def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
 
-    gal_freq_dic = {20:20, 27:27, 39: 39, 93: 93, 90: 93, 145: 145, 150: 145, 225: 225, 220: 225, 278:278, }
+    gal_freq_dic = {20:20, 27:27, 39: 39, 93: 93, 90: 93, 143: 143, 145: 145, 150: 150, 225: 225, 220: 225, 278:278, }
 
     #https://healpy.readthedocs.io/en/1.5.0/generated/healpy.sphtfunc.anafast.html#healpy.sphtfunc.anafast
     spec_inds_dic = { 'TT':0, 'EE':1, 'BB':2, 'TE':3, 'EB':4, 'TB':5} #py2
