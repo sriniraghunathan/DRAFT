@@ -5,6 +5,7 @@ use_planck_mask = 0
 use_lat_step_mask = 0
 use_s4like_mask = 0
 use_s4like_mask_v2 = 0
+zonca_sims = 1
 ##s,e = 0, 4
 
 cos_el = 30
