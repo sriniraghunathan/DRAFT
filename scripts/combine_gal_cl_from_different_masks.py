@@ -12,7 +12,8 @@ spt3g_mask = 0
 nside, lmax = 2048, 3500
 t_only = 0
 
-zonca_sims = 1
+zonca_sims = 0
+pySM_yomori = 1
 
 if (0):
     lat_steps_mask = 1
@@ -33,40 +34,44 @@ if (1):
 
 
 if zonca_sims:
-    data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/xxxx/0000/'
     if not local:
-        data_folder = '//u/home/s/srinirag/project-nwhiteho/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+        data_folder = '//u/home/s/srinirag/project-nwhiteho/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/which_comp/xxxx/0000/'
     comp_arr = ['dust', 'synchrotron']
     #comp_arr = ['synchrotron']
+elif pySM_yomori:
+    #comp_arr = ['both']
+    comp_arr = ['dust', 'synchrotron']
+    data_folder = '/Volumes/data_PHD_WD_babbloo/pySM/yomori/galforegrounds/'
+    if not local:
+        data_folder = '//u/home/s/srinirag/project-nwhiteho/pySM/yomori/galforegrounds/'
 else:
     comp_arr = ['dust', 'sync']
 
 for which_comp in comp_arr:
 
-    if not zonca_sims:
-        searchstr = 'cls_galactic_sims_xxxx_CUmilta_20200319_maskplanck_nside%s_lmax%s_mask?.npy' %(nside, lmax)
-    else:
+    if zonca_sims or pySM_yomori:
         if lat_steps_mask:
-            searchstr = '%s/%s/0000/lat_steps/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
+            searchstr = '%s/lat_steps/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, nside, lmax)
         elif s4like_mask:
             if not t_only:
-                searchstr = '%s/%s/0000/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
+                searchstr = '%s/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
             else:
-                searchstr = '%s/%s/0000/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
+                searchstr = '%s/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, nside, lmax)
         elif s4like_mask_v2:
-            searchstr = '%s/%s/0000/s4like_mask_v2/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
+            searchstr = '%s/s4like_mask_v2/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
             searchstr = searchstr.replace('.npy', '_cos_el_40.npy')
         elif spt3g_mask:
-            searchstr = '%s/%s/0000/spt3g/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, which_comp, nside, lmax)
+            searchstr = '%s/spt3g/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
         else:
-            searchstr = '%s/%s/0000/lat_steps/cls_galactic_sims_xxxx_maskplanck_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, which_comp, nside, lmax)
+            searchstr = '%s/lat_steps/cls_galactic_sims_xxxx_maskplanck_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, nside, lmax)
+    else:
+        searchstr = 'cls_galactic_sims_xxxx_CUmilta_20200319_maskplanck_nside%s_lmax%s_mask?.npy' %(nside, lmax)
 
     #print(which_comp, searchstr)
     curr_searchstr = searchstr.replace('xxxx', which_comp)
     curr_searchstr = curr_searchstr.replace('_synchrotron_', '_sync_')
     flist = sorted( glob.glob(curr_searchstr) )
-
-    #print(flist)
 
     opdic = {}
     opdic['cl_dic'] = {}

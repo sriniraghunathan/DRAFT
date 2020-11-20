@@ -86,6 +86,7 @@ parser.add_argument('-t_only', dest='t_only', action='store', help='t_only', typ
 parser.add_argument('-nside', dest='nside', action='store', help='nside', type=int, default=2048)#4096)
 parser.add_argument('-verbose', dest='verbose', action='store', help='verbose', type=int, default=0)
 parser.add_argument('-zonca_sims', dest='zonca_sims', action='store', help='zonca_sims', type=int, default=1) #S4 sims by Andrea Zonca
+parser.add_argument('-pySM_yomori', dest='pySM_yomori', action='store', help='pySM_yomori', type=int, default=0) #pySM sims by Yuuki Omori
 
 parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', help='use_planck_mask', type=int, default=0) #use Planck galactic mask
 parser.add_argument('-which_mask', dest='which_mask', action='store', help='which_mask', type=int, default=-1)
@@ -127,11 +128,17 @@ if zonca_sims:
 if use_spt3g_mask:
     nuarr = [93, 145, 225]
 
+if pySM_yomori:
+    #nuarr = [90, 100, 143, 150, 217, 220, 353]
+    nuarr = [143, 150]
+
 if testing and local:
     lmax = 2000
     nside = 512
     ##nuarr = [ 145 ]#, 145]
     nuarr = [ 145 ]
+    if pySM_yomori:
+        nuarr = [ 143 ]
     t_only = 1
 
 '''
@@ -150,7 +157,38 @@ if local:
     mask_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/masks/planck/'
     cmbs4_footprint_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/footprints/'
 
-if not zonca_sims:
+if zonca_sims or pySM_yomori:
+    '''
+    if local:
+        sim_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    else:
+        sim_folder = '/u/home/s/srinirag/project-nwhiteho/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    '''
+    if zonca_sims:
+        sim_folder = 'cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+        if local:
+            sim_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+
+        if dust_or_sync == 'dust':
+            sim_folder = '%s/dust/' %(sim_folder)
+        elif dust_or_sync == 'sync':
+            sim_folder = '%s/synchrotron/' %(sim_folder)
+
+        sim_folder = '%s/0000/' %(sim_folder)
+    else:
+        sim_folder = 'pySM/yomori/galforegrounds/'
+
+    if use_planck_mask:
+        opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_lat_step_mask:
+        opfname = '%s/lat_steps/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask:
+        opfname = '%s/s4like_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask_v2:
+        opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_spt3g_mask:
+        opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+else:
     if local:
         sim_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/galactic/CUmilta/ampmod_maps/'
     else:
@@ -166,35 +204,6 @@ if not zonca_sims:
     elif use_s4like_mask_v2:
         opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
-else:
-    '''
-    if local:
-        sim_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
-    else:
-        sim_folder = '/u/home/s/srinirag/project-nwhiteho/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
-    '''
-
-    sim_folder = 'cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
-    if local:
-        sim_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
-
-    if dust_or_sync == 'dust':
-        sim_folder = '%s/dust/' %(sim_folder)
-    elif dust_or_sync == 'sync':
-        sim_folder = '%s/synchrotron/' %(sim_folder)
-
-    sim_folder = '%s/0000/' %(sim_folder)
-
-    if use_planck_mask:
-        opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
-    elif use_lat_step_mask:
-        opfname = '%s/lat_steps/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
-    elif use_s4like_mask:
-        opfname = '%s/s4like_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
-    elif use_s4like_mask_v2:
-        opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
-    elif use_spt3g_mask:
-        opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
@@ -217,18 +226,20 @@ if not use_spt3g_mask:##cos_el != 30:
 
 lf = open(log_file, 'w'); lf.close()
 
-if testing or not local:
+if (1):#testing or not local:
 
     totthreads = 2
     os.putenv('OMP_NUM_THREADS',str(totthreads))
 
     #get filename prefix
-    if not zonca_sims:
-        fname_pref = 'Ampmod_map_%s_lmax_5200_freq_xxx_rel0000.fits' %(dust_or_sync)
-    else:
+    if zonca_sims:
         fname_pref = 'cmbs4_%s_uKCMB_LAT-xxx_nside4096_0000.fits' %(dust_or_sync)
         fname_pref = fname_pref.replace('sync', 'synchrotron')
-
+    elif pySM_yomori:
+        #fname_pref = 'map4096_yyy_xxxGHz_d1s1.fits'
+        fname_pref = 'map4096_yyy_xxxGHz_%s0.fits' %(dust_or_sync[0]) #just pick the first letter: d/s for dust/sync
+    else:
+        fname_pref = 'Ampmod_map_%s_lmax_5200_freq_xxx_rel0000.fits' %(dust_or_sync)
 
     logline = '\n'
     lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
@@ -237,10 +248,17 @@ if testing or not local:
     map_dic = {}
     for nucntr, nu in enumerate( nuarr ):
         fname = '%s/%s' %(sim_folder, fname_pref)
-        if not zonca_sims:
-            fname = fname.replace('xxx', '%03d' %(nu))
-        else:
+        if zonca_sims:
             fname = fname.replace('xxx', name_dic[nu])
+        elif pySM_yomori:
+            if nu in [90, 150, 220]:
+                plancksptstr = 'spt3g'
+            elif  nu in [100, 143, 217, 353]:
+                plancksptstr = 'planck'
+            fname = fname.replace('yyy', plancksptstr).replace('xxx', '%03d' %(nu))
+
+        else:
+            fname = fname.replace('xxx', '%03d' %(nu))
 
         logline = '\t%s\n' %fname
         lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
@@ -372,10 +390,19 @@ if testing or not local:
 
             mask = spt_mask_arr[mask_iter]
 
+        rotated = 0
         if not use_spt3g_mask:
             mask = H.ud_grade(mask, 128)
-            #simple rotation from gal to celestial
             mask = healpix_rotate_coords(mask, coord = ['G', 'C'])
+            rotated = 1
+
+        if pySM_yomori: #all masks must be in galactic coordinates for original pySM sims
+            mask = H.ud_grade(mask, 128)
+            mask = healpix_rotate_coords(mask, coord = ['C', 'G'])
+            rotated = 1
+
+        if rotated:
+            #simple rotation from gal to celestial
             mask = H.smoothing(np.copy(mask), fwhm = np.radians(10.), verbose = verbose)#, lmax = lmax)
             mask = H.ud_grade(mask, nside_out = nside)
             thresh = 0.4
@@ -512,7 +539,7 @@ if testing or not local:
                 if len(mask_str_arr)>0:
                     tit = r'%s @ %s GHz: %s: f$_{\rm sky}$=%.2f' %(dust_or_sync, nuarr[0], mask_str_arr[mask_iter], fsky)
                 #H.mollview(currmap[0] * mask_arr[mask_iter], sub = (1,tot_masks,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=True,); #unit = r'$\mu K$')
-                H.mollview(currmap * mask_arr[mask_iter], sub = (2,2,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=True, unit = r'$\mu K$')
+                H.mollview(currmap[0] * mask_arr[mask_iter], sub = (2,2,mask_iter+1), title_fontsize = 8, title = tit, min = vmin, max = vmax, cbar=True, unit = r'$\mu K$')
             
             if iter == 0:
                 if zonca_sims:
