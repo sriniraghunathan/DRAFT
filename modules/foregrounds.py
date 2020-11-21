@@ -427,7 +427,7 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
 ############################################################
 #all mdpl2 stuff
 mdpl2_freq_dic_for_spt = {90: 90, 95: 90, 150: 150, 220: 220, 221: 221, 286: 286, 345: 345, 545: 545, 600: 545, 857: 857}
-mdpl2_freq_dic_for_planck = {90: 100, 95: 100, 150: 143, 220: 217, 545: 545, 600: 545, 857: 857}
+mdpl2_freq_dic_for_planck = {90: 100, 95: 100, 100: 100, 150: 143, 143: 143, 217: 217, 220: 217, 353: 353, 545: 545, 600: 545, 857: 857}
 
 #Mjy/Sr -> K
 mdpl2_flux_conv_planck = {100: 243.623, 143: 371.036, 217: 481.882, 353: 287.281, 545: 57.6963, 857: 2.26476}
@@ -496,9 +496,12 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
     return hmap
 
 def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0, perform_smoothing = 0):
-    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
+    #mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
+    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 143, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
     fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)    
-    cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']    
+    cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
+    print(cl_cib_dic)
+    sys.exit()
 
     if freq1<90 or freq2<90:
         mdpl2_freq1, mdpl2_freq2 = 150, 150
@@ -537,6 +540,52 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
 
     return el_cib, cl_cib
 
+def get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, perform_smoothing = 0, which_spec = 'tsz', reduce_tsz_power = None):
+
+    spt_freqs = [90, 150, 220]
+    planck_freqs = [100, 143, 217, 353]
+
+    if freq1 in spt_freqs:
+        plancksptstr_freq1 = 'spt3g'
+    elif  freq1 in planck_freqs:
+        plancksptstr_freq1 = 'plk'
+
+    if freq2 in spt_freqs:
+        plancksptstr_freq2 = 'spt3g'
+    elif freq2 in planck_freqs:
+        plancksptstr_freq2 = 'plk'
+
+    if which_spec == 'tsz':
+        which_spec_str = 'tsztsz'
+    elif which_spec == 'tsz_cib':
+        which_spec_str = 'tszi'
+
+    #print(freq1, freq2)
+
+    fname = '%s/tsz_and_cib/cl%s_%s%sghz_%s%sghz.dat' %(mdpl2_folder, which_spec_str, plancksptstr_freq1, freq1, plancksptstr_freq2, freq2)    
+    el_spec, cl_spec = np.loadtxt(fname, unpack = 1)
+
+    if units.lower() == 'k':
+        cl_spec /= 1e12
+
+    if el is not None:
+        cl_spec = np.interp(el, el_spec, cl_spec, left = 0., right = 0.)
+        el_spec = np.copy( el )
+
+    if perform_smoothing: 
+        cl_spec = smooth_cib_spectra(el_spec, cl_spec)
+
+    cl_spec[np.isnan(cl_spec)] = 0.
+    cl_spec[np.isinf(cl_spec)] = 0.
+
+    if reduce_tsz_power is not None and which_spec == 'tsz':
+        cl_spec /= reduce_tsz_power
+
+    if which_spec == 'tsz_cib':
+        cl_spec = abs(cl_spec)
+    #print(freq1, freq2, len(el), len(cl_spec), which_spec)
+    return el_spec, cl_spec
+
 def get_cl_cib_mdpl2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els = 1):
 
     #conversion factors: Kcmb-to-Mjy/Sr for maps
@@ -547,7 +596,7 @@ def get_cl_cib_mdpl2(freq1, freq2, units = 'uk', el = None, extend_to_higher_els
     mdpl2_conv = {90: 248.173, 150: 426.433, 220: 529.49, 545: 57.6963, 857: 2.26476}
 
     exp_freq_dic = {90: 'spt', 150: 'spt', 220: 'spt', 100: 'planck', 143: 'planck', 217: 'planck', 353: 'planck', 545: 'planck', 600: 'planck', 857: 'planck'}
-    fd = '%s/mdpl2_CIB/' %(data_folder)
+    fd = '%s/MDPL2_CIB/' %(data_folder)
     fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq1], mdpl2_freq1, exp_freq_dic[freq2], mdpl2_freq2)
     if not os.path.exists( fname ):
         fname = '%s/cls_mdpl2_%s%03d_%s%03d_lensed.dat' %(fd, exp_freq_dic[freq2], mdpl2_freq2, exp_freq_dic[freq1], mdpl2_freq1)
