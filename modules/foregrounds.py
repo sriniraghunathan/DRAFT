@@ -497,11 +497,9 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
 
 def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0, perform_smoothing = 0):
     #mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
-    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 143, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
+    mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 143, 145: 150, 150: 150, 217: 217, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 353, 545: 600, 600: 600, 857: 857}
     fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)    
     cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
-    print(cl_cib_dic)
-    sys.exit()
 
     if freq1<90 or freq2<90:
         mdpl2_freq1, mdpl2_freq2 = 150, 150
@@ -562,7 +560,9 @@ def get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, perform_
 
     #print(freq1, freq2)
 
-    fname = '%s/tsz_and_cib/cl%s_%s%sghz_%s%sghz.dat' %(mdpl2_folder, which_spec_str, plancksptstr_freq1, freq1, plancksptstr_freq2, freq2)    
+    fname = '%s/tsz_and_cib/cl%s_%s%sghz_%s%sghz.dat' %(mdpl2_folder, which_spec_str, plancksptstr_freq1, freq1, plancksptstr_freq2, freq2)
+    if not os.path.exists(fname):
+        fname = '%s/tsz_and_cib/cl%s_%s%sghz_%s%sghz.dat' %(mdpl2_folder, which_spec_str, plancksptstr_freq2, freq2, plancksptstr_freq1, freq1)
     el_spec, cl_spec = np.loadtxt(fname, unpack = 1)
 
     if units.lower() == 'k':
