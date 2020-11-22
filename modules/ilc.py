@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc, re, flatsky
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0):
+def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise']
@@ -169,7 +169,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             #get tSZ x CIB
             if use_mdpl2_tsz and use_mdpl2_cib:#20201120  - use MDPL2 tsz x cib spectra for SPT3G/ Planck bands
                 el, cl_tsz_cib = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, el = el, which_spec = 'tsz_cib')
-                if (1):
+                if (0):
                     el, cl_tsz_cib_G15 = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic, reduce_tsz_power = reduce_tsz_power)
                     dl_fac = (el * (el+1))/2./np.pi
                     ax=subplot(111,yscale='log'); plot(el, dl_fac * cl_tsz_cib_G15, label = 'G15'); plot(el, dl_fac * cl_tsz_cib, label = 'MDPL2'); title('%s,%s: %s' %(freq1, freq2, which_spec))
@@ -259,6 +259,16 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 elif len(cl) < len(nl):
                     nl = nl[:len(cl)]
 
+                if (1): #20201121: remove very large numbers because of beam deconvolution                
+                    ini_nl = np.median(nl[:100])
+                    end_nl = np.median(nl[-100:])
+                    if end_nl>ini_nl: #this implies beam deconvolution has made end nl pretty large
+                        #having end_nl pretty large introduces covariance inversion issues                        
+                        badinds = np.where(nl>=max_nl_value)[0]
+                        nl[badinds] = max_nl_value
+                        #print(ini_nl, end_nl)
+                        #clf();loglog(nl); title('%s: %s,%s' %(which_spec, freq1,freq2)); show()
+
                 el = np.arange(len(cl))
 
             else:
@@ -279,7 +289,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             ##########################################################################################
             #20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
-            adjust_for_large_beams = 1                    
+            #removed this on 20201121 and setting nl to a large constant value
+            adjust_for_large_beams = 0                   
             if adjust_for_large_beams:
                 bl = bl_dic[freq1]
                 if 'effective' in bl_dic:
@@ -287,7 +298,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 else:
                     bl_eff = bl_dic[145]
                 bad_inds = np.where( (bl_eff/bl > beam_tol_for_ilc) )[0]
-                #print(nuval1, nuval2, bad_inds)
+                print(freq1, freq2, bad_inds)
                 cl[bad_inds] = 0.
             #20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
             ##########################################################################################
