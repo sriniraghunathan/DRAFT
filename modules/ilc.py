@@ -44,9 +44,17 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 if (0):
                     el, cl_tsz_G15 = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], reduce_tsz_power = reduce_tsz_power)
                     dl_fac = (el * (el+1))/2./np.pi
-                    ax=subplot(111,yscale='log'); plot(el, dl_fac * cl_tsz_G15); plot(el, dl_fac * cl_tsz ); title('%s,%s: %s' %(freq1, freq2, which_spec))
+                    ax=subplot(111,yscale='log'); plot(el, dl_fac * cl_tsz_G15); plot(el, dl_fac * cl_tsz ); title('tSZ: %s,%s: %s' %(freq1, freq2, which_spec))
                     ylim(0.1, 1e4); xlim(2000, 1e4)
-                    show()
+                    if freq1 == freq2:
+                        freq0 = 150
+                        el, cl_tsz_freq0 = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq0, freq0, el = el, which_spec = 'tsz', reduce_tsz_power = reduce_tsz_power)
+                        tsz_fac_freq0 = compton_y_to_delta_Tcmb(freq0*1e9)
+                        tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1*1e9)
+                        scalefac = tsz_fac_freq1 * tsz_fac_freq1/ (tsz_fac_freq0**2.)
+                        cl_tsz_v2 = cl_tsz_freq0 * scalefac
+                        plot(el, dl_fac * cl_tsz_v2 );
+                    show(); #sys.exit()
 
             if which_spec == 'EE':
                 cl_tsz = cl_tsz * pol_frac_per_cent_tsz**2.
