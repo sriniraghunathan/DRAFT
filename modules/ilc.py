@@ -220,11 +220,6 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             if 'dust' not in ignore_fg and 'tsz' not in ignore_fg:
                 cl = cl + cl_tsz_cib[el]
 
-            '''
-            print('remove me')
-            cl = np.copy( cl_ori ) + cl_tsz
-            '''
-
             if include_gal:# and not pol: #get galactic dust and sync
 
                 el_, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
