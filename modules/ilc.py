@@ -12,7 +12,8 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             sys.exit()
 
 
-    el_, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])    
+    el_, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+    if el is None: el = np.copy(el_)
     el_, cl_ksz = fg.get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
     if which_spec == 'EE':
         cl_ksz = cl_ksz * pol_frac_per_cent_ksz**2.
