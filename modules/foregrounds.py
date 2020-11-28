@@ -823,7 +823,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                 fn_curr_cls_ip = intrp.interp1d(curr_els, curr_cls, fill_value = 'extrapolate')
                 curr_cls_ip = fn_curr_cls_ip(el_for_interp)
             else:
-                curr_cls_ip = np.interp(el_for_interp, curr_els, curr_cls, left = 0., right = curr_cls[-1])
+                curr_cls_ip = np.interp(el_for_interp, curr_els, curr_cls, left = 0., right = 0.)#curr_cls[-1])
 
             '''
             if (0): #smooth with polynomial fitting
