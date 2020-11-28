@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, healpy as H, foregrounds as fg, misc, re, flatsky
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0):
+def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise']
@@ -12,8 +12,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             sys.exit()
 
 
-    el, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
-    el, cl_ksz = fg.get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+    el_, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])    
+    el_, cl_ksz = fg.get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
     if which_spec == 'EE':
         cl_ksz = cl_ksz * pol_frac_per_cent_ksz**2.
     if which_spec == 'TE':
@@ -36,25 +36,25 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 continue
 
             #get tsz
-            el, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], reduce_tsz_power = reduce_tsz_power)
-            #I call the above line everytime to get el
             if use_mdpl2_tsz and use_mdpl2_cib: #20201120  - use MDPL2 tsz spectra for SPT3G/ Planck bands
-                el, cl_tsz = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, el = el, which_spec = 'tsz', reduce_tsz_power = reduce_tsz_power)
+                el_, cl_tsz = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, el = el, which_spec = 'tsz', reduce_tsz_power = reduce_tsz_power)
+            else:
+                el_, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], reduce_tsz_power = reduce_tsz_power)
 
-                if (0):
-                    el, cl_tsz_G15 = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], reduce_tsz_power = reduce_tsz_power)
-                    dl_fac = (el * (el+1))/2./np.pi
-                    ax=subplot(111,yscale='log'); plot(el, dl_fac * cl_tsz_G15); plot(el, dl_fac * cl_tsz ); title('tSZ: %s,%s: %s' %(freq1, freq2, which_spec))
-                    ylim(0.1, 1e4); xlim(2000, 1e4)
-                    if freq1 == freq2:
-                        freq0 = 150
-                        el, cl_tsz_freq0 = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq0, freq0, el = el, which_spec = 'tsz', reduce_tsz_power = reduce_tsz_power)
-                        tsz_fac_freq0 = compton_y_to_delta_Tcmb(freq0*1e9)
-                        tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1*1e9)
-                        scalefac = tsz_fac_freq1 * tsz_fac_freq1/ (tsz_fac_freq0**2.)
-                        cl_tsz_v2 = cl_tsz_freq0 * scalefac
-                        plot(el, dl_fac * cl_tsz_v2 );
-                    show(); #sys.exit()
+            if (0):
+                el_, cl_tsz_G15 = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], reduce_tsz_power = reduce_tsz_power)
+                dl_fac = (el * (el+1))/2./np.pi
+                ax=subplot(111,yscale='log'); plot(el, dl_fac * cl_tsz_G15); plot(el, dl_fac * cl_tsz ); title('tSZ: %s,%s: %s' %(freq1, freq2, which_spec))
+                ylim(0.1, 1e4); xlim(2000, 1e4)
+                if freq1 == freq2:
+                    freq0 = 150
+                    el_, cl_tsz_freq0 = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq0, freq0, el = el, which_spec = 'tsz', reduce_tsz_power = reduce_tsz_power)
+                    tsz_fac_freq0 = compton_y_to_delta_Tcmb(freq0*1e9)
+                    tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1*1e9)
+                    scalefac = tsz_fac_freq1 * tsz_fac_freq1/ (tsz_fac_freq0**2.)
+                    cl_tsz_v2 = cl_tsz_freq0 * scalefac
+                    plot(el, dl_fac * cl_tsz_v2 );
+                show(); #sys.exit()
 
             if which_spec == 'EE':
                 cl_tsz = cl_tsz * pol_frac_per_cent_tsz**2.
@@ -62,7 +62,7 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 cl_tsz = cl_tsz * 0.
 
             #get radio
-            el, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], null_highfreq_radio = null_highfreq_radio, reduce_radio_power_150 = reduce_radio_power_150)
+            el_, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'], null_highfreq_radio = null_highfreq_radio, reduce_radio_power_150 = reduce_radio_power_150)
             if which_spec == 'EE':
                 cl_radio = cl_radio * pol_frac_per_cent_radio**2.
             elif which_spec == 'TE':
@@ -70,11 +70,11 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             #get dust
             #sys.exit()
-            el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+            el_,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
             cl_dust = cl_dg_po + cl_dg_clus
             if remove_cib_decorr:
-                el,  cl_dg_po1, cl_dg_clus1 = fg.get_cl_dust(freq1, freq1, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
-                el,  cl_dg_po2, cl_dg_clus2 = fg.get_cl_dust(freq2, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+                el_,  cl_dg_po1, cl_dg_clus1 = fg.get_cl_dust(freq1, freq1, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+                el_,  cl_dg_po2, cl_dg_clus2 = fg.get_cl_dust(freq2, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
                 cl_dust1 = cl_dg_po1 + cl_dg_clus1
                 cl_dust2 = cl_dg_po2 + cl_dg_clus2
                 cl_dust = np.sqrt( cl_dust1 * cl_dust2 )
@@ -84,18 +84,18 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
             cl_dust_ori = np.copy(cl_dust)
             tit = 'G15/R20 CIB'
             if use_websky_cib:
-                el,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr)
+                el_,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'Websky CIB'
             if use_mdpl2_cib:
-                #el,  cl_dust = fg.get_cl_cib_mdpl2(freq1, freq2, el = el)
-                el,  cl_dust = fg.get_cl_cib_mdpl2_v0p3(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr)
+                #el_,  cl_dust = fg.get_cl_cib_mdpl2(freq1, freq2, el = el)
+                el_,  cl_dust = fg.get_cl_cib_mdpl2_v0p3(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'MDPL2 CIB'                
             if use_sptspire_for_hfbands:
                 if freq1>500 or freq2>500:
                     #el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
-                    el, cl_spt_spire = spt_spire_freq_crosses_dic[(freq1, freq2)]
+                    el_, cl_spt_spire = spt_spire_freq_crosses_dic[(freq1, freq2)]
                     cl_dust = np.copy( cl_spt_spire )
                     if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ) and freq1>500 or freq2>500: #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
@@ -176,16 +176,16 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             #get tSZ x CIB
             if use_mdpl2_tsz and use_mdpl2_cib:#20201120  - use MDPL2 tsz x cib spectra for SPT3G/ Planck bands
-                el, cl_tsz_cib = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, el = el, which_spec = 'tsz_cib')
+                el_, cl_tsz_cib = fg.get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, el = el, which_spec = 'tsz_cib')
                 if (0):
-                    el, cl_tsz_cib_G15 = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic, reduce_tsz_power = reduce_tsz_power)
+                    el_, cl_tsz_cib_G15 = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic, reduce_tsz_power = reduce_tsz_power)
                     dl_fac = (el * (el+1))/2./np.pi
                     ax=subplot(111,yscale='log'); plot(el, dl_fac * cl_tsz_cib_G15, label = 'G15'); plot(el, dl_fac * cl_tsz_cib, label = 'MDPL2'); title('%s,%s: %s' %(freq1, freq2, which_spec))
                     legend(loc = 1)
                     ylim(0.1, 1e4); xlim(2000, 1e4)
                     show()
             else: 
-                el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic, reduce_tsz_power = reduce_tsz_power)
+                el_, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic, reduce_tsz_power = reduce_tsz_power)
             if which_spec == 'EE' or which_spec == 'TE':
                 cl_tsz_cib = cl_tsz_cib * 0.
 
@@ -195,8 +195,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
                 ax = subplot(111, yscale = 'log');
                 for cntr, f1f2 in enumerate( freq_combs ):
                     freq1, freq2 = f1f2
-                    el, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
-                    el, cl_tsz_cib_v2 = fg.get_foreground_power_spt('tSZ-CIB', freq1 = freq1, freq2 = freq2) 
+                    el_, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+                    el_, cl_tsz_cib_v2 = fg.get_foreground_power_spt('tSZ-CIB', freq1 = freq1, freq2 = freq2) 
                     plot(el, cl_tsz_cib, color = colorarr[cntr], lw = 1.); plot(el, -cl_tsz_cib_v2, color = colorarr[cntr], lw = 2., ls = '--'); 
                 xlim(100, 5000)
                 show()
@@ -204,21 +204,21 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             cl = np.copy( cl_ori )
             if 'cmb' not in ignore_fg:
-                cl = cl + np.copy(cl_cmb)
+                cl = cl + np.copy(cl_cmb[el])
             if 'ksz' not in ignore_fg:
                 #print('ksz')
-                cl = cl + cl_ksz             
+                cl = cl + cl_ksz[el]
             if 'tsz' not in ignore_fg:
                 #print('tsz')
-                cl = cl + cl_tsz
+                cl = cl + cl_tsz[el]
             if 'radio' not in ignore_fg:
                 #print('radio')
-                cl = cl + cl_radio
+                cl = cl + cl_radio[el]
             if 'dust' not in ignore_fg:
                 #print('dust')
-                cl = cl + cl_dust
+                cl = cl + cl_dust[el]
             if 'dust' not in ignore_fg and 'tsz' not in ignore_fg:
-                cl = cl + cl_tsz_cib
+                cl = cl + cl_tsz_cib[el]
 
             '''
             print('remove me')
@@ -227,8 +227,8 @@ def get_analytic_covariance(param_dict, freqarr, nl_dic = None, bl_dic = None, i
 
             if include_gal:# and not pol: #get galactic dust and sync
 
-                el, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
-                el, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
+                el_, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
+                el_, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
 
                 if (0):#not pol:
 
