@@ -385,9 +385,10 @@ def get_websky_healpix(freq, use_mask = 1, websky_scaling_map = 0.75, threshold_
 
     return hmap
 
-def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0, perform_smoothing = 0, threshold_mjy = 6.4):
+def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2., el = None, remove_cib_decorr = 0, perform_smoothing = 0, threshold_mjy = 1.5):
 #def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 1., el = None):
-    websky_freq_dic = {90: 93, 93: 93, 95: 93, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 225, 278: 278, 286: 278, 345: 353, 353: 353, 545: 545, 600: 545, 857: 857}
+    #websky_freq_dic = {90: 93, 93: 93, 95: 93, 100: 100, 143: 145, 145: 145, 150: 145, 217: 217, 220: 215, 225: 225, 278: 278, 286: 278, 345: 353, 353: 353, 545: 545, 600: 545, 857: 857}
+    websky_freq_dic = {90: 93, 93: 93, 95: 93, 100: 100, 143: 145, 145: 145, 150: 145, 217: 217, 220: 225, 225: 225, 278: 278, 286: 278, 345: 353, 353: 353, 545: 545, 600: 545, 857: 857}
     if threshold_mjy == 6.4:
         fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
     else:
@@ -562,7 +563,7 @@ def get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, perform_
     elif which_spec == 'tsz_cib':
         which_spec_str = 'tszi'
 
-    #print(freq1, freq2)
+    print(freq1, freq2)
 
     fname = '%s/tsz_and_cib/cl%s_%s%sghz_%s%sghz.dat' %(mdpl2_folder, which_spec_str, plancksptstr_freq1, freq1, plancksptstr_freq2, freq2)
     if not os.path.exists(fname):
