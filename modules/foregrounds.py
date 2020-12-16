@@ -164,7 +164,7 @@ def compton_y_to_delta_Tcmb(freq1, freq2 = None, Tcmb = 2.73):
 
     return Tcmb * np.mean(g_nu)
 
-def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20.):
+def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., reduce_cib_power = None):
 #def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505, spec_index_dg_clus = 2.51, Tcib = 20.):
     if fg_model == 'george15':
         el, cl_dg_po_freq0 = get_foreground_power_spt('DG-Po', freq1 = freq0, freq2 = freq0)
@@ -175,6 +175,11 @@ def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_
     dl_fac = el * (el+1)/2/np.pi
     dl_dg_po = dl_fac * cl_dg_po_freq0
     dl_dg_clus = dl_fac * cl_dg_clus_freq0
+
+    if reduce_cib_power: #reduce 150 GHz CIB power: useful for CMB-HD
+        dl_dg_po = dl_dg_po/reduce_cib_power
+        dl_dg_clus = dl_dg_clus/reduce_cib_power
+
 
     nr = ( fn_dB_dT(freq0) )**2.
     dr = fn_dB_dT(freq1) * fn_dB_dT(freq2)

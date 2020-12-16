@@ -2,7 +2,7 @@ import numpy as np
 
 def get_exp_specs(expname, remove_atm = 0):
 
-    if expname.find('s4')>-1:
+    if expname.find('s4')>-1 or expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
         if expname == 's4wide':
 
             specs_dic = {
@@ -53,6 +53,19 @@ def get_exp_specs(expname, remove_atm = 0):
                 278: [0.9, 16.7, 7308., 0., 23.6, 700, 0.],
                 }
             '''
+
+        elif expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
+
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            27: [1.4, 6.5, 415., 3.5, 9.2, 700, 1.4],
+            39: [1.05, 3.4, 391., 3.5, 4.8, 700, 1.4], 
+            93: [0.45, 0.73, 1932., 3.5, 1.03, 700, 1.4],
+            145: [0.25, 0.79, 3917., 3.5, 1.12, 700, 1.4],
+            225: [0.2, 2.0, 6740., 3.5, 2.828, 700, 1.4],
+            278: [0.15, 4.6, 6792., 3.5, 6.5, 700, 1.4],
+            350: [0.12, 4.6, 6792., 3.5, 6.5, 700, 1.4],
+            }
 
         elif expname == 's4deep':
             '''
@@ -110,9 +123,9 @@ def get_exp_specs(expname, remove_atm = 0):
 
         corr_noise = 1
         if corr_noise:
-            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[145], 145:[93], 225: [278], 278: [225]}
+            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[145], 145:[93], 225: [278], 278: [225], 350: [350]}
         else:
-            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[93], 145:[145], 225: [225], 278: [278]}
+            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
         rho = 0.9
 
     elif expname.find('spt')>-1:
