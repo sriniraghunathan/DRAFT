@@ -1,4 +1,4 @@
-import numpy as np, sys, os, scipy as sc, healpy as H
+import numpy as np, sys, os, scipy as sc#, healpy as H
 
 ################################################################################################################
 #flat-sky routines

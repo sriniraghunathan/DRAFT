@@ -1,4 +1,4 @@
-import numpy as np, os, sys, healpy as H
+import numpy as np, os, sys#, healpy as H
 import pandas as pd
 import flatsky
 
