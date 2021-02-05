@@ -250,7 +250,7 @@ else:
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
 if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
-if use_s4like_mask_v3: os.system('mkdir %s/use_s4like_mask_v3/' %(sim_folder))
+if use_s4like_mask_v3: os.system('mkdir %s/s4like_mask_v3/' %(sim_folder))
 if use_spt3g_mask: os.system('mkdir %s/spt3g/' %(sim_folder))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
