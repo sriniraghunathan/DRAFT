@@ -1,8 +1,6 @@
 ################################################################################################################
 
 def split_mask_into_smaller_masks(large_hmask, which_field, hit_map = None):
-    large_hmask = mask_arr[2]
-    which_field = 'low_gal'
     nside = 512 #this is okay to get a rough fsky number
     npix = H.nside2npix(nside) #total number of pixels
 
@@ -391,6 +389,9 @@ if (1):#testing or not local:
         phi_deg, theta_deg = H.pix2ang( nside, np.arange(npix), lonlat = 1 )
 
         s4_mask_dic = {2: 10., 1: 15., 0: 20.}
+
+        if use_s4like_mask_v3: #20210204: only 1 clean / dirty mas
+            s4_mask_dic = {0: 10.}
         
         s4like_mask_arr = []
         for mask_iter in sorted( s4_mask_dic ):
