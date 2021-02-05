@@ -1,6 +1,6 @@
 ################################################################################################################
 
-def split_mask_into_smaller_masks(large_hmask, which_field, hit_map = None):
+def split_mask_into_smaller_masks(large_hmask, which_field = 'low_gal', hit_map = None):
     nside = 512 #this is okay to get a rough fsky number
     npix = H.nside2npix(nside) #total number of pixels
 
@@ -343,7 +343,7 @@ if (1):#testing or not local:
 
         tot_masks = len(planck_mask)
 
-    elif use_lat_step_mask or use_lat_step_mask_v2:
+    elif use_lat_step_mask:
 
         '''
         H.mollview(cmbs4_hit_map, coord = ['C'], sub = (2,2,1)); H.graticule()
@@ -354,8 +354,6 @@ if (1):#testing or not local:
         '''
 
         if use_lat_step_mask:
-            min_lat, max_lat, delta_lat = -60., 30., 15.
-        elif use_lat_step_mask_v2:
             min_lat, max_lat, delta_lat = -60., 30., 15.
         lat_arr = np.arange( min_lat, max_lat + 1., delta_lat )
 
@@ -427,7 +425,7 @@ if (1):#testing or not local:
 
             mask = np.copy(planck_mask[mask_iter])
 
-        elif use_lat_step_mask or use_lat_step_mask_v2:
+        elif use_lat_step_mask:
 
             mask = lat_mask_arr[mask_iter]
 
@@ -471,7 +469,7 @@ if (1):#testing or not local:
         mask_arr = mask_arr * cmbs4_hit_map
         tot_masks = len(mask_arr)
 
-    if use_s4like_mask_v2: #20200627
+    if use_s4like_mask_v2 or use_s4like_mask_v3: #20200627
 
         mask_arr = mask_arr * cmbs4_hit_map
         #add additional masks that cover the uncleaned CMB-S4 region.
@@ -492,9 +490,10 @@ if (1):#testing or not local:
         clean_masks = mask_arr[:tots4masks]
         dirty_masks = mask_arr[tots4masks:]
         mod_clean_masks_arr = []
+        print(tots4masks)
         for m in range(tots4masks):
             curr_clean_mask = clean_masks[m]
-            curr_clean_mask_large, curr_clean_mask_small = split_mask_into_smaller_masks(curr_clean_mask, which_field, hit_map = cmbs4_hit_map)        
+            curr_clean_mask_large, curr_clean_mask_small = split_mask_into_smaller_masks(curr_clean_mask, hit_map = cmbs4_hit_map)        
             mod_clean_masks_arr.append(curr_clean_mask_small)
             mod_clean_masks_arr.append(curr_clean_mask_large)
             mod_clean_masks_arr.append(dirty_masks[m])
