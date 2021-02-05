@@ -1,5 +1,44 @@
 ################################################################################################################
 
+def split_mask_into_smaller_masks(large_hmask, which_field, hit_map = None):
+    large_hmask = mask_arr[2]
+    which_field = 'low_gal'
+    nside = 512 #this is okay to get a rough fsky number
+    npix = H.nside2npix(nside) #total number of pixels
+
+    if which_field == 'low_gal': #winter field
+        ra1, ra2 = -50., 75.
+        dec1, dec2 = -75., -10.
+
+    delra, deldec = 0.1, 0.1
+    raarr = np.arange(ra1, ra2, delra)
+    decarr = np.arange(dec1, dec2, deldec)
+
+    RA, DEC = np.meshgrid(raarr,decarr)
+    RA = RA.flatten()
+    DEC = DEC.flatten()
+
+    hmask = np.zeros(npix)
+    P=H.pixelfunc.ang2pix(nside,np.radians(90.-DEC),np.radians(RA))
+    hmask[P] = 1.
+
+    hmask = H.smoothing(hmask, fwhm = np.radians(2.))
+    hmask[hmask<1e-5] = 0.
+    hmask[hmask!=0] = 1.    
+
+    nside_out = H.get_nside(large_hmask)
+    hmask = H.ud_grade(hmask, nside_out)
+    if hit_map is not None:
+        hmask *= hit_map
+
+    large_hmask_mod = large_hmask - hmask
+    large_hmask_mod[large_hmask_mod<0.] = 0.
+    if (0):
+        H.mollview(large_hmask, sub = (1,3,1), cmap = cm.jet)
+        H.mollview(hmask, sub = (1,3,2), cmap = cm.jet)
+        H.mollview(large_hmask_mod, sub = (1,3,3), cmap = cm.jet)    
+    return large_hmask_mod, hmask
+
 def healpix_rotate_coords(hmap, coord):
     """
     coord = ['C', 'G'] to convert a map in RADEC to Gal.    
@@ -95,6 +134,7 @@ parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='stor
 
 parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=0) #rough S4 mask
 parser.add_argument('-use_s4like_mask_v2', dest='use_s4like_mask_v2', action='store', help='use_s4like_mask_v2', type=int, default=0) #rough S4 mask v2: split footrpint into clean and unclean region
+parser.add_argument('-use_s4like_mask_v3', dest='use_s4like_mask_v3', action='store', help='use_s4like_mask_v3', type=int, default=0) #rough S4 mask v3: split v2 clean into clean and cleaner regions
 parser.add_argument('-cos_el', dest='cos_el', action='store', help='cos_el', type=int, default=40) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-use_spt3g_mask', dest='use_spt3g_mask', action='store', help='use_spt3g_mask', type=int, default=0) #SPT-3G summer/winter field
 
@@ -186,6 +226,8 @@ if zonca_sims or pySM_yomori:
         opfname = '%s/s4like_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask_v2:
         opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask_v3:
+        opfname = '%s/s4like_mask_v3/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_spt3g_mask:
         opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 else:
@@ -203,11 +245,14 @@ else:
         opfname = '%s/s4like_mask/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask_v2:
         opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4like_mask_v3:
+        opfname = '%s/s4like_mask_v3/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
 if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
+if use_s4like_mask_v3: os.system('mkdir %s/use_s4like_mask_v3/' %(sim_folder))
 if use_spt3g_mask: os.system('mkdir %s/spt3g/' %(sim_folder))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
@@ -300,7 +345,7 @@ if (1):#testing or not local:
 
         tot_masks = len(planck_mask)
 
-    elif use_lat_step_mask:
+    elif use_lat_step_mask or use_lat_step_mask_v2:
 
         '''
         H.mollview(cmbs4_hit_map, coord = ['C'], sub = (2,2,1)); H.graticule()
@@ -310,7 +355,10 @@ if (1):#testing or not local:
         H.mollview(planck_mask, coord = ['G'], sub = (2,2,4)); H.graticule(); show()
         '''
 
-        min_lat, max_lat, delta_lat = -60., 30., 15.
+        if use_lat_step_mask:
+            min_lat, max_lat, delta_lat = -60., 30., 15.
+        elif use_lat_step_mask_v2:
+            min_lat, max_lat, delta_lat = -60., 30., 15.
         lat_arr = np.arange( min_lat, max_lat + 1., delta_lat )
 
         npix = H.nside2npix( nside )
@@ -337,7 +385,7 @@ if (1):#testing or not local:
 
         tot_masks = len(lat_mask_arr)
 
-    elif use_s4like_mask or use_s4like_mask_v2:
+    elif use_s4like_mask or use_s4like_mask_v2 or use_s4like_mask_v3:
 
         npix = H.nside2npix( nside )
         phi_deg, theta_deg = H.pix2ang( nside, np.arange(npix), lonlat = 1 )
@@ -378,11 +426,11 @@ if (1):#testing or not local:
 
             mask = np.copy(planck_mask[mask_iter])
 
-        elif use_lat_step_mask:
+        elif use_lat_step_mask or use_lat_step_mask_v2:
 
             mask = lat_mask_arr[mask_iter]
 
-        elif use_s4like_mask or use_s4like_mask_v2:
+        elif use_s4like_mask or use_s4like_mask_v2 or use_s4like_mask_v3:
 
             mask = s4like_mask_arr[mask_iter]
 
@@ -438,6 +486,21 @@ if (1):#testing or not local:
         mask_arr = np.concatenate( (mask_arr, unclean_mask_arr) )
         tot_masks = len(mask_arr)
 
+    if use_s4like_mask_v3: #20210204: split clean regiosn into 2 sub-fields
+        tots4masks = len(s4like_mask_arr)
+        clean_masks = mask_arr[:tots4masks]
+        dirty_masks = mask_arr[tots4masks:]
+        mod_clean_masks_arr = []
+        for m in range(tots4masks):
+            curr_clean_mask = clean_masks[m]
+            curr_clean_mask_large, curr_clean_mask_small = split_mask_into_smaller_masks(curr_clean_mask, which_field, hit_map = cmbs4_hit_map)        
+            mod_clean_masks_arr.append(curr_clean_mask_small)
+            mod_clean_masks_arr.append(curr_clean_mask_large)
+            mod_clean_masks_arr.append(dirty_masks[m])
+        
+        mask_arr = np.copy(mod_clean_masks_arr)
+
+
     #print(len(mask_arr))
     if which_mask != -1:
         mask_arr = [mask_arr[which_mask]]
@@ -456,7 +519,7 @@ if (1):#testing or not local:
         from IPython import embed; embed()
         from pylab import *
 
-        from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = [r'\boldmath']
+        from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
         rcParams['figure.dpi'] = 150
         rcParams["figure.facecolor"] = 'white'
         rcParams['font.family'] = 'serif'
