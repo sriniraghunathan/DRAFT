@@ -30,11 +30,60 @@ def fn_get_param_dict(paramfile):
     return param_dict
 
 ################################################################################################################
+
+def gauss_beam(fwhm, lmax=512, pol=False):
+    """Gaussian beam window function
+
+    Computes the spherical transform of an axisimmetric gaussian beam
+
+    For a sky of underlying power spectrum C(l) observed with beam of
+    given FWHM, the measured power spectrum will be
+    C(l)_meas = C(l) B(l)^2
+    where B(l) is given by gaussbeam(Fwhm,Lmax).
+    The polarization beam is also provided (when pol = True ) assuming
+    a perfectly co-polarized beam
+    (e.g., Challinor et al 2000, astro-ph/0008228)
+
+    Parameters
+    ----------
+    fwhm : float
+        full width half max in radians
+    lmax : integer
+        ell max
+    pol : bool
+        if False, output has size (lmax+1) and is temperature beam
+        if True output has size (lmax+1, 4) with components:
+        * temperature beam
+        * grad/electric polarization beam
+        * curl/magnetic polarization beam
+        * temperature * grad beam
+
+    Returns
+    -------
+    beam : array
+        beam window function [0, lmax] if dim not specified
+        otherwise (lmax+1, 4) contains polarized beam
+    """
+
+    sigma = fwhm / np.sqrt(8.0 * np.log(2.0))
+    ell = np.arange(lmax + 1)
+    sigma2 = sigma ** 2
+    g = np.exp(-0.5 * ell * (ell + 1) * sigma2)
+
+    if not pol:  # temperature-only beam
+        return g
+    else:  # polarization beam
+        # polarization factors [1, 2 sigma^2, 2 sigma^2, sigma^2]
+        pol_factor = np.exp([0.0, 2 * sigma2, 2 * sigma2, sigma2])
+        return g[:, np.newaxis] * pol_factor
+
+
 def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam = None, make_2d = 0, mapparams = None):
     bl_dic =  {}
     for freq in freqs:
         beamval, noiseval = beam_noise_dic[freq]
-        bl_dic[freq] = H.gauss_beam(np.radians(beamval/60.), lmax=lmax-1)
+        #bl_dic[freq] = H.gauss_beam(np.radians(beamval/60.), lmax=lmax-1)
+        bl_dic[freq] = gauss_beam(np.radians(beamval/60.), lmax=lmax-1)
 
         if make_2d:
             assert mapparams is not None
