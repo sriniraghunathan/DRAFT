@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, foregrounds as fg, misc, re, flatsky#, healpy as H
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0):
+def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise']
@@ -19,6 +19,12 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
         cl_ksz = cl_ksz * pol_frac_per_cent_ksz**2.
     if which_spec == 'TE':
         cl_ksz = cl_ksz * 0.
+
+    if cl_multiplier_dic is not None:
+        if 'cmb' in cl_multiplier_dic:
+            cl_cmb = np.copy(cl_cmb) * cl_multiplier_dic['cmb']
+        if 'ksz' in cl_multiplier_dic:
+            cl_ksz = np.copy(cl_ksz) * cl_multiplier_dic['ksz']
 
     cl_dic = {}
     cl_ori = np.zeros(len(el))
@@ -203,7 +209,24 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 show()
                 sys.exit()
 
+            #galaxy
+            if include_gal:# and not pol: #get galactic dust and sync
+                el_, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
+                el_, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
+
             cl = np.copy( cl_ori )
+            if cl_multiplier_dic is not None:
+                if 'tsz' in cl_multiplier_dic:
+                    cl_tsz = np.copy(cl_tsz) * cl_multiplier_dic['tsz']
+                if 'radio' in cl_multiplier_dic:
+                    cl_radio = np.copy(cl_radio) * cl_multiplier_dic['radio']
+                if 'dust' in cl_multiplier_dic:
+                    cl_dust = np.copy(cl_dust) * cl_multiplier_dic['dust']
+                if 'gal_dust' in cl_multiplier_dic:
+                    cl_gal_dust = np.copy(cl_gal_dust) * cl_multiplier_dic['gal_dust']
+                if 'gal_sync' in cl_multiplier_dic:
+                    cl_gal_sync = np.copy(cl_gal_sync) * cl_multiplier_dic['gal_sync']
+
             if 'cmb' not in ignore_fg:
                 cl = cl + np.copy(cl_cmb[el])
             if 'ksz' not in ignore_fg:
@@ -222,9 +245,6 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 cl = cl + cl_tsz_cib[el]
 
             if include_gal:# and not pol: #get galactic dust and sync
-
-                el_, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
-                el_, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
 
                 if (0):#not pol:
 
