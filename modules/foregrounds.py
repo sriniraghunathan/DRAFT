@@ -16,6 +16,10 @@ if not os.path.exists(data_folder):
     data_folder = '/u/home/s/srinirag/project-nwhiteho/git/DRAFT/data/'
     websky_folder = '/u/home/s/srinirag/project-nwhiteho/websky/'
     mdpl2_folder = '/u/home/s/srinirag/project-nwhiteho/mdpl2/v0.3/'
+if not os.path.exists(data_folder):
+    data_folder = '/home/sri/analysis/git/DRAFT/data/'
+    websky_folder = '/sptlocal/user/sri/websky/'
+    mdpl2_folder = '/sptlocal/user/sri/mdpl2/v0.3/'
 ################################################################################################################
 
 def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax = None):
