@@ -20,4 +20,4 @@
 * **Galactic foregrounds**: Dust and Synchrotron power spectra obtained from [pySM3](https://github.com/CMB-S4/s4mapbasedsims/tree/master/202002_foregrounds_extragalactic_cmb_tophat) simulations.
 
 ## Contributors: 
-[Joel Meyers](https://joelmeyers.github.io/), [Cynthia Trendafilova](https://github.com/ctrendafilova), and [Benjamin Wallisch](https://www.ias.edu/scholars/benjamin-wallisch).
+[_Joel_ **Meyers**](https://joelmeyers.github.io/), [_Cynthia_ **Trendafilova**](https://github.com/ctrendafilova), and [_Benjamin_ **Wallisch**](https://www.ias.edu/scholars/benjamin-wallisch).
