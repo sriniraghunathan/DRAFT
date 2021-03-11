@@ -7,7 +7,7 @@
 * Combines delensed CMB spectra **(yet to be integrated into this repo)** and lensing spectra to forecast cosmological parameter constraints using Fisher formalism.
   * [Fisher code repo](https://github.com/sriniraghunathan/cmbs4_fisher_forecasting) **(yet to be integrated into this repo)**.
 * Estimates biases in cosmological parameters due to residual foregrounds also using Fisher formalism.
-  * References: Huterer & Takada 2004, arXiv: [0412142]((https://arxiv.org/abs/astro-ph/0412142)); Loverde, Hui, & Gaztanaga 2006, arXiv: [0611539]((https://arxiv.org/abs/astro-ph/0611539)); Amara & Réfrégier 2007, arXiv: [0710.5171](https://arxiv.org/abs/0710.5171).
+  * References: Huterer & Takada 2004, arXiv: [0412142](https://arxiv.org/abs/astro-ph/0412142); Loverde, Hui, & Gaztanaga 2006, arXiv: [0611539](https://arxiv.org/abs/astro-ph/0611539); Amara & Réfrégier 2007, arXiv: [0710.5171](https://arxiv.org/abs/0710.5171).
 
 ## CMB-S4 instrument/noise specs:
 * Chilean LAT: [S4-Wide](https://cmb-s4.uchicago.edu/wiki/index.php/Expected_Survey_Performance_for_Science_Forecasting#Instrument_Definition)
