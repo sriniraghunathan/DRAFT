@@ -1,5 +1,5 @@
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = [r'\boldmath']
+from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
 import os
 rcParams['font.family'] = 'serif'
 rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
@@ -614,26 +614,40 @@ if (1): #make ILC plot for S4-wide vs S4-Ultradeep
     s4_wide_gal1_galmask5 = '%s/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask5_AZ.npy' %(ilc_folder)
     s4deepv3r025_wide_gal0 = '%s/s4deepv3r025_ilc_galaxy0_27-39-93-145-225-278_TT-EE.npy' %(ilc_folder)
 
-    fname_arr = [s4deepv3r025_wide_gal0, s4_wide_gal0, s4_wide_gal1_galmask2, s4_wide_gal1_galmask5]
-    lab_arr = [r'S4-Ultra deep (No galaxy)', r'S4-Wide (No galaxy)', r'S4-Wide (Clean)', r'S4-Wide (Dirty)']
+    show_ultradeep = 0
+    if show_ultradeep:
+        fname_arr = [s4deepv3r025_wide_gal0, s4_wide_gal0, s4_wide_gal1_galmask2, s4_wide_gal1_galmask5]
+        lab_arr = [r'S4-Ultra deep (No galaxy)', r'S4-Wide (No galaxy)', r'S4-Wide (Clean)', r'S4-Wide (Dirty)']
+        colorarr = ['black', 'navy', 'green', 'red']
+    else:
+        fname_arr = [s4_wide_gal0, s4_wide_gal1_galmask2, s4_wide_gal1_galmask5]
+        lab_arr = [r'S4-Wide (No gal.)', r'S4-Wide (Clean)', r'S4-Wide (Dirty)']
+        colorarr = ['navy', 'green', 'red']
 
 
     #camb CMB
     dic = np.load(s4_wide_gal0, allow_pickle = 1).item()
+    beam_noise_dic_s4wide = dic['beam_noise_dic']
     camb_file = '%s/%s' %(dic['param_dict']['data_folder'], dic['param_dict']['Dlfile_len'])
     Tcmb= dic['param_dict']['T_cmb']
     el_camb = np.loadtxt(camb_file, usecols = [0])
     dl_camb = np.loadtxt(camb_file, usecols = [1,2,3,4])
     cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,None] + 1) )
     cl_camb *= 1e12
-    dl_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+    
+    plot_dl = 0
+    if plot_dl:
+        dl_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+    else:
+        dl_fac_camb = 1. 
 
     cl_tt, cl_ee = cl_camb[:,0], cl_camb[:,1] 
 
     clf()
     fsval = 12
-    fig = figure(figsize=(8, 5))
-    subplots_adjust(wspace = 0.1)
+    #fig = figure(figsize=(8, 5))
+    fig = figure(figsize=(9.5, 5.))
+    subplots_adjust(wspace = 0.05)
 
     which_spec_arr = ['TT', 'EE']
     for which_spec_cntr, which_spec in enumerate( which_spec_arr ):
@@ -644,47 +658,76 @@ if (1): #make ILC plot for S4-wide vs S4-Ultradeep
             plot(el_camb,  cl_ee * dl_fac_camb, ls = '-', color = 'gray')#, label = r'Lensed CMB')
 
         for fcntr, fname in enumerate( fname_arr ):
-            if fcntr == 0:
-                colorval = 'black'            
-            elif fcntr == 1:
-                colorval = 'darkgreen' #'purple'
-            elif fcntr == 2:
-                colorval = 'goldenrod' #'goldenrod'
-            elif fcntr == 3:
-                colorval = 'darkred' #'darkgreen'
+            colorval = colorarr[fcntr]
             labval = lab_arr[fcntr]
             #ILC noise
             dic = np.load(fname, allow_pickle = 1).item()
             el_nl, nl_tt = dic['el'], dic['cl_residual'][which_spec]        
-            dls_fac = el_nl * (el_nl + 1) / 2/ np.pi
+            if plot_dl:
+                dls_fac = el_nl * (el_nl + 1) / 2/ np.pi
+            else:
+                dls_fac = 1. 
 
             if (0):
                 nl_tt_dl = nl_tt * dls_fac
                 dl_tt_ip = np.interp(el_nl, el_camb,  dl_tt)
                 dl_tot = nl_tt_dl + dl_tt_ip
 
-            lwval = 1.
-            plot(el_nl, nl_tt * dls_fac, ls = '-', color = colorval, label = r'\textsc{%s}' %labval, lw = lwval)
+            if not show_ultradeep and fname == s4_wide_gal0:
+                if which_spec == 'TT':
+                    TP = 'T'
+                elif which_spec == 'EE':
+                    TP = 'P'
+                colorarr_tmp = [cm.jet(int(d)) for d in np.linspace(0, 255, len(beam_noise_dic_s4wide[TP]))]
+                for fcntr, freq in enumerate( sorted(beam_noise_dic_s4wide[TP]) ):
+                    beamval, noiseval = beam_noise_dic_s4wide[TP][freq]
+                    elknee, alphaknee = elknee_dic = beam_noise_dic_s4wide[TP][freq]
+                    nl = misc.get_nl(noiseval, el_nl, beamval, elknee = elknee, alphaknee = alphaknee)
+                    plot(el_nl, nl * dls_fac, ls = '-', lw = 0.5, color = colorarr_tmp[fcntr], label = r'%s' %(freq))
+
+            lwval = 2.
+            #plot(el_nl, nl_tt * dls_fac, ls = '-', color = colorval, label = r'\textsc{%s}' %labval, lw = lwval)
+            plot(el_nl, nl_tt * dls_fac, ls = '-', color = colorval, label = r'%s' %labval, lw = lwval)
 
         for label in ax.get_xticklabels(): label.set_fontsize(fsval-2)
         for label in ax.get_yticklabels(): label.set_fontsize(fsval-2)
 
-        grid(True, which='major', axis = 'x', lw = 0.5, alpha = 0.1)
-        grid(True, which='both', axis = 'y', lw = 0.5, alpha = 0.1)
+        grid(True, which='major', axis = 'x', lw = 0.25, alpha = 0.1)
+        grid(True, which='both', axis = 'y', lw = 0.25, alpha = 0.1)
 
-        xmin, xmax = 50, 5000
-        ymin, ymax = 0.001, 1e3
-        xlim(xmin, xmax);ylim(ymin, ymax)
-        xlabel(r'\textsc{Multipole $\ell$}', fontsize = fsval)
-        if which_spec == 'TT':
-            ylabel(r'$D_{\ell}$ [$\mu K^{2}$]', fontsize = fsval)
-            legend(loc = 3, fontsize = fsval - 2, fancybox = 1)#, ncol = 3)
+        xmin, xmax = 50, 4950; xlim(xmin, xmax);
+        if plot_dl:
+            ymin, ymax = 0.001, 1e3; 
         else:
+            ymin, ymax = 1e-8, .1;
+        ylim(ymin, ymax)
+        
+        
+        #xlabel(r'\textsc{Multipole $\ell$}', fontsize = fsval)
+        xlabel(r'Multipole $\ell$', fontsize = fsval)
+        if which_spec == 'EE':
+            if show_ultradeep:
+                legncol = 1
+            else:
+                legncol = 3
+            legend(loc = 1, fontsize = fsval - 2, fancybox = 1, ncol = legncol)
+        if which_spec == 'EE':
             setp(ax.get_yticklabels(which = 'both'), visible=False)
+        else:
+            if plot_dl:
+                ylabel(r'$D_{\ell}$ [$\mu K^{2}$]', fontsize = fsval)
+            else:
+                ylabel(r'$C_{\ell}$ [$\mu K^{2}$]', fontsize = fsval)
+
+
         title(r'%s' %(which_spec), fontsize = fsval+2)
     #suptitle(r'S4-Ultradeep vs S4-Wide ILC residuals', fontsize = fsval+2)
     plfolder = 'reports/20200701/s4like_mask_v2/'
     if not os.path.exists(plfolder): os.system('mkdir -p %s' %(plfolder))
-    plname = '%s/s4_wide_ultradeep_ilc_nl.png' %(plfolder,)
+    if show_ultradeep:
+        plname = '%s/s4_wide_ultradeep_ilc_nl.png' %(plfolder,)
+    else:
+        plname = '%s/s4_wide_ilc_nl.png' %(plfolder,)
+    print(plname)
     savefig(plname, dpi = 200.)
     show(); sys.exit()
