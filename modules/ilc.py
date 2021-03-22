@@ -222,10 +222,11 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     cl_radio = np.copy(cl_radio) * cl_multiplier_dic['radio']
                 if 'dust' in cl_multiplier_dic:
                     cl_dust = np.copy(cl_dust) * cl_multiplier_dic['dust']
-                if 'gal_dust' in cl_multiplier_dic:
-                    cl_gal_dust = np.copy(cl_gal_dust) * cl_multiplier_dic['gal_dust']
-                if 'gal_sync' in cl_multiplier_dic:
-                    cl_gal_sync = np.copy(cl_gal_sync) * cl_multiplier_dic['gal_sync']
+                if include_gal:
+                    if 'gal_dust' in cl_multiplier_dic:
+                        cl_gal_dust = np.copy(cl_gal_dust) * cl_multiplier_dic['gal_dust']
+                    if 'gal_sync' in cl_multiplier_dic:
+                        cl_gal_sync = np.copy(cl_gal_sync) * cl_multiplier_dic['gal_sync']
 
             if 'cmb' not in ignore_fg:
                 cl = cl + np.copy(cl_cmb[el])
