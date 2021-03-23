@@ -4,7 +4,7 @@ from pylab import *
 def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None):
 
     #ignore_fg = foreground terms that must be ignored
-    possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise']
+    possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
     if len(ignore_fg)>0:
         if 'cmb' in ignore_fg: ignore_fg.append('ksz')
         if not all( [ currfg in possible_ignore_fg for currfg in ignore_fg] ):
@@ -211,8 +211,8 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
             #galaxy
             if include_gal:# and not pol: #get galactic dust and sync
-                el_, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
-                el_, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, bl_dic = bl_dic, el = el)
+                el_, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, el = el, bl_dic = bl_dic)
+                el_, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, el = el, bl_dic = bl_dic)
 
             cl = np.copy( cl_ori )
             if cl_multiplier_dic is not None:
@@ -242,8 +242,8 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             if 'dust' not in ignore_fg:
                 #print('dust')
                 cl = cl + cl_dust[el]
-            if 'dust' not in ignore_fg and 'tsz' not in ignore_fg:
-                cl = cl + cl_tsz_cib[el]
+            if 'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
+                cl = cl + cl_tsz_cib[el]                
 
             if include_gal:# and not pol: #get galactic dust and sync
 
