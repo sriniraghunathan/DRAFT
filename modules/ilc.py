@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, foregrounds as fg, misc, re, flatsky#, healpy as H
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None):
+def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True):
 
     #ignore_fg = foreground terms that must be ignored
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
@@ -34,6 +34,9 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
         spt_spire_freq_crosses_dic = fg.get_spt_spire_bandpower(el_for_interp = el, comps_to_subtract = comps_to_subtract_from_spt_spire, param_dict = param_dict)
     else:
         spt_spire_freq_crosses_dic = None
+
+    if return_fg_spectra:
+        fg_cl_dic = {}
         
     for freq1 in freqarr:
         for freq2 in freqarr:
@@ -302,9 +305,39 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 print('\n\n\t\tfix me: there must be noise correlation in case of atmospheric noise')
                 sys.exit()
 
+
             if 'noise' not in ignore_fg:
                 if which_spec != 'TE':
-                    cl = cl + nl                
+                    cl = cl + np.copy(nl)
+
+            if return_fg_spectra:
+                if 'cmb' not in ignore_fg:
+                    if 'cmb' not in fg_cl_dic: fg_cl_dic['cmb'] = {}
+                    fg_cl_dic['cmb'][(freq1, freq2)] = fg_cl_dic['cmb'][(freq2, freq1)] = cl_cmb
+                if 'ksz' not in ignore_fg:
+                    if 'ksz' not in fg_cl_dic: fg_cl_dic['ksz'] = {}
+                    fg_cl_dic['ksz'][(freq1, freq2)] = fg_cl_dic['ksz'][(freq2, freq1)] = cl_ksz
+                if 'tsz' not in ignore_fg:
+                    if 'tsz' not in fg_cl_dic: fg_cl_dic['tsz'] = {}
+                    fg_cl_dic['tsz'][(freq1, freq2)] = fg_cl_dic['tsz'][(freq2, freq1)] = cl_tsz
+                if 'radio' not in ignore_fg:
+                    if 'radio' not in fg_cl_dic: fg_cl_dic['radio'] = {}
+                    fg_cl_dic['radio'][(freq1, freq2)] = fg_cl_dic['radio'][(freq2, freq1)] = cl_radio
+                if 'dust' not in ignore_fg:
+                    if 'cib' not in fg_cl_dic: fg_cl_dic['cib'] = {}
+                    fg_cl_dic['cib'][(freq1, freq2)] = fg_cl_dic['cib'][(freq2, freq1)] = cl_dust
+                if 'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
+                    if 'tsz_cib' not in fg_cl_dic: fg_cl_dic['tsz_cib'] = {}
+                    fg_cl_dic['tsz_cib'][(freq1, freq2)] = fg_cl_dic['tsz_cib'][(freq2, freq1)] = cl_tsz_cib
+                if 'noise' not in ignore_fg and which_spec != 'TE':
+                    if 'noise' not in fg_cl_dic: fg_cl_dic['noise'] = {}
+                    fg_cl_dic['noise'][(freq1, freq2)] = fg_cl_dic['noise'][(freq2, freq1)] = nl
+                if include_gal:
+                    if 'galdust' not in fg_cl_dic: 
+                        fg_cl_dic['galdust'] = {}
+                        fg_cl_dic['galsync'] = {}
+                    fg_cl_dic['galdust'][(freq1, freq2)] = fg_cl_dic['galdust'][(freq2, freq1)] = cl_gal_dust
+                    fg_cl_dic['galsync'][(freq1, freq2)] = fg_cl_dic['galsync'][(freq2, freq1)] = cl_gal_sync
 
             cl[np.isnan(cl)] = 0.
             cl[np.isinf(cl)] = 0.
@@ -338,7 +371,10 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
             cl_dic[(freq1, freq2)] = cl
 
-    return el, cl_dic  
+    if return_fg_spectra:
+        return el, cl_dic, fg_cl_dic
+    else:
+        return el, cl_dic  
 
 ################################################################################################################
 ################################################################################################################
