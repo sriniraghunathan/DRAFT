@@ -207,6 +207,9 @@ if zonca_sims or pySM_yomori:
         if local:
             sim_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
 
+        if (1): #20210323
+            sim_folder = sim_folder.replace('202002_foregrounds_extragalactic_cmb_tophat', '202102_design_tool_input')
+
         if dust_or_sync == 'dust':
             sim_folder = '%s/dust/' %(sim_folder)
         elif dust_or_sync == 'sync':
