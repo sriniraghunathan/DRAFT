@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[21]:
 
-
+'''
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 
 #%pylab notebook
 get_ipython().run_line_magic('matplotlib', 'inline')
+'''
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = [r'\boldmath']
+from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
 import os
 rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 
-# In[2]:
+# In[22]:
 
 
 rcParams['figure.dpi'] = 150
@@ -23,7 +24,7 @@ rcParams['font.family'] = 'serif'
 rcParams["figure.facecolor"] = 'white'
 
 
-# In[3]:
+# In[23]:
 
 
 import argparse, sys, numpy as np, scipy as sc, warnings, os
@@ -37,7 +38,7 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 #warnings.filterwarnings('ignore', category=matplotlib.cbook.mplDeprecation)
 
 
-# In[4]:
+# In[24]:
 
 
 #some constants
@@ -45,8 +46,8 @@ h=6.62607004e-34 #Planck constant in m2 kg / s
 k_B=1.38064852e-23 #Boltzmann constant in m2 kg s-2 / K-1
 Tcmb = 2.73 #Kelvin
 
-
-# In[5]:
+total_obs_time = float(sys.argv[1]) #in years
+# In[25]:
 
 
 #params
@@ -58,24 +59,29 @@ el = np.arange(param_dict['lmax'])
 include_gal = param_dict['include_gal'] ##1
 s4like_mask = param_dict['s4like_mask']
 s4like_mask_v2 = param_dict['s4like_mask_v2']
+s4like_mask_v3 = param_dict['s4like_mask_v3']
 if not include_gal:
     if s4like_mask:
         param_dict['which_gal_mask'] = 3
     elif s4like_mask_v2:
         param_dict['which_gal_mask'] = 2
+    elif s4like_mask_v3:
+        param_dict['which_gal_mask'] = 0
 which_gal_mask = param_dict['which_gal_mask']
 try:
     remove_atm = param_dict['remove_atm']
 except:
-    remove_atm = 0    
+    remove_atm = 0
 
 
-# In[6]:
+# In[26]:
 
 
 #S4 specs
 expname = 's4wide'
+#expname = 'cmbhd'
 #expname = 's4deep'
+#expname = 's4deepv3r025' #20201019
 specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
@@ -86,9 +92,18 @@ TParr = ['T', 'P']
 which_spec_arr = ['TT', 'EE']
 #which_spec_arr = ['TE']
 ##include_gal = 1
+reduce_cib_power = None
+####total_obs_time = 10. #years
+total_obs_time_default = 10. #years
+if expname.find('cmbhd')>-1:
+    reduce_cib_power = 17. #150 GHz power reduction after removing sources above 0.04 mJy
+
+#cl multipler - multiply a given spectra by some amount to perform partial ILC. similar to https://arxiv.org/abs/2102.05033
+cl_multiplier_dic = {}
+###cl_multiplier_dic['gal_dust'] = 1.
 
 
-# In[7]:
+# In[27]:
 
 
 #beam and noise arr
@@ -96,10 +111,14 @@ beamarr = []
 noisearr_T, elkneearr_T, alphakneearr_T = [], [], []
 noisearr_P, elkneearr_P, alphakneearr_P = [], [], []
 for freq in freqarr:
-    beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P = specs_dic[freq]
+    beam_arcmins, white_noise_T, elknee_T, alphaknee_T, white_noise_P, elknee_P, alphaknee_P = specs_dic[freq]
+    if (1): #noise scaling based on total_obs_time
+        noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
+        white_noise_T = white_noise_T * noise_scaling_fac
+        white_noise_P = white_noise_P * noise_scaling_fac        
     beamarr.append(beam_arcmins)
     noisearr_T.append(white_noise_T)
-    noisearr_P.append(whitenoise_P)
+    noisearr_P.append(white_noise_P)
     elkneearr_T.append(elknee_T)
     elkneearr_P.append(elknee_P)
     alphakneearr_T.append(alphaknee_T)
@@ -108,7 +127,7 @@ for freq in freqarr:
 print(elkneearr_T)
 
 
-# In[8]:
+# In[28]:
 
 
 #collect beam and noise into a dic; elknee and alpha into a dic
@@ -127,7 +146,7 @@ for TP in TParr:
         elknee_dic[TP][freq] = [elknee, alphaknee]
 
 
-# In[9]:
+# In[29]:
 
 
 #get beam deconvolved noise nls
@@ -154,7 +173,7 @@ for TP in TParr:
 print(nl_dic['T'].keys())
 
 
-# In[10]:
+# In[30]:
 
 
 #get beams
@@ -166,7 +185,7 @@ if (0):
     legend(loc = 1)
 
 
-# In[11]:
+# In[31]:
 
 
 #get the CMB, noise, and foreground covriance
@@ -176,30 +195,33 @@ except:
     ignore_fg = []
 
 ignore_fg.append(final_comp.lower()) #the required component need not go into the covariance matrix.
+ignore_fg.append('tsz_cib')
 print(ignore_fg)
 
 #freqarr = [145]
 #param_dict['which_gal_mask'] = 0
 cl_dic = {}
+fg_cl_dic = {}
 for which_spec in which_spec_arr:
     if which_spec == 'TT':
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr,                 nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic)
+        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el,                 nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power, cl_multiplier_dic = cl_multiplier_dic)
     else:
-        el, cl_dic[which_spec] = ilc.get_analytic_covariance                    (param_dict, freqarr, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic)
+        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance                    (param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
 print(cl_dic.keys(), cl_dic.keys())
+print(el)
 
 
-# In[21]:
+# In[32]:
 
 
 if (0):
-    el,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
-    el, cl_radio = fg.get_cl_radio(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])
+    el_,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+    el_, cl_radio = fg.get_cl_radio(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])
     ax = subplot(111, yscale='log')
-    plot(el, cl_dg_po, color = 'orangered', ls = '-', label = r'Dusty galaxies: Poisson')
-    plot(el, cl_dg_clus, color = 'orangered', ls = '-.', label = r'Dusty galaxies: Clustered')
-    plot(el, cl_radio, color = 'lime', ls = '-', label = r'Radio galaxies: Poisson')
-    plot(el, cl_dg_po + cl_radio, color = 'black', ls = '-', label = r'Poisson: Dusty + radio galaxies')
+    plot(el_, cl_dg_po, color = 'orangered', ls = '-', label = r'Dusty galaxies: Poisson')
+    plot(el_, cl_dg_clus, color = 'orangered', ls = '-.', label = r'Dusty galaxies: Clustered')
+    plot(el_, cl_radio, color = 'lime', ls = '-', label = r'Radio galaxies: Poisson')
+    plot(el_, cl_dg_po + cl_radio, color = 'black', ls = '-', label = r'Poisson: Dusty + radio galaxies')
     axhline(5e-6, ls = '--', color = 'k', label = r'S4 prediction')
     legend(loc = 1, fancybox = 1, fontsize = 8)
     xlabel(r'Multipole $\ell$')
@@ -207,12 +229,12 @@ if (0):
     title(r'Point source power @ 145  GHZ')
     ylim(1e-7, 1e-4)
     xlim(100, 5000)
-if (1):
-    el, cl_tsz_cib = fg.get_foreground_power_spt('tSZ-CIB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
-    el, cl_dg_po, cl_dg_clus = fg.get_cl_dust(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
-    el, cl_radio = fg.get_cl_radio(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])
-    el, cl_tsz = fg.get_cl_tsz(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
-    dls_fac = el * (el+1)/2/np.pi
+if (0):#1):
+    el_, cl_tsz_cib = fg.get_foreground_power_spt('tSZ-CIB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+    el_, cl_dg_po, cl_dg_clus = fg.get_cl_dust(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+    el_, cl_radio = fg.get_cl_radio(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])
+    el_, cl_tsz = fg.get_cl_tsz(145, 145, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+    dls_fac = el_ * (el_+1)/2/np.pi
     cl_point_source = cl_radio + cl_dg_po
     tr, tc = 10, 1
     rspan = 5
@@ -220,9 +242,9 @@ if (1):
     clf()
     subplots_adjust(hspace=0.1)
     ax = subplot2grid((tr,tc), (0, 0), rowspan = rspan, yscale='log')
-    plot(el, cl_point_source * dls_fac, color = 'green', ls = '-', label = r'Poisson point sources')
-    plot(el, cl_tsz * dls_fac, color = 'navy', ls = '-', label = r'tSZ')
-    plot(el, cl_dg_clus * dls_fac, color = 'orangered', ls = '-', label = r'Dusty galaxies: Clustered')
+    plot(el_, cl_point_source * dls_fac, color = 'green', ls = '-', label = r'Poisson point sources')
+    plot(el_, cl_tsz * dls_fac, color = 'navy', ls = '-', label = r'tSZ')
+    plot(el_, cl_dg_clus * dls_fac, color = 'orangered', ls = '-', label = r'Dusty galaxies: Clustered')
     plot([], [], 'k-', label=r'DRAFT')
     if (1): #WAFTT
         waftt_cl_dg_clus = np.loadtxt('data/WAFTT/Cls_cibc_145x145.txt')
@@ -262,12 +284,12 @@ if (1):
     axhline(1., lw = 0.5)
 
 
-# In[50]:
+# In[33]:
 
 
 #colordic = {27:'indigo', 39:'royalblue', 93: 'lightgreen', 145: 'darkgreen', 225: 'goldenrod', 278: 'darkred'}
 colordic = {}
-dummy_freqarr = [20, 27, 39, 93, 145, 225, 278]
+dummy_freqarr = [20, 27, 39, 93, 145, 225, 278, 350]
 colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(dummy_freqarr) )]
 for fcntr, f in enumerate( dummy_freqarr ):
     colordic[f] = colorarr[fcntr]
@@ -277,7 +299,7 @@ colordic[93] = 'lightseagreen'
 colordic[145] = 'darkgreen'
 
 
-# In[51]:
+# In[34]:
 
 
 '''
@@ -289,7 +311,7 @@ for which_spec in which_spec_arr:
 '''
 
 
-# In[52]:
+# In[35]:
 
 
 '''
@@ -330,14 +352,14 @@ show()#;sys.exit()
 '''
 
 
-# In[53]:
+# In[36]:
 
 
 #get the residual power now
 cl_residual_arr, weights_arr = ilc.residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = final_comp, freqcalib_fac = freqcalib_fac, return_weights = 1)
 
 
-# In[54]:
+# In[37]:
 
 
 cl_residual, weights_dic = {}, {}
@@ -355,7 +377,140 @@ for which_spec in which_spec_arr:
 print(cl_residual.keys())
 
 
-# In[55]:
+# In[38]:
+
+
+'''
+#get all FG cl
+camb_file = 'data/%s' %(param_dict['Dlfile_len'])
+Tcmb= param_dict['T_cmb']
+el_camb = np.loadtxt(camb_file, usecols = [0])
+dl_camb = np.loadtxt(camb_file, usecols = [1,2,3,4])
+cl_camb = ( Tcmb**2. * dl_camb * 2 * np.pi ) / ( el_camb[:,None] * (el_camb[:,None] + 1) )
+cl_camb *= 1e12
+Dls_fac_camb = el_camb * (el_camb + 1) / 2/ np.pi
+cl_camb_tt = cl_camb[:,0]
+
+#kSZ
+el_ksz, cl_ksz = fg.get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+
+cl_gal_dust_dic, cl_gal_sync_dic = {}, {}
+cl_dust_dic, cl_tsz_dic, cl_radio_dic, cl_tsz_cib_dic = {}, {}, {}, {}
+cl_cmb_dic, cl_ksz_dic = {}, {}
+#for which_spec in which_spec_arr:
+for which_spec in ['TT']:
+    cl_gal_dust_dic[which_spec], cl_gal_sync_dic[which_spec] = {}, {}
+    cl_dust_dic[which_spec], cl_tsz_dic[which_spec], cl_radio_dic[which_spec], cl_tsz_cib_dic[which_spec] = {}, {}, {}, {}
+    cl_cmb_dic[which_spec], cl_ksz_dic[which_spec] = {}, {}
+    for freq1 in freqarr:
+        for freq2 in freqarr:
+            el_, cl_gal_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec, el = el, bl_dic = bl_dic)
+            el_, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, el = el, bl_dic = bl_dic)
+            cl_gal_dust_dic[which_spec][(freq1, freq2)] = cl_gal_dust
+            cl_gal_sync_dic[which_spec][(freq1, freq2)] = cl_gal_sync
+
+            el_,  cl_dg_po, cl_dg_clus = fg.get_cl_dust(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+            cl_dust = cl_dg_po + cl_dg_clus
+            cl_dust_dic[which_spec][(freq1, freq2)] = cl_dust_dic[which_spec][(freq2, freq1)] = cl_dust
+            
+            el_, cl_tsz = fg.get_cl_tsz(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+            cl_tsz_dic[which_spec][(freq1, freq2)] = cl_tsz_dic[which_spec][(freq2, freq1)] = cl_tsz
+
+            el_, cl_radio = fg.get_cl_radio(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_rg = param_dict['spec_index_rg'])
+            cl_radio = np.nan_to_num(cl_radio)
+            cl_radio_dic[which_spec][(freq1, freq2)] = cl_radio_dic[which_spec][(freq2, freq1)] = cl_radio
+
+            el_, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'])
+            cl_tsz_cib = np.nan_to_num(cl_tsz_cib)
+            #cl_tsz_cib = np.zeros(len(cl_tsz_cib))
+            cl_tsz_cib_dic[which_spec][(freq1, freq2)] = cl_tsz_cib_dic[which_spec][(freq2, freq1)] = cl_tsz_cib
+
+            cl_cmb_dic[which_spec][(freq1, freq2)] = cl_cmb_dic[which_spec][(freq2, freq1)] = np.interp(el, el_camb, cl_camb_tt)
+            cl_ksz_dic[which_spec][(freq1, freq2)] = cl_ksz_dic[which_spec][(freq2, freq1)] = np.interp(el, el_ksz, cl_ksz)
+'''
+fg_res_dic = {}
+signal_arr = ['galdust', 'galsync']
+signal_arr = ['tsz', 'cib', 'radio', 'galdust', 'galsync', 'noise']#, 'tsz-cib']
+for which_spec in ['TT']:
+    fg_res_dic[which_spec] = {}
+    for elcnt, currel in enumerate(el):
+        if (elcnt%2500) == 0: print(which_spec, elcnt)
+        for s in signal_arr:
+            #print(s)
+            if s == 'galdust':
+                #curr_cl_dic = cl_gal_dust_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['galdust']
+            elif s == 'galsync':
+                #curr_cl_dic = cl_gal_sync_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['galsync']
+            elif s == 'ksz':
+                #curr_cl_dic = cl_ksz_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['ksz']
+            elif s == 'cmb':
+                #curr_cl_dic = cl_cmb_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['cmb']
+            elif s == 'tsz':
+                #curr_cl_dic = cl_tsz_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['tsz']
+            elif s == 'cib':
+                #curr_cl_dic = cl_dust_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['cib']
+            elif s == 'radio':
+                #curr_cl_dic = cl_radio_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['radio']
+            elif s == 'tsz-cib':
+                #curr_cl_dic = cl_tsz_cib_dic[which_spec]
+                curr_cl_dic = fg_cl_dic[which_spec]['tsz_cib']
+            elif s == 'noise':
+                '''
+                if which_spec == 'TT':
+                    curr_cl_dic = nl_dic['T']
+                elif which_spec == 'EE':
+                    curr_cl_dic = nl_dic['P']
+                else:
+                    curr_cl_dic = None
+                '''
+                curr_cl_dic = fg_cl_dic[which_spec]['noise']
+
+            ###from IPython import embed; embed()
+            #print(weights_dic)
+            clmat = np.mat( ilc.create_clmat(freqarr, elcnt, curr_cl_dic) )
+            currw_ilc = np.mat( weights_dic[which_spec][:, elcnt] )
+            
+            curr_res_ilc = np.asarray(np.dot(currw_ilc, np.dot(clmat, currw_ilc.T)))[0][0]
+            if s not in fg_res_dic[which_spec]:
+                fg_res_dic[which_spec][s] = []
+            fg_res_dic[which_spec][s].append( curr_res_ilc )
+    
+    for s in signal_arr:
+        fg_res_dic[which_spec][s] = np.asarray(fg_res_dic[which_spec][s])
+print(fg_res_dic.keys())
+
+
+# In[39]:
+
+
+'''
+el, tmp, fg_cl_dic = ilc.get_analytic_covariance(param_dict, freqarr, el = el, \
+nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power, cl_multiplier_dic = cl_multiplier_dic)
+print(fg_res_dic['TT'].keys())
+print('ksz',cl_ksz_dic['TT'][(278, 278)][1000])
+print('tsz',cl_tsz_dic['TT'][(278, 278)][1000])
+print('radio',cl_radio_dic['TT'][(278, 278)][1000])
+print('cib',cl_dust_dic['TT'][(278, 278)][1000])
+print('galdust',cl_gal_dust_dic['TT'][(278, 278)][1000])
+print('galsync',cl_gal_sync_dic['TT'][(278, 278)][1000])
+print('noise',nl_dic['T'][(278, 278)][1000])
+'''
+
+
+# In[ ]:
+
+
+
+
+
+# In[41]:
 
 
 #plot and results file name
@@ -364,17 +519,21 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #opfname = 'results/galactic_sims/S4_ilc_20204020_galaxy%s_%s.npy' %(include_gal, freqarr_str)
 #opfname = 'results/galactic_sims/S4_ilc_zonca_sims_20204028_galaxy%s_%s_%s.npy' %(include_gal, freqarr_str, which_spec_arr_str)
 #parent_folder = 'results/20200610'
-parent_folder = 'results/20200701'
+#parent_folder = 'results/20200701'
+#parent_folder = 'results/20210322'
+parent_folder = 'results/202103224_with202102designtoolinputforpySM3sims'
 opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
 
 if not corr_noise:
     opfname = opfname.replace('.npy', '_nocorrnoise.npy')
     
 if s4like_mask:
-    opfname = opfname.replace(parent_folder, '%s/s4like_mask/' %(parent_folder))
+    opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
 
 if s4like_mask_v2:
-    opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/' %(parent_folder))
+    opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
+if s4like_mask_v3:
+    opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
 
 if include_gal:
     opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
@@ -382,34 +541,53 @@ if include_gal:
 if remove_atm:
     opfname = opfname.replace('.npy', '_noatmnoise.npy')
 
+if cl_multiplier_dic is not None:
+    if len(cl_multiplier_dic) > 1:
+        cl_multiplier_str = 'pilcmultfacs'
+        for kkk in cl_multiplier_dic:
+            cl_multiplier_str = '%s-%s%s'%(cl_multiplier_str, kkk, cl_multiplier_dic[kkk])
+        cl_multiplier_str = cl_multiplier_str.strip('-')
+        opfname = opfname.replace('.npy', '_%s.npy' %(cl_multiplier_str))
+
 if include_gal:    
     cl_gal_folder = param_dict['cl_gal_folder']
     if cl_gal_folder.find('CUmilta')>-1:
         opfname = opfname.replace('.npy', '_CU.npy')
     else:
         opfname = opfname.replace('.npy', '_AZ.npy')
-
+        
 try:
     param_dict['cl_gal_dic_sync_fname_forced']
     opfname = opfname.replace('.npy', '_forcingsynctoCU.npy')
 except:
     pass
 
+'''
 #plname = opfname.replace('.npy', '.png').replace('S4_ilc', 'plot_S4_ilc')
 if s4like_mask:
     plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask/' %(parent_folder), '%s/s4like_mask/plots/' %(parent_folder))
 elif s4like_mask_v2:
     plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask_v2/' %(parent_folder), '%s/s4like_mask_v2/plots/' %(parent_folder))
+elif s4like_mask_v3:
+    plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask_v3/' %(parent_folder), '%s/s4like_mask_v3/plots/' %(parent_folder))
 else:
     plname = opfname.replace('.npy', '.png').replace(parent_folder, '%s/plots/' %(parent_folder))
-plfolder = '/'.join(plname.split('/')[:-1])
-os.system('mkdir -p %s' %(plfolder))
-os.system('mkdir -p %s' %(plfolder))
+'''
+opfolder = '/'.join(opfname.split('/')[:-1])
+plfolder = '%s/plots/' %(opfolder)
+if not os.path.exists(opfolder): os.system('mkdir -p %s' %(opfolder))
+if not os.path.exists(plfolder): os.system('mkdir -p %s' %(plfolder))
+
+plname = opfname.replace(opfolder, plfolder).replace('.npy', '.png')
+if total_obs_time_default != total_obs_time:
+    opfname = opfname.replace('.npy', '_for%gyears.npy' %(total_obs_time))
+    plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
+    
 print(opfname)
 print(plname)
 
 
-# In[56]:
+# In[ ]:
 
 
 freq0, lmax = param_dict['freq0'], param_dict['lmax']
@@ -481,10 +659,21 @@ if plot_weights:
 for cntr, which_spec in enumerate( which_spec_arr ):
     if plot_weights:
         #ax = subplot(1,2,cntr+1, xscale = 'log', yscale = 'log')
-        ax = subplot2grid((tr,tc), (curr_row, cntr), rowspan = rspan, colspan = cspan, xscale = 'log', yscale = 'log')
+        ax = subplot2grid((tr,tc), (curr_row, cntr), rowspan = rspan, colspan = cspan, yscale = 'log', xscale = 'log')
     else:
-        ax = subplot(1, len(which_spec_arr), cntr+1, xscale = 'log', yscale = 'log')
+        ax = subplot(1, len(which_spec_arr), cntr+1, yscale = 'log')#, xscale = 'log')
     plot(el, cl_residual[which_spec], 'black', lw = 2., label = r'Residual')
+    if include_gal: #show gal residuals here as well
+        if which_spec == 'TT':
+            plot(el, fg_res_dic[which_spec]['galdust'], 'purple', lw = 2., label = r'Residual gal dust')
+            #plot(el, fg_res_dic[which_spec]['galsync'], 'purple', lw = 2., label = r'Residual gal sync', alpha = 0.5)
+    if which_spec == 'TT':
+        tot = np.zeros(len(el))
+        tmpcoloarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(signal_arr))]
+        for scntr, s in enumerate( signal_arr ):
+            plot(el, fg_res_dic[which_spec][s], lw = 1., label = r'%s' %(s), color = tmpcoloarr[scntr])
+            tot += fg_res_dic[which_spec][s]
+        plot(el, tot, lw = 1., label = r'Total', color = 'gray')
     if which_spec == 'TT':
         plot(el_camb, cl_TT, 'gray', lw = 1., label = r'TT')
         '''
@@ -523,31 +712,32 @@ for cntr, which_spec in enumerate( which_spec_arr ):
         '''
     #for freq in freqarr:
     #    plot(el, cl_dic[which_spec][(freq,freq)], color = colordic[freq], lw = 0.5, ls = '-', label = r'%s' %(freq), alpha = 1.)        
-    mv_comb_arr = []
-    for freq in freqarr:
-        if which_spec == 'TT':
-            nl = nl_dic['T'][(freq, freq)]
-        elif which_spec == 'EE':
-            nl = nl_dic['P'][(freq, freq)]
-        elif which_spec == 'TE':
-            nl = nl_dic['T'][(freq, freq)] * 0.
-        plot(el, nl, color = colordic[freq], lw = lwval, ls = '--', label = r'Noise: %s' %(freq))#, alpha = 0.5)
-        mv_comb_arr.append(1./nl)
-    mv_comb = 1./(np.sum(mv_comb_arr, axis = 0))
-    plot(el, mv_comb, color = 'k', lw = 0.5, ls = '--', label = r'Noise: MV')
-    #legend(loc=3, fancybox=1, ncol = 4, fontsize = 6);
-    
+    if (1):
+        mv_comb_arr = []
+        for freq in freqarr:
+            if which_spec == 'TT':
+                nl = nl_dic['T'][(freq, freq)]
+            elif which_spec == 'EE':
+                nl = nl_dic['P'][(freq, freq)]
+            elif which_spec == 'TE':
+                nl = nl_dic['T'][(freq, freq)] * 0.
+            plot(el, nl, color = colordic[freq], lw = lwval*0.5, ls = '--', label = r'Noise: %s' %(freq))#, alpha = 0.5)
+            mv_comb_arr.append(1./nl)
+        mv_comb = 1./(np.sum(mv_comb_arr, axis = 0))
+        ###plot(el, mv_comb, color = 'k', lw = 0.5, ls = '--', label = r'Noise: MV')
+        #legend(loc=3, fancybox=1, ncol = 4, fontsize = 6);
+
     xlim(xmin, xmax);
     ylim(1e-7,1e-1);
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
         ylabel(r'$C_{\ell}$')
-        legend(loc = 3, fontsize = 6, ncol = 2, handlelength = 2., handletextpad = 0.1)
+        legend(loc = 2, fontsize = 6, ncol = 2, handlelength = 2., handletextpad = 0.1)
     else:
         pass#setp(ax.get_yticklabels(which = 'both'), visible=False)
     for label in ax.get_xticklabels(): label.set_fontsize(fsval)
     for label in ax.get_yticklabels(): label.set_fontsize(fsval)
-        
+    
 #tit = 'Galaxy = %s; Mask = %s; Bands = %s' %(include_gal, param_dict['which_gal_mask'], str(freqarr))
 if remove_atm:
     tit = 'Galaxy = %s; Mask = %s; Bands = %s; no 1/f' %(include_gal, param_dict['which_gal_mask'], str(freqarr))
@@ -555,15 +745,18 @@ else:
     if include_gal:
         tit = 'Galaxy = %s; Mask = %s; Bands = %s' %(include_gal, param_dict['which_gal_mask'], str(freqarr))    
     else:
-        tit = 'Galaxy = %s; Mask = N/A; Bands = %s' %(include_gal, str(freqarr))    
+        tit = 'Bands = %s' %(str(freqarr))    
 if (0):#not corr_noise:
     tit = '%s; No corr. noise' %(tit)
+if cl_multiplier_dic is not None:
+    if 'gal_dust' in cl_multiplier_dic:
+        tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
 suptitle(r'%s' %tit, x = 0.53, y = 1.)
-######savefig(plname)
-show()
+savefig(plname)
+print(plname)
 
 
-# In[57]:
+# In[ ]:
 
 
 #first plot weights
@@ -611,70 +804,6 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
 
 
-# In[60]:
-
-
-cl_gal_dic_dust_fname = param_dict['cl_gal_dic_dust_fname']
-try:
-    cl_gal_folder = param_dict['cl_gal_folder']
-    cl_gal_dic_dust_fname = '%s/%s' %(cl_gal_folder, cl_gal_dic_dust_fname)
-except:
-    pass
-print(cl_gal_dic_dust_fname)
-galdustsims_cl = np.load(cl_gal_dic_dust_fname, allow_pickle=1, encoding = 'latin1').item()
-if not include_gal:
-    fsky_val = 0.68
-else:
-    fsky_val = galdustsims_cl['fsky_arr'][param_dict['which_gal_mask']]
-opdic = {}
-opdic['el'] = el
-opdic['cl_residual'] = cl_residual
-opdic['freqcalib_fac'] = freqcalib_fac
-opdic['param_dict'] = param_dict
-opdic['fsky_val'] = fsky_val
-opdic['which_gal_mask'] = which_gal_mask
-opdic['weights'] = weights_dic
-#opdic['nl_dic'] = nl_dic
-opdic['beam_noise_dic'] = beam_noise_dic
-opdic['elknee_dic'] = elknee_dic
-np.save(opfname, opdic)
-print(opfname)
-
-
-# In[97]:
-
-
-farr = ['results/20200701/s4like_mask_v2//s4wide_ilc_galaxy0_27-39-93-145-225-278_TT-EE.npy',    'results/20200701/s4like_mask_v2//s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask2_AZ.npy',    'results/20200701/s4like_mask_v2//s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask5_AZ.npy',]
-
-
-# In[116]:
-
-
-miny, maxy = 0., 1.2
-ilc_results_dic = {}
-for fcntr, f in enumerate( farr ):
-    ilc_dic = np.load(f, allow_pickle=1).item()['cl_residual']
-    ilc_results_dic[fcntr] = [ ilc_dic['TT'], ilc_dic['EE'] ]
-
-pl_comb_arr = [(0,1), (0,2), (1,2)]
-lab_arr = [('gal0', 'galmask2'), ('gal0', 'galmask5'), ('galmask2', 'galmask5')]
-colorarr = ['orangered', 'green', 'k']
-alphaarr = [0.2, 0.2, 1.]
-for cntr, pl_comb in enumerate( pl_comb_arr ):
-    p1,p2 = pl_comb
-    ax  =subplot(121)
-    labval = r'%s/%s' %(lab_arr[cntr][0], lab_arr[cntr][1])
-    alphaval = alphaarr[cntr]
-    plot(ilc_results_dic[p1][0]/ilc_results_dic[p2][0], color = colorarr[cntr], label = r'%s' %labval, alpha = alphaval)
-    ylabel(r'Ratio')
-    axhline(1., lw=0.5);xlim(30, 5000);ylim(miny, maxy)
-    legend(loc = 1, fancybox = 1, fontsize = 8)
-    ax  =subplot(122)
-    plot(ilc_results_dic[p1][1]/ilc_results_dic[p2][1], color = colorarr[cntr], alpha = alphaval)
-    xlabel(r'Multipole $\ell$')
-    axhline(1., lw=0.5);xlim(30, 5000);ylim(miny, maxy)
-
-
 # In[ ]:
 
 
@@ -684,75 +813,35 @@ for cntr, pl_comb in enumerate( pl_comb_arr ):
 # In[ ]:
 
 
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-f1 = 'results/20200610/s4like_mask//s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask3_AZ.npy'
-f2 = 'results/20200701/DSR/s4like_mask//s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask3_AZ.npy'
-f3 = 'results/20200701/s4like_mask//s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask3_AZ.npy'
-ilc_dic1 = np.load(f1, allow_pickle=1).item()['cl_residual']
-ilc_dic2 = np.load(f2, allow_pickle=1).item()['cl_residual']
-ilc_dic3 = np.load(f3, allow_pickle=1).item()['cl_residual']
-tt1, ee1 = ilc_dic1['TT'], ilc_dic1['EE']
-tt2, ee2 = ilc_dic2['TT'], ilc_dic2['EE']
-tt3, ee3 = ilc_dic3['TT'], ilc_dic3['EE']
-tt_dic={1:tt1, 2: tt2, 3:tt3}
-ee_dic={1:ee1, 2: ee2, 3:ee3}
-pl_comb_arr = [(3,2)] #,(1,2)]
-#pl_comb_arr = [(3,1)] #,(1,2)]
-"""
-tt_arr=[ ee1, ee2, ee3]
-#ilc_ee_old = np.load('dummy.npy', allow_pickle=1)
-#plot(ilc_ee/ilc_ee_old, lw = 2.)
-subplot(121);
-plot(tt3/tt2, color = 'k')
-#plot(tt2/tt1, color = 'purple')
-title(r'TT')
-ylim(0.8, 1.2)
-subplot(122);
-plot(ee3/ee2, color = 'k')
-#plot(ee2/ee1, color = 'purple')
-title(r'EE')
-xlim(0, 5000)
-ylim(0.9, 1.1)
-"""
-for pl_comb in pl_comb_arr:
-    p1,p2 = pl_comb
-    plot(tt_dic[p1]/tt_dic[p2], color = 'k', label = r'TT')
-    plot(ee_dic[p1]/ee_dic[p2], color = 'orangered', label = r'EE')
-xlabel(r'Multipole $\ell$')
-ylabel(r'Ratio [current/Old]')
-axhline(1., lw=0.5)
-xlim(30, 5000)
-ylim(0.8, 1.2)
-legend(loc = 1)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+if (1): #save residual files
+    cl_gal_dic_dust_fname = param_dict['cl_gal_dic_dust_fname']
+    try:
+        cl_gal_folder = param_dict['cl_gal_folder']
+        cl_gal_dic_dust_fname = '%s/%s' %(cl_gal_folder, cl_gal_dic_dust_fname)
+    except:
+        pass
+    print(cl_gal_dic_dust_fname)
+    galdustsims_cl = np.load(cl_gal_dic_dust_fname, allow_pickle=1, encoding = 'latin1').item()
+    if not include_gal:
+        fsky_val = 0.68
+    else:
+        fsky_val = galdustsims_cl['fsky_arr'][param_dict['which_gal_mask']]
+    opdic = {}
+    opdic['el'] = el
+    if cl_multiplier_dic is not None:
+        opdic['cl_multiplier_dic'] = cl_multiplier_dic
+    opdic['cl_residual'] = cl_residual
+    opdic['fg_res_dic'] = fg_res_dic
+    opdic['freqcalib_fac'] = freqcalib_fac
+    opdic['param_dict'] = param_dict
+    opdic['fsky_val'] = fsky_val
+    opdic['which_gal_mask'] = which_gal_mask
+    opdic['weights'] = weights_dic
+    #opdic['nl_dic'] = nl_dic
+    opdic['beam_noise_dic'] = beam_noise_dic
+    opdic['elknee_dic'] = elknee_dic
+    np.save(opfname, opdic)
+    print(opfname)
 
 
 # In[ ]:

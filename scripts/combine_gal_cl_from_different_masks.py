@@ -22,8 +22,8 @@ if (0):
 if (1):
     #s4like_mask = 1
     #nside, lmax = 4096, 7000
-    s4like_mask_v2 = 0
-    s4like_mask_v3 = 1
+    s4like_mask_v2 = 1
+    s4like_mask_v3 = 0
 
     nside, lmax = 4096, 7000
     nside, lmax = 2048, 5000
@@ -39,6 +39,8 @@ if zonca_sims:
     data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/xxxx/0000/'
     if not local:
         data_folder = '//u/home/s/srinirag/project-nwhiteho/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/xxxx/0000/'
+    if (1): #20210323
+        data_folder = data_folder.replace('202002_foregrounds_extragalactic_cmb_tophat', '202102_design_tool_input')
     comp_arr = ['dust', 'synchrotron']
     #comp_arr = ['synchrotron']
 elif pySM_yomori:
