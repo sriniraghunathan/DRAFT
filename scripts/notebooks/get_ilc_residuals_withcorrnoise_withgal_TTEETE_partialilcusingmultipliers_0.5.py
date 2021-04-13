@@ -94,7 +94,7 @@ which_spec_arr = ['TT', 'EE']
 ##include_gal = 1
 reduce_cib_power = None
 ####total_obs_time = 10. #years
-total_obs_time_default = 10. #years
+total_obs_time_default = 7. ###10. #years
 if expname.find('cmbhd')>-1:
     reduce_cib_power = 17. #150 GHz power reduction after removing sources above 0.04 mJy
 
@@ -521,7 +521,7 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/20200610'
 #parent_folder = 'results/20200701'
 #parent_folder = 'results/20210322'
-parent_folder = 'results/202103224_with202102designtoolinputforpySM3sims'
+parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
 opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
 
 if not corr_noise:
@@ -579,7 +579,7 @@ if not os.path.exists(opfolder): os.system('mkdir -p %s' %(opfolder))
 if not os.path.exists(plfolder): os.system('mkdir -p %s' %(plfolder))
 
 plname = opfname.replace(opfolder, plfolder).replace('.npy', '.png')
-if total_obs_time_default != total_obs_time:
+if (1):#total_obs_time_default != total_obs_time:
     opfname = opfname.replace('.npy', '_for%gyears.npy' %(total_obs_time))
     plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
     
