@@ -60,12 +60,15 @@ include_gal = param_dict['include_gal'] ##1
 s4like_mask = param_dict['s4like_mask']
 s4like_mask_v2 = param_dict['s4like_mask_v2']
 s4like_mask_v3 = param_dict['s4like_mask_v3']
+s4delensing_mask = param_dict['s4delensing_mask']
 if not include_gal:
     if s4like_mask:
         param_dict['which_gal_mask'] = 3
     elif s4like_mask_v2:
         param_dict['which_gal_mask'] = 2
     elif s4like_mask_v3:
+        param_dict['which_gal_mask'] = 0
+    elif s4delensing_mask:
         param_dict['which_gal_mask'] = 0
 which_gal_mask = param_dict['which_gal_mask']
 try:
@@ -78,9 +81,9 @@ except:
 
 
 #S4 specs
-expname = 's4wide'
+#expname = 's4wide'
 #expname = 'cmbhd'
-#expname = 's4deep'
+expname = 's4deep'
 #expname = 's4deepv3r025' #20201019
 specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
 freqarr = sorted( specs_dic.keys() )
@@ -534,6 +537,8 @@ if s4like_mask_v2:
     opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
 if s4like_mask_v3:
     opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
+if s4delensing_mask:
+    opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
 
 if include_gal:
     opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
