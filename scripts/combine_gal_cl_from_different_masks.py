@@ -25,6 +25,11 @@ if (1):
     s4like_mask_v2 = 1
     s4like_mask_v3 = 0
 
+    #delensing LAT
+    s4like_mask_v2 = 0
+    s4delensing_mask = 1
+    s,e = 0, 1
+
     nside, lmax = 4096, 7000
     nside, lmax = 2048, 5000
     t_only = 0
@@ -62,12 +67,17 @@ for which_comp in comp_arr:
                 searchstr = '%s/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
             else:
                 searchstr = '%s/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, nside, lmax)
-        elif s4like_mask_v2 or s4like_mask_v3:
+        elif s4like_mask_v2 or s4like_mask_v3 or s4delensing_mask:
             if s4like_mask_v2:
                 searchstr = '%s/s4like_mask_v2/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
             elif s4like_mask_v3:
                 searchstr = '%s/s4like_mask_v3/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
-            searchstr = searchstr.replace('.npy', '_cos_el_40.npy')
+            elif s4delensing_mask:
+                searchstr = '%s/s4delensing_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
+            if not s4delensing_mask:
+                searchstr = searchstr.replace('.npy', '_cos_el_40.npy')
+            else:
+                searchstr = searchstr.replace('.npy', '_delensing.npy')
         elif spt3g_mask:
             searchstr = '%s/spt3g/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
         else:

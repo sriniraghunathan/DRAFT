@@ -133,6 +133,7 @@ parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='stor
 parser.add_argument('-use_s4like_mask', dest='use_s4like_mask', action='store', help='use_s4like_mask', type=int, default=0) #rough S4 mask
 parser.add_argument('-use_s4like_mask_v2', dest='use_s4like_mask_v2', action='store', help='use_s4like_mask_v2', type=int, default=0) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-use_s4like_mask_v3', dest='use_s4like_mask_v3', action='store', help='use_s4like_mask_v3', type=int, default=0) #rough S4 mask v3: split v2 clean into clean and cleaner regions
+parser.add_argument('-use_s4delensing_mask', dest='use_s4delensing_mask', action='store', help='use_s4delensing_mask', type=int, default=0) #no mask * delensing footprint (or hit map actually).
 parser.add_argument('-cos_el', dest='cos_el', action='store', help='cos_el', type=int, default=40) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-use_spt3g_mask', dest='use_spt3g_mask', action='store', help='use_spt3g_mask', type=int, default=0) #SPT-3G summer/winter field
 
@@ -170,7 +171,7 @@ if pySM_yomori:
     #nuarr = [90, 100, 143, 150, 217, 220, 353]
     nuarr = [143, 150]
 
-if testing and local:
+if testing or local:
     lmax = 2000
     nside = 512
     ##nuarr = [ 145 ]#, 145]
@@ -194,6 +195,9 @@ cmbs4_footprint_folder = 'cmbs4/footprints/'
 if local:
     mask_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/masks/planck/'
     cmbs4_footprint_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/footprints/'
+
+if use_s4delensing_mask:
+    cmbs4_footprint_folder = '%s/LAT_pole/LAT-MFPL1_pole/' %(cmbs4_footprint_folder)
 
 if zonca_sims or pySM_yomori:
     '''
@@ -229,6 +233,8 @@ if zonca_sims or pySM_yomori:
         opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask_v3:
         opfname = '%s/s4like_mask_v3/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4delensing_mask:
+        opfname = '%s/s4delensing_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_spt3g_mask:
         opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 else:
@@ -248,12 +254,15 @@ else:
         opfname = '%s/s4like_mask_v2/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask_v3:
         opfname = '%s/s4like_mask_v3/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_s4delensing_mask:
+        opfname = '%s/s4delensing_mask/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
 
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
 if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
 if use_s4like_mask_v3: os.system('mkdir %s/s4like_mask_v3/' %(sim_folder))
+if use_s4delensing_mask: os.system('mkdir %s/s4delensing_mask/' %(sim_folder))
 if use_spt3g_mask: os.system('mkdir %s/spt3g/' %(sim_folder))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
@@ -267,8 +276,12 @@ if which_mask != -1:
     opfname = opfname.replace('.npy', '_mask%s.npy' %(which_mask))
 
 if not use_spt3g_mask:##cos_el != 30:
-    log_file = log_file.replace('.txt', '_cos_el_%s.txt' %(cos_el))     
-    opfname = opfname.replace('.npy', '_cos_el_%s.npy' %(cos_el))
+    if use_s4delensing_mask:
+        log_file = log_file.replace('.txt', '_delensing.txt') 
+        opfname = opfname.replace('.npy', '_delensing.npy')
+    else:
+        log_file = log_file.replace('.txt', '_cos_el_%s.txt' %(cos_el))     
+        opfname = opfname.replace('.npy', '_cos_el_%s.npy' %(cos_el))
 
 lf = open(log_file, 'w'); lf.close()
 
@@ -322,7 +335,10 @@ if (1):#testing or not local:
         map_dic[nu] = currmap
 
     if not use_spt3g_mask: #get cmbs4 footprint if not SPT
-        cmbs4_hit_map_fname = '%s/high_cadence_hits_el%s_cosecant_modulation.fits' %(cmbs4_footprint_folder, cos_el)
+        if not use_s4delensing_mask:
+            cmbs4_hit_map_fname = '%s/high_cadence_hits_el%s_cosecant_modulation.fits' %(cmbs4_footprint_folder, cos_el)
+        else:
+            cmbs4_hit_map_fname = '%s/cmbs4_hitmap_LAT-MFPL1_pole_nside4096_1_of_1.fits' %(cmbs4_footprint_folder)
         #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
         cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
         cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
@@ -405,6 +421,12 @@ if (1):#testing or not local:
 
         tot_masks = len(s4like_mask_arr)
 
+    elif use_s4delensing_mask:
+
+        npix = H.nside2npix( nside )
+        s4delensing_mask_arr = [ np.ones(npix) ]
+        tot_masks = len(s4delensing_mask_arr)       
+
     elif use_spt3g_mask: #get SPT-3G summer/winter field mask
 
         spt_mask_winter = get_spt3g_mask('winter_field', nside_out = nside)
@@ -435,6 +457,10 @@ if (1):#testing or not local:
         elif use_s4like_mask or use_s4like_mask_v2 or use_s4like_mask_v3:
 
             mask = s4like_mask_arr[mask_iter]
+
+        elif use_s4delensing_mask:
+
+            mask = s4delensing_mask_arr[mask_iter]
 
         elif use_spt3g_mask:
 
@@ -472,7 +498,8 @@ if (1):#testing or not local:
         mask_arr = mask_arr * cmbs4_hit_map
         tot_masks = len(mask_arr)
 
-    if use_s4like_mask_v2 or use_s4like_mask_v3: #20200627
+    #if use_s4like_mask_v2 or use_s4like_mask_v3: #20200627
+    if use_s4like_mask_v2 or use_s4like_mask_v3 or use_s4delensing_mask: #20210415
 
         mask_arr = mask_arr * cmbs4_hit_map
         #add additional masks that cover the uncleaned CMB-S4 region.
@@ -507,7 +534,6 @@ if (1):#testing or not local:
     #print(len(mask_arr))
     if which_mask != -1:
         mask_arr = [mask_arr[which_mask]]
-    #print(len(mask_arr))
 
     mask_arr = np.asarray(mask_arr)
     tot_masks = len(mask_arr)

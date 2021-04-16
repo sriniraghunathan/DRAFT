@@ -34,6 +34,11 @@ if (1):
     s,e = 0, 6#3, 5
     #mask_arr_default = [2, 5]
 
+    #delensing LAT
+    use_s4like_mask_v2 = 0
+    use_s4delensing_mask = 1
+    s,e = 0, 1
+
     use_s4like_mask_v3 = 0
     #s,e = 0, 3
 
@@ -78,7 +83,8 @@ for which_mask in mask_arr:
         for line in template:
             opf.writelines('%s\n' %(line.strip()))
 
-        opline = 'python %s -dust_or_sync %s -zonca_sims %s -pySM_yomori %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -use_s4like_mask_v2 %s -use_s4like_mask_v3 %s -use_spt3g_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, zonca_sims, pySM_yomori, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, use_s4like_mask_v2, use_s4like_mask_v3, use_spt3g_mask, t_only, nside, lmax)
+        #opline = 'python %s -dust_or_sync %s -zonca_sims %s -pySM_yomori %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -use_s4like_mask_v2 %s -use_s4like_mask_v3 %s -use_spt3g_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, zonca_sims, pySM_yomori, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, use_s4like_mask_v2, use_s4like_mask_v3, use_spt3g_mask, t_only, nside, lmax)
+        opline = 'python %s -dust_or_sync %s -zonca_sims %s -pySM_yomori %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -use_s4like_mask_v2 %s -use_s4like_mask_v3 %s -use_s4delensing_mask %s -use_spt3g_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, zonca_sims, pySM_yomori, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, use_s4like_mask_v2, use_s4like_mask_v3, use_s4delensing_mask, use_spt3g_mask, t_only, nside, lmax)
         opf.writelines('%s\n\n' %(opline))
         opf.close()
         template.close()

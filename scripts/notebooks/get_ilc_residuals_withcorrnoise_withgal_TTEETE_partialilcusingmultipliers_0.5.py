@@ -83,8 +83,8 @@ except:
 #S4 specs
 #expname = 's4wide'
 #expname = 'cmbhd'
-expname = 's4deep'
-#expname = 's4deepv3r025' #20201019
+#expname = 's4deep'
+expname = 's4deepv3r025' #20201019
 specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
