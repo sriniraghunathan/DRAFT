@@ -56,7 +56,7 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
         plot(el, res_cl_dic[yearval][which_spec], color = colorarr[yearcntr], lw = 1., label = labval)
     xlim(xmin, xmax);
-    ylim(1e-7,1e-1);
+    ylim(1e-8,1e-2);
     xlabel(r'Multipole $\ell$', fontsize = fsval)
     title(r'%s' %(which_spec), fontsize = fsval)
     if cntr == 0: 
@@ -66,6 +66,17 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
     for label in ax.get_xticklabels(): label.set_fontsize(fsval-2)
     for label in ax.get_yticklabels(): label.set_fontsize(fsval-2)
+
+if (1): #old curve
+    old_fname = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/results/20200701/s4like_mask_v2/TT-EE/baseline/s4deepv3r025_ilc_galaxy0_27-39-93-145-225-278_TT-EE.npy'    
+    old_dic = np.load(old_fname, allow_pickle = True).item()
+    old_el, old_cl_residual = old_dic['el'], old_dic['cl_residual']
+    for cntr, which_spec in enumerate( which_spec_arr ):
+        ax = subplot(1, len(which_spec_arr), cntr+1, yscale = 'log')#, xscale = 'log')
+        plot(old_el, old_cl_residual[which_spec], color = 'darkgreen', lw = 2., ls = '--', label = r'No galaxy')
+        if cntr == 1:
+            legend(loc = 1, fontsize = fsval - 3, ncol = 2, handlelength = 2., handletextpad = 0.1)
+suptitle(r'S4-Ultra deep', y = 0.95, fontsize = 14)
 plname = 'residual_ilc_curves.png'
 savefig(plname, dpi = 200.)
 show(); sys.exit()
