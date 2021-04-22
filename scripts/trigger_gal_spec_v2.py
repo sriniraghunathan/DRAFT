@@ -27,6 +27,7 @@ if (0):
     s,e = 0, 3
 
 if (1):
+    use_s4delensing_mask = 0
     #use_s4like_mask_v2 = 1
     #s,e = 0, 6#3, 5
 
@@ -34,10 +35,12 @@ if (1):
     s,e = 0, 6#3, 5
     #mask_arr_default = [2, 5]
 
+    '''
     #delensing LAT
     use_s4like_mask_v2 = 0
     use_s4delensing_mask = 1
     s,e = 0, 1
+    '''
 
     use_s4like_mask_v3 = 0
     #s,e = 0, 3
