@@ -158,7 +158,7 @@ name_dic = {}
 if zonca_sims:
     name_dic[20] = 'ULFL1'
     name_dic[27] = 'LFL1'
-    name_dic[39] = 'LFL1'
+    name_dic[39] = 'LFL2'
     name_dic[93] = 'MFL1'
     name_dic[145] = 'MFL2'
     name_dic[225] = 'HFL1'
@@ -688,11 +688,12 @@ if (1):#testing or not local:
                 lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
                 print(logline)
 
-                if (nu2, nu1) in resdic['cl_dic'][mask_iter] or (nu1, nu2) in resdic['cl_dic'][mask_iter]: 
-                    logline = '\t\talready complete\n'
-                    lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
-                    print(logline)
-                    continue
+                if nu1 != 39 and nu2 != 39:
+                    if (nu2, nu1) in resdic['cl_dic'][mask_iter] or (nu1, nu2) in resdic['cl_dic'][mask_iter]: 
+                        logline = '\t\talready complete\n'
+                        lf = open(log_file,'a'); lf.writelines('%s\n' %(logline));lf.close()
+                        print(logline)
+                        continue
 
                 map1, map2 = map_dic[nu1], map_dic[nu2]
 
