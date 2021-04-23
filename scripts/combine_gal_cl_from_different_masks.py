@@ -24,11 +24,14 @@ if (1):
     #nside, lmax = 4096, 7000
     s4like_mask_v2 = 1
     s4like_mask_v3 = 0
+    s4delensing_mask = 0
 
+    '''
     #delensing LAT
     s4like_mask_v2 = 0
     s4delensing_mask = 1
     s,e = 0, 1
+    '''
 
     nside, lmax = 4096, 7000
     nside, lmax = 2048, 5000
