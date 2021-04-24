@@ -524,7 +524,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/20200610'
 #parent_folder = 'results/20200701'
 #parent_folder = 'results/20210322'
-parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
+#parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
+parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
 opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
 
 if not corr_noise:
