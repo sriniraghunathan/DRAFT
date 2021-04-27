@@ -1183,6 +1183,13 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
 
         cl_gal = cl_gal / (bl1 * bl2)
 
+        if (0): #20210426 - nulling highly smoothed modes
+            op_beam = bl_dic[145]
+            beam_ratio = op_beam**2. / (bl1 * bl2)
+            highly_deconv_inds = np.where(beam_ratio>=500)
+            cl_gal[highly_deconv_inds] = 0.
+            #plot(beam_ratio); ylim(1., 1000.); show(); sys.exit()
+
     if el is not None:
         cl_gal = np.interp(el, el_gal, cl_gal, left = 0., right = 0.)
         el_gal = np.copy( el )
