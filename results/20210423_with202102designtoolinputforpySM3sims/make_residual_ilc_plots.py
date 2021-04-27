@@ -15,17 +15,21 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 
 expdic = {\
-'s4wide': ['s4like_mask_v2/TT-EE/baseline/', 'S4-Wide', 'black'], \
-'s4deep': ['s4delensing_mask/TT-EE/baseline/', 'S4-Ultra deep', 'black'], \
+'s4wideclean': ['s4like_mask_v2/TT-EE/baseline/', 'galmask2', 'S4-Wide', 'S4-Clean', 'black', '-'], \
+'s4widedirty': ['s4like_mask_v2/TT-EE/baseline/', 'galmask5', 'S4-Wide', 'S4-Galactic Plane', 'black', '--'], \
+'s4deep': ['s4delensing_mask/TT-EE/baseline/', '', 'S4-Ultra deep', 'S4-Ultra deep', 'black', '-'], \
 }
 reqd_yearval = 7.
 res_cl_dic = {}
 beam_noise_dic, elknee_dic = {}, {}
 for expcntr, expname in enumerate( expdic ):
-    fd = expdic[expname][0]
-    searchstr = '%s/*%dyears*.npy' %(fd, reqd_yearval)
+    #fd = expdic[expname][0]
+    #searchstr = '%s/*%dyears*.npy' %(fd, reqd_yearval)
+    fd, searchstr_tmp, tit, explabel, colorval, lsval = expdic[expname]
+    searchstr = '%s/*%s*%dyears*.npy' %(fd, searchstr_tmp, reqd_yearval)
     fname = sorted( glob.glob(searchstr) )[0]
 
+    print(fname)
     resdic = np.load(fname, allow_pickle = True).item()
 
     if expcntr == 0:
@@ -46,8 +50,8 @@ for expcntr, expname in enumerate( expdic ):
     elknee_dic[expname] = resdic['elknee_dic']
 
 clf()
-figure(figsize=(10., 6.))
-subplots_adjust(wspace = 0.05, hspace = 0.1)
+figure(figsize=(10., 6.3))
+subplots_adjust(wspace = 0.02, hspace = 0.05)
 fsval = 13
 sbpl = 1
 delta_el = 100
@@ -65,11 +69,22 @@ else:
     dl_fac_mod = 1.
     ymin, ymax = 1e-8,1e-1
     ylabval = 'C_{\ell}'
-xmin, xmax = 200, 5000
+xmin, xmax = 250, 5000
 for cntr, which_spec in enumerate( which_spec_arr ):
     for expcntr, expname in enumerate( expdic ):
+        if expname.find('s4wide')>-1:
+            if which_spec == 'TT':
+                sbpl = 1
+            elif which_spec == 'EE':
+                sbpl = 3
+        elif expname.find('s4deep')>-1:
+            if which_spec == 'TT':
+                sbpl = 2
+            elif which_spec == 'EE':
+                sbpl = 4
         ax = subplot(2, len(which_spec_arr), sbpl, yscale = 'log')#, xscale = 'log')
-        explabel, colorval = r'%s' %(expdic[expname][1]), expdic[expname][2]
+        #explabel, colorval = r'%s' %(expdic[expname][1]), expdic[expname][2]
+        fd, searchstr_tmp, tit, explabel, colorval, lsval = expdic[expname]
         labval = r'%s' %(which_spec)
         if which_spec == 'TT':
             plot(el_camb, cl_TT * dl_fac_camb, color = 'gray', alpha = 0.5)
@@ -80,46 +95,62 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
         if (1): #plot individual band noise
             nuarr = sorted(beam_noise_dic[expname][TPval].keys())
-            colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(nuarr))]
-            colorarr = ['navy', 'blue', 'green', 'goldenrod', 'red', 'darkred']
+            #cmap = cm.gist_rainbow #Spectral #cm.rainbow #cm.jet
+            cmap = cm.jet
+            colorarr = [cmap(int(d)) for d in np.linspace(0, 255, len(nuarr))]
+            #colorarr = ['navy', 'blue', 'green', 'goldenrod', 'red', 'darkred']
             for nucntr, nu in enumerate( nuarr ):
                 beamval, noiseval = beam_noise_dic[expname][TPval][nu]
                 elknee, alphaknee = elknee_dic[expname][TPval][nu]
                 nl = misc.get_nl(noiseval, el, beamval, elknee = elknee, alphaknee = alphaknee)
                 #plot(el, nl * dl_fac, label = r'%s GHz' %(nu), color = colorarr[nucntr], ls = '-', lw = 0.5)
-                plot(el, nl * dl_fac, label = r'$N_{\ell}^{%s}$' %(nu), color = colorarr[nucntr], ls = '-', lw = 0.5)
+                if sbpl == 3 and expcntr == 0:
+                    labval = r'$N_{\ell}^{%s}$' %(nu)
+                else:
+                    labval = None
+                plot(el, nl * dl_fac, label = labval, color = colorarr[nucntr], ls = '-', lw = 0.5)
 
         cl_residual = res_cl_dic[expname][which_spec]
         if (1):
-            cl_residual_mod = np.interp(el_mod, el, cl_residual)
+            cl_residual_mod = np.interp(el_mod, el, cl_residual)        
 
-        plot(el_mod, cl_residual_mod * dl_fac_mod, color = colorval, lw = 2., label = r'ILC residual')
+        if sbpl == 1:
+            labval = r'%s' %(explabel)
+        else:
+            labval = None
+        plot(el_mod, cl_residual_mod * dl_fac_mod, color = colorval, ls = lsval, lw = 2., label = labval)
         xlim(xmin, xmax); 
         ylim(ymin, ymax);
 
         if cntr == 0:
-            title(r'%s' %(explabel), fontsize = fsval)
+            title(r'%s' %(tit), fontsize = fsval+2)
             setp(ax.get_xticklabels(which = 'both'), visible=False)
         else:
             xlabel(r'Multipole $\ell$', fontsize = fsval)
 
-        if expcntr == 0: 
+        if (sbpl-1)%2 == 0: 
             ylabel(r'$%s^{%s}$ [$\mu$K$^{2}$]' %(ylabval, which_spec), fontsize = fsval)
         else:
             setp(ax.get_yticklabels(which = 'both'), visible=False)
 
-        if cntr == 0 and expcntr == 0:
-            legend(loc = 4, fontsize = fsval - 3, ncol = 4, handletextpad = 0.15, columnspacing = 0.7, framealpha = 0.)#, handlelength = 1.8)
+        #if cntr == 0 and expcntr == 0:
+        if sbpl==1 or sbpl==3:
+            legend(loc = 3, fontsize = fsval - 2, ncol = 3, handletextpad = 0.15, columnspacing = 0.5, framealpha = 0., handlelength = 2.)
 
 
         for label in ax.get_xticklabels(): label.set_fontsize(fsval-2)
         for label in ax.get_yticklabels(): label.set_fontsize(fsval-2)
         grid(True, which='major', axis = 'x', lw = 0.25, alpha = 0.2)
         grid(True, which='both', axis = 'y', lw = 0.25, alpha = 0.2)
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+        ax.xaxis.set_minor_locator(MaxNLocator(nbins=20))
+        ax.tick_params(axis = 'x', direction='in', length=4., width=1, which = 'major')
+        ax.tick_params(axis = 'x', direction='in', length=2., width=1, which = 'minor')
 
-        sbpl += 1
+        #sbpl += 1
+        #show(); sys.exit()
 
 
 plname = 'residual_ilc_curves_s4wide_ultradeep_202102designtoolinputgalsims_SPTextragal.pdf'
 savefig(plname, dpi = 200.)
-#show(); sys.exit()
+show(); sys.exit()

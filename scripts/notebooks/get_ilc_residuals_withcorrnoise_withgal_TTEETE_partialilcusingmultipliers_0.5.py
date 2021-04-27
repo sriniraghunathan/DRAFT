@@ -81,10 +81,10 @@ except:
 
 
 #S4 specs
-#expname = 's4wide'
+expname = 's4wide'
 #expname = 'cmbhd'
 #expname = 's4deep'
-expname = 's4deepv3r025' #20201019
+#expname = 's4deepv3r025' #20201019
 specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
@@ -432,9 +432,9 @@ for which_spec in ['TT']:
             cl_ksz_dic[which_spec][(freq1, freq2)] = cl_ksz_dic[which_spec][(freq2, freq1)] = np.interp(el, el_ksz, cl_ksz)
 '''
 fg_res_dic = {}
-signal_arr = ['galdust', 'galsync']
+#signal_arr = ['galdust', 'galsync']
 signal_arr = ['tsz', 'cib', 'radio', 'galdust', 'galsync', 'noise']#, 'tsz-cib']
-for which_spec in ['TT']:
+for which_spec in ['TT', 'EE']:
     fg_res_dic[which_spec] = {}
     for elcnt, currel in enumerate(el):
         if (elcnt%2500) == 0: print(which_spec, elcnt)
