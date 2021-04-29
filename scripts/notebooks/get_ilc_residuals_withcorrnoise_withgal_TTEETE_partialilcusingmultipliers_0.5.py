@@ -84,8 +84,8 @@ except:
 #expname = 's4wide'
 #expname = 'cmbhd'
 #expname = 's4deep'
-#expname = 's4deepv3r025' #20201019
-expname = 's4deepv3r025_plus_s4wide'
+expname = 's4deepv3r025' #20201019
+#expname = 's4deepv3r025_plus_s4wide'
 if expname == 's4deepv3r025_plus_s4wide':
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
     specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide', remove_atm = remove_atm)
