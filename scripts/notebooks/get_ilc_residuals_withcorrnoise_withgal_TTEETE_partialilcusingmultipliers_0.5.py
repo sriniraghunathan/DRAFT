@@ -81,11 +81,16 @@ except:
 
 
 #S4 specs
-expname = 's4wide'
+#expname = 's4wide'
 #expname = 'cmbhd'
 #expname = 's4deep'
 #expname = 's4deepv3r025' #20201019
-specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
+expname = 's4deepv3r025_plus_s4wide'
+if expname == 's4deepv3r025_plus_s4wide':
+    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
+    specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide', remove_atm = remove_atm)
+else:
+    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
 freqcalib_fac = None
@@ -107,7 +112,6 @@ cl_multiplier_dic = {}
 
 
 # In[27]:
-
 
 #beam and noise arr
 beamarr = []
@@ -167,14 +171,51 @@ for TP in TParr:
                 nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1)
             else:
                 if freq2 in corr_noise_bands[freq1]:
-                    nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1,                                      beamval2 = beamval2, noiseval2 = noiseval2, elknee2 = elknee2, alphaknee2 = alphaknee2, rho = rho)
+                    nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, beamval2 = beamval2, noiseval2 = noiseval2, elknee2 = elknee2, alphaknee2 = alphaknee2, rho = rho)
                 else:
                     nl = np.zeros( len(el) )
             nl[el<=param_dict['lmin']] = 0.
             ##nl[nl == 0.] = np.min(nl[nl!=0.])/1e3
-            nl_dic[TP][(freq1, freq2)] = nl
-print(nl_dic['T'].keys())
 
+            if expname == 's4deepv3r025_plus_s4wide' and np.sum(nl)>0.: #20210428: inv. var. combination of S4-Wide and S4-Ultra deep nl
+                beam_arcmins_s4wide_f1, white_noise_T_s4wide_f1, elknee_T_s4wide_f1, alphaknee_T_s4wide_f1, white_noise_P_s4wide_f1, elknee_P_s4wide_f1, alphaknee_P_s4wide_f1 = np.copy(specs_dic_s4wide[freq1])
+                beam_arcmins_s4wide_f2, white_noise_T_s4wide_f2, elknee_T_s4wide_f2, alphaknee_T_s4wide_f2, white_noise_P_s4wide_f2, elknee_P_s4wide_f2, alphaknee_P_s4wide_f2 = np.copy(specs_dic_s4wide[freq2])
+                if TP == 'T':
+                    white_noise_s4wide_f1, elknee_s4wide_f1, alphaknee_s4wide_f1 = white_noise_T_s4wide_f1, elknee_T_s4wide_f1, alphaknee_T_s4wide_f1
+                    white_noise_s4wide_f2, elknee_s4wide_f2, alphaknee_s4wide_f2 = white_noise_T_s4wide_f2, elknee_T_s4wide_f2, alphaknee_T_s4wide_f2
+                elif TP == 'P':
+                    white_noise_s4wide_f1, elknee_s4wide_f1, alphaknee_s4wide_f1 = white_noise_P_s4wide_f1, elknee_P_s4wide_f1, alphaknee_P_s4wide_f1
+                    white_noise_s4wide_f2, elknee_s4wide_f2, alphaknee_s4wide_f2 = white_noise_P_s4wide_f2, elknee_P_s4wide_f2, alphaknee_P_s4wide_f2
+
+                if (0): #noise scaling based on total_obs_time
+                    noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
+                    white_noise_s4wide_f1 = white_noise_s4wide_f1 * noise_scaling_fac
+                    white_noise_s4wide_f2 = white_noise_s4wide_f2 * noise_scaling_fac        
+
+                #print('s4wide', white_noise_s4wide_f1, elknee_s4wide_f1, alphaknee_s4wide_f1, white_noise_s4wide_f2, elknee_s4wide_f2, alphaknee_s4wide_f2)
+                #print('s4deep', noiseval1, elknee1, alphaknee1, noiseval2, elknee2, alphaknee2)
+                if freq1 == freq2:
+                    nl_s4_wide = misc.get_nl(white_noise_s4wide_f1, el, beam_arcmins_s4wide_f1, elknee = elknee_s4wide_f1, alphaknee = alphaknee_s4wide_f1)
+                else:
+                    if freq2 in corr_noise_bands_s4wide[freq1]:
+                        nl_s4_wide = misc.get_nl(white_noise_s4wide_f1, el, beam_arcmins_s4wide_f1, elknee = elknee_s4wide_f1, alphaknee = alphaknee_s4wide_f1, beamval2 = beam_arcmins_s4wide_f2, noiseval2 = white_noise_s4wide_f2, elknee2 = elknee_s4wide_f2, alphaknee2 = alphaknee_s4wide_f2, rho = rho_s4wide)
+                    else:
+                        nl_s4_wide = np.zeros( len(el) )
+                nl_s4_wide[el<=param_dict['lmin']] = 0.
+
+                #perform inverse variance combination now
+                nl_s4_ultradeep = np.copy(nl)
+                nl = 1./ ( (1./nl) + (1./nl_s4_wide) )
+
+                if (0):#freq1 == 93:# and freq2 == 145:
+                    loglog(el, nl_s4_ultradeep, color = 'black', label = 'S4-Ultra deep'); loglog(el, nl_s4_wide, color = 'red', label = 'S4-Wide'); 
+                    loglog(el, nl, color = 'darkgreen', label = 'S4'); 
+                    title('%s: (%s, %s)' %(TP, freq1, freq2)); legend(loc = 3); show()
+
+            nl_dic[TP][(freq1, freq2)] = nl
+
+print(nl_dic['T'].keys())
+##sys.exit()
 
 # In[30]:
 
@@ -590,7 +631,7 @@ if (1):#total_obs_time_default != total_obs_time:
     plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
     
 print(opfname)
-print(plname)
+print(plname)#; sys.exit()
 
 
 # In[ ]:
