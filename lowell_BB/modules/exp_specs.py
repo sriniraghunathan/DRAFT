@@ -107,7 +107,7 @@ def get_exp_specs(expname, remove_atm = False):
     freqarr = sorted( specs_dic.keys() )
     nc = len( freqarr )
 
-    if expname != 's4sat':
+    if expname.find('s4sat')==-1:
         rho = 0.9
         corr_noise = 1
         if corr_noise:
