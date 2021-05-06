@@ -1,6 +1,7 @@
 import numpy as np, sys, os, scipy as sc
 from scipy import interpolate as intrp
 from scipy import ndimage
+from scipy.optimize import curve_fit
 from pylab import *
 
 h, k_B, c=6.626e-34,1.38e-23, 3e8
@@ -1005,8 +1006,42 @@ def get_cib_decorrelations_via_intrp(freqarr, f1f2 = None):
         return cib_corr_coeffs[f1f2]
 
     return cib_corr_coeffs
+###################################################################################################
+###################################################################################################
+#galactic foregrounds
 
-def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None):
+def power_law(ell, A, alpha, ell_norm = 80.):
+    #print(A, alpha)#, end = ' ')
+    fit = A * ((ell / ell_norm) ** alpha)
+    badinds = np.where((fit == np.inf) | (fit == np.nan))[0]
+    fit[badinds]=0.
+    return fit
+
+def perform_fit(el, cl, ell_norm = 80):
+    dl_fac = (el * (el + 1))/2/np.pi
+    dl = cl * dl_fac
+    badinds = np.where((dl == np.inf) | (dl == np.nan))[0]
+    dl[badinds]=0.
+    amp_ini = dl[el == ell_norm][0]
+    '''
+    if which_spec == 'EE':
+        alpha_ini = -.4
+    elif which_spec == 'TT':
+        alpha_ini = -.3
+    '''
+    alpha_ini = -.3
+    delta_alpha = 0.1
+    amp_low_fac, amp_high_fac = 0.95, 1.05 #0.1, 3.
+    pars, cov = curve_fit(f=power_law, xdata=el, ydata=dl, p0=[amp_ini, alpha_ini], bounds = ((amp_ini*amp_low_fac, alpha_ini-delta_alpha), (amp_ini*amp_high_fac, alpha_ini+delta_alpha)))
+    
+    dl_fit = power_law(el, pars[0], pars[1])
+    cl_fit = dl_fit / dl_fac
+    cl_fit[np.isinf(cl_fit)] = 0.
+    cl_fit[np.isnan(cl_fit)] = 0.
+
+    return cl_fit
+
+def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None, use_power_law_fit = False, use_sed_scaling = True, freq0_for_sed_scaling = 278., ell_norm = 80., Tdust = 20., beta_dust = 1.54):
 
     gal_freq_dic = {20:20, 27:27, 39: 39, 93: 93, 90: 93, 143: 143, 145: 145, 150: 150, 225: 225, 220: 225, 278:278, }
 
@@ -1097,61 +1132,13 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
             rte = 0.
         cl_gal = rte * np.sqrt( cl_gal_tt * cl_gal_ee )
 
-        '''
-        if (0):##component == 'sync':
-            rho_dust_sync = 0.16 #Fig. 8 of https://arxiv.org/pdf/1801.04945.pdf
-            cl_gal = cl_gal * rho_dust_sync
-
-        if (0):#component == 'dust':   
-            print('TE dust: scaling',)         
-            ##cl_gal_old = np.copy(cl_gal)
-            freq0 = 278
-            rte = 0.35 
-            cl_gal_tt, cl_gal_ee = cl_gal_dic[ (freq0, freq0) ][0], cl_gal_dic[ (freq0, freq0) ][1]
-            cl_gal_freq0 = rte * np.sqrt( cl_gal_tt * cl_gal_ee )
-            cl_gal = scale_cl_dust_galactic(cl_gal_freq0, freq1, freq2, freq0 = freq0)#, Tdust = 19.6, spec_index_dust = 1.6)
-
-            if (0):
-                color_dic = {93: 'b', 145: 'green', 225: 'orangered', 278: 'darkred'} 
-                ls_dic = {93: ':', 145: '--', 225: '-.', 278: '-'} 
-                loglog(cl_gal, color = color_dic[freq1], ls = ls_dic[freq2], label = r'%s,%s' %(freq1, freq2))
-                legend(loc = 3, fontsize = 8)
-            if (0):
-                loglog(cl_gal_old, 'k', ls = '-')
-                loglog(cl_gal, color = 'orangered', ls ='--')
-                title(r'%s: %s: %s,%s' %(component, which_spec, freq1, freq2))
-                show()
-
-            if (0):###freq1 != freq2:
-                print('TE dust: nulling cross terms',)
-                cl_gal *= 0.
-        
-        if (0):#component == 'sync':
-            print('TE sync: nulling',)
-            cl_gal *= 0.
-        '''
-
-        """
-        else:
-            '''
-            if which_gal_mask == 3:
-                ee_te_ratio = 5.
-            else:
-                ee_te_ratio = 2.7
-            '''
-            ee_te_ratio = 2.7
-            spec_ind = 1 ##EE
-            cl_gal = cl_gal_dic[ (freq1, freq2) ][spec_ind] * ee_te_ratio  
-        loglog(cl_gal)
-        loglog(cl_gal_dic[ (freq1, freq2) ][1] * 2.7)
-        show();sys.exit()
-        """
     else:
         try:
             cl_gal = cl_gal[spec_ind]
         except:
             print('(%s,%s) not found for mask = %s in %s. Setting them to zeros.' %(freq1, freq2, which_spec, cl_gal_dic_fname))
             cl_gal = np.zeros( len(cl_gal[0]) )
+
 
     if (0):##component == 'dust':
         color_dic = {93: 'b', 145: 'green', 225: 'orangered', 278: 'darkred'} 
@@ -1172,7 +1159,36 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
 
     el_gal = np.arange( len(cl_gal) )
 
-    if bl_dic is not None:
+    #20210506: SED scaling/power-law fitting. By default we do not fit power law.
+    beam_deconvolved = False
+    if use_sed_scaling and component == 'dust':
+        cl_dust_freq0 = cl_gal_dic[ (freq0_for_sed_scaling, freq0_for_sed_scaling) ][spec_ind]
+        el_gal = np.arange( len(cl_dust_freq0) )
+        if bl_dic is not None:        
+            bl = bl_dic[freq0_for_sed_scaling]
+            if len(bl) != len(cl_dust_freq0): #adjust array lengths first
+                el_tmp = np.arange( len(bl) )
+                cl_dust_freq0 = np.interp(el_tmp, el_gal, cl_dust_freq0, left = 0., right = 0.)
+                el_gal = np.copy( el_tmp )
+            cl_dust_freq0 = cl_dust_freq0 / bl**2.
+            beam_deconvolved = True
+
+        if use_power_law_fit:
+            cl_dust_freq0 = perform_fit(el_gal, cl_dust_freq0, ell_norm = ell_norm)
+        cl_gal = scale_cl_dust_galactic(cl_dust_freq0, freq1_to_use, freq2 = freq2_to_use, freq0 = freq0_for_sed_scaling, Tdust = Tdust, beta_dust = beta_dust)
+    elif use_power_law_fit:
+        if bl_dic is not None:        
+            bl = bl_dic[freq0_for_sed_scaling]
+            if len(bl) != len(cl_gal): #adjust array lengths first
+                el_tmp = np.arange( len(bl) )
+                cl_gal = np.interp(el_tmp, el_gal, cl_gal, left = 0., right = 0.)
+                el_gal = np.copy( el_tmp )
+            cl_gal = cl_gal / bl**2.
+            beam_deconvolved = True
+
+        cl_gal = perform_fit(el_gal, cl_gal, ell_norm = ell_norm)
+
+    if bl_dic is not None and beam_deconvolved is False:
         bl1 = bl_dic[freq1]
         bl2 = bl_dic[freq2]
 
@@ -1246,7 +1262,7 @@ def lagache_scalings(cl, freq1, freq2, freq0):
 
     return scaled_cl
 
-def scale_cl_dust_galactic(cl, freq1, freq2 = None, freq0 = 278., Tdust = 19.6, spec_index_dust = 1.6):
+def scale_cl_dust_galactic(cl, freq1, freq2 = None, freq0 = 278., Tdust = 19.6, beta_dust = 1.6):
 
     if freq2 is None:
         freq2 = freq1
@@ -1271,9 +1287,9 @@ def scale_cl_dust_galactic(cl, freq1, freq2 = None, freq0 = 278., Tdust = 19.6, 
     bnu2 = fn_BnuT(freq2, temp = Tdust)
     bnu0 = fn_BnuT(freq0, temp = Tdust)
 
-    etanu1_dust = ((1.*freq1*1e9)**spec_index_dust) * bnu1
-    etanu2_dust = ((1.*freq2*1e9)**spec_index_dust) * bnu2
-    etanu0_dust = ((1.*freq0*1e9)**spec_index_dust) * bnu0
+    etanu1_dust = ((1.*freq1*1e9)**beta_dust) * bnu1
+    etanu2_dust = ((1.*freq2*1e9)**beta_dust) * bnu2
+    etanu0_dust = ((1.*freq0*1e9)**beta_dust) * bnu0
 
     cl_dust = cl * epsilon_nu1_nu2 * (1.*etanu1_dust * etanu2_dust/etanu0_dust/etanu0_dust)## * (el*1./el_norm)**el_slope
 
