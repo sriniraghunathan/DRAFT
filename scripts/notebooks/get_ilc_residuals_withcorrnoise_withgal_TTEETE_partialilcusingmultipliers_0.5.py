@@ -81,10 +81,10 @@ except:
 
 
 #S4 specs
-#expname = 's4wide'
+expname = 's4wide'
 #expname = 'cmbhd'
 #expname = 's4deep'
-expname = 's4deepv3r025' #20201019
+#expname = 's4deepv3r025' #20201019
 #expname = 's4deepv3r025_plus_s4wide'
 if expname == 's4deepv3r025_plus_s4wide':
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
@@ -566,7 +566,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/20200701'
 #parent_folder = 'results/20210322'
 #parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
-parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
+#parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
+parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
 opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
 
 if not corr_noise:
