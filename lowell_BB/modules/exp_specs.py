@@ -76,14 +76,35 @@ def get_exp_specs(expname, remove_atm = False):
         278: [1.0, 3.07, 2100., 3.9, 4.34, 200, 2.2],
         }
 
+    elif expname == 's4sat':
+        specs_dic = {
+        #Table 2.1 of PBDR. Note that we are using noise in B maps (and not E maps) here for P.
+        #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_B, elknee_B, alphaknee_B] 
+        30: [72.8, None, -1., 0., 3.53, 60., 1.7],
+        40: [72.8, None, -1., 0., 4.46, 60., 1.7], 
+        85: [25.5, None, -1., 0., 0.88, 60., 1.7],
+        95: [22.7, None, -1., 0., 0.78, 60., 1.7],
+        145: [25.5, None, -1., 0., 1.23, 60., 3.],
+        155: [22.7, None, -1., 0., 1.34, 60., 3.],
+        220: [13.0, None, -1., 0., 3.48, 60., 3.],
+        270: [13.0, None, -1., 0., 5.97, 60., 3.],
+        }
+
     freqarr = sorted( specs_dic.keys() )
     nc = len( freqarr )
 
-    corr_noise = 1
-    if corr_noise:
-        corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[145], 145:[93], 225: [278], 278: [225], 350: [350]}
+    if expname != 's4sat':
+        rho = 0.9
+        corr_noise = 1
+        if corr_noise:
+            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[145], 145:[93], 225: [278], 278: [225], 350: [350]}
+        else:
+            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
     else:
-        corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
-    rho = 0.9
+        rho = 0.
+        corr_noise = 0
+        corr_noise_bands = {}
+        for freq in freqarr:
+            corr_noise_bands[freq] = [freq]
 
     return specs_dic, corr_noise_bands, rho, corr_noise

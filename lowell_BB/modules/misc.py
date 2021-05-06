@@ -134,13 +134,13 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
         assert rho is not None
         cross_band_noise = 1
 
-    if uk_to_K: 
+    if uk_to_K:
         noiseval = noiseval/1e6
         if cross_band_noise: noiseval2 = noiseval2/1e6
 
     if use_beam_window:
-        bl = gauss_beam(beamval, lmax = max(el))
-        if cross_band_noise: bl2 = gauss_beam(beamval2, lmax = max(el))
+        bl = gauss_beam(np.radians(beamval/60.), lmax = max(el))
+        if cross_band_noise: bl2 = gauss_beam(np.radians(beamval2/60.), lmax = max(el))
 
     delta_T_radians = noiseval * np.radians(1./60.)
     nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
