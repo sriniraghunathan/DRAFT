@@ -76,7 +76,21 @@ def get_exp_specs(expname, remove_atm = False):
         278: [1.0, 3.07, 2100., 3.9, 4.34, 200, 2.2],
         }
 
-    elif expname == 's4sat':
+    elif expname == 's4satEE':
+        specs_dic = {
+        #Table 2.1 of PBDR. Note that we are using noise in E maps (and not B maps) here for P.
+        #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_B, elknee_B, alphaknee_B] 
+        30: [72.8, None, -1., 0., 3.74, 60., 2.2],
+        40: [72.8, None, -1., 0., 4.73, 60., 2.2], 
+        85: [25.5, None, -1., 0., 0.93, 60., 2.2],
+        95: [22.7, None, -1., 0., 0.82, 60., 2.2],
+        145: [25.5, None, -1., 0., 1.25, 65., 3.1],
+        155: [22.7, None, -1., 0., 1.34, 65., 3.1],
+        220: [13.0, None, -1., 0., 3.48, 65., 3.1],
+        270: [13.0, None, -1., 0., 8.08, 65., 3.1],
+        }
+
+    elif expname == 's4satBB':
         specs_dic = {
         #Table 2.1 of PBDR. Note that we are using noise in B maps (and not E maps) here for P.
         #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_B, elknee_B, alphaknee_B] 
