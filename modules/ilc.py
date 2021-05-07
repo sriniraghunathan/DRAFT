@@ -740,7 +740,7 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
 
     for pspecind, pspec in enumerate( pspec_arr ):
         curr_cl_dic = cl_dic[pspec]
-
+        '''
         if pspec == 'TT':
             for ncnt1, freq1 in enumerate(freqarr):
                 for ncnt2, freq2 in enumerate(freqarr):
@@ -757,6 +757,30 @@ def create_clmat_new(freqarr, elcnt, cl_dic):
                     j, i = ncnt2 + nc, ncnt1
                     clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
                     clmat[i, j] = curr_cl_dic[(freq1, freq2)][elcnt]
+        '''
+        if teb_len == 1: #clmat for TT or EE or BB
+            for ncnt1, freq1 in enumerate(freqarr):
+                for ncnt2, freq2 in enumerate(freqarr):
+                    j, i = ncnt2, ncnt1
+                    clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
+        else: #joint or separate TT/EE constraints #fix me: include BB for joint constraints.
+            if pspec == 'TT':
+                for ncnt1, freq1 in enumerate(freqarr):
+                    for ncnt2, freq2 in enumerate(freqarr):
+                        j, i = ncnt2, ncnt1
+                        clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
+            elif pspec == 'EE':
+                for ncnt1, freq1 in enumerate(freqarr):
+                    for ncnt2, freq2 in enumerate(freqarr):
+                        j, i = ncnt2 + nc, ncnt1 + nc
+                        clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
+            elif pspec == 'TE':
+                for ncnt1, freq1 in enumerate(freqarr):
+                    for ncnt2, freq2 in enumerate(freqarr):
+                        j, i = ncnt2 + nc, ncnt1
+                        clmat[j, i] = curr_cl_dic[(freq1, freq2)][elcnt]
+                        clmat[i, j] = curr_cl_dic[(freq1, freq2)][elcnt]
+        
 
     if (0): #get correlation matrix
 
@@ -813,8 +837,6 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             bcap_full = np.mat( np.copy( bcap ) )
             #from IPython import embed; embed()
             #bcap = get_acap_new(freqarr, final_comp = null_comp[0], freqcalib_fac = freqcalib_fac, teb_len = teb_len)
-            #print(bcap)
-            #sys.exit()
 
     nc = len(freqarr)
     #cl_residual = np.zeros( (len(el)) )
@@ -872,7 +894,9 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
 
             G = np.column_stack( (acap, bcap) )
             G = np.mat(G)
+
             total_comps = G.shape[1]
+            ###total_comps = int( G.shape[1]/teb_len ) #20210506 - check me
             ncap = np.zeros( total_comps )#total_comp_to_null + 1 )
             ncap[0] = 1.
             #ncap[1] = 0.5
@@ -902,6 +926,7 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
 
         #ILC residuals
         #cl_residual[elcnt] = np.asarray(1./dr).squeeze()
+        ###from IPython import embed; embed(); sys.exit()
         if teb_len>1:
             cl_residual_tt, cl_residual_ee, cl_residual_te = drinv[0,0], drinv[1,1], drinv[0,1]
             cl_residual[:, elcnt] = cl_residual_tt, cl_residual_ee, cl_residual_te
