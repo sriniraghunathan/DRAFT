@@ -104,6 +104,27 @@ def get_exp_specs(expname, remove_atm = False):
         270: [13.0, None, -1., 0., 5.97, 60., 3.],
         }
 
+    elif expname == 's4BB_DC06':
+        specs_dic = {
+        #Table 1 of http://bicep.rc.fas.harvard.edu/CMB-S4/analysis_logbook/20200208_06_sims_details/. Note that we are using noise in B maps (and not E maps) here for P.
+        #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_B, elknee_B, alphaknee_B] 
+        20: [11.0, None, -1., 0., 1.69, 200., 1.5], #I think this is LAT
+        30: [72.8, None, -1., 0., 1.4, 75., 1.5],
+        40: [72.8, None, -1., 0., 1.76, 75., 1.5], 
+        85: [25.5, None, -1., 0., 2.13, 75., 1.5],
+        95: [22.7, None, -1., 0., 1.88, 75., 1.5],
+        145: [25.5, None, -1., 0., 1.4, 60., 2.8],
+        155: [22.7, None, -1., 0., 1.5, 60., 2.8],
+        220: [13.0, None, -1., 0., 11.53, 60., 2.9],
+        270: [13.0, None, -1., 0., 19.77, 60., 2.9],
+        #now adding other LATS
+        31: [7.3, None, -1., 0., 1.66, 20., 1.5],
+        41: [5.5, None, -1., 0., 1.5, 200., 1.5], 
+        96: [2.3, None, -1., 0., 0.226, 200., 1.5],
+        146: [1.5, None, -1., 0., 0.32, 200., 2.8],
+        221: [1.0, None, -1., 0., 1.9, 200., 2.9],
+        271: [0.8, None, -1., 0., 3.27, 200., 2.9],
+        }
     freqarr = sorted( specs_dic.keys() )
     nc = len( freqarr )
 
