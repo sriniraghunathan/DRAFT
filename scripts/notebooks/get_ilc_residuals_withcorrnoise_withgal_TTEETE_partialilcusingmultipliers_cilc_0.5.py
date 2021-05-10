@@ -82,6 +82,7 @@ except:
 
 #S4 specs
 expname = 's4wide'
+expname = 's4wide_chlat_el40'
 #expname = 'cmbhd'
 #expname = 's4deep'
 #expname = 's4deepv3r025' #20201019
@@ -98,7 +99,8 @@ final_comp = 'cmb'
 #null_comp = ['misc_cib_tcib20.0_beta1.54']
 #null_comp = ['misc_cib_tcib20.0_beta1.3']
 #null_comp = ['misc_cib_tcib20.0_beta1.6']
-null_comp = ['misc_cib_tcib20.0_beta1.7']
+#null_comp = ['misc_cib_tcib20.0_beta1.7']
+null_comp = None
 TParr = ['T', 'P']
 #which_spec_arr = ['TT', 'EE', 'TE']
 which_spec_arr = ['TT', 'EE']
@@ -580,6 +582,8 @@ parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscali
 if null_comp is not None:
     null_comp_str = 'nulled_%s' %('-'.join(null_comp))
     parent_folder = '%s/%s/' %(parent_folder, null_comp_str)
+
+parent_folder = '%s/%s/' %(parent_folder, expname)
 
 opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
 if null_comp is not None:

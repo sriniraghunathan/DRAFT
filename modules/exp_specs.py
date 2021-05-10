@@ -54,6 +54,19 @@ def get_exp_specs(expname, remove_atm = 0):
                 }
             '''
 
+        elif expname == 's4wide_chlat_el40':
+            #https://cmb-s4.atlassian.net/wiki/spaces/XC/pages/680853505/Neff+forecasts+for+CHLAT+for+different+observing+elevations
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            27: [7.3, 12.96, 415., 3.5, 18.33, 700, 1.4],
+            39: [5.5, 9.83, 391., 3.5, 13.90, 700, 1.4], 
+            93: [2.3, 1.49, 1932., 3.5, 2.11, 700, 1.4],
+            145: [1.5, 1.39, 3917., 3.5, 1.97, 700, 1.4],
+            225: [1.0, 3.44, 6740., 3.5, 4.87, 700, 1.4],
+            278: [0.8, 5.44, 6792., 3.5, 7.69, 700, 1.4],
+            }
+
+
         elif expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
 
             specs_dic = {
