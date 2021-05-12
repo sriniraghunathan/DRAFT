@@ -1,7 +1,6 @@
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold'); #matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
+from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');
 import os
-#rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 import argparse, sys, numpy as np, scipy as sc, warnings, os, glob, re
 

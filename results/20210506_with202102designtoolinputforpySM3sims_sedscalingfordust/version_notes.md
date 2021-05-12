@@ -1,3 +1,4 @@
+## Look into *read_file.py* to read ILC curves.
 # Issues with 20210423_with202102designtoolinputforpySM3sims results:
 ## PySM sims have high-\ell problems. Check this [link] (https://github.com/CMB-S4/s4mapbasedsims/issues/18)
 
