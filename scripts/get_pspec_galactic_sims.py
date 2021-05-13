@@ -218,6 +218,8 @@ if zonca_sims or pySM_yomori:
             sim_folder = '%s/dust/' %(sim_folder)
         elif dust_or_sync == 'sync':
             sim_folder = '%s/synchrotron/' %(sim_folder)
+        elif dust_or_sync == 'freefree':
+            sim_folder = '%s/freefree/' %(sim_folder)
 
         sim_folder = '%s/0000/' %(sim_folder)
     else:

@@ -7,7 +7,9 @@ if str(os.getcwd()).find('sri')>-1:
 s4like_mask =0
 lat_steps_mask=0
 s4like_mask_v2=0
+s4like_mask_v3=0
 spt3g_mask = 0
+s4delensing_mask = 0
 
 nside, lmax = 2048, 3500
 t_only = 0
@@ -19,7 +21,7 @@ if (0):
     lat_steps_mask = 1
     nside, lmax = 4096, 10000 ##7000
 
-if (1):
+if (0):
     #s4like_mask = 1
     #nside, lmax = 4096, 7000
     s4like_mask_v2 = 1
@@ -37,11 +39,17 @@ if (1):
     nside, lmax = 2048, 5000
     t_only = 0
 
-if (0):
+if (1):
     spt3g_mask = 1
-    nside, lmax = 2048, 6000
+    #nside, lmax = 2048, 6000
+    nside, lmax = 2048, 2000
     t_only = 0
 
+    s4like_mask =0
+    lat_steps_mask=0
+    s4like_mask_v2=0
+    s4like_mask_v3=0
+    s4delensing_mask = 0
 
 if zonca_sims:
     data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/xxxx/0000/'
@@ -51,6 +59,8 @@ if zonca_sims:
         data_folder = data_folder.replace('202002_foregrounds_extragalactic_cmb_tophat', '202102_design_tool_input')
     comp_arr = ['dust', 'synchrotron']
     #comp_arr = ['synchrotron']
+    if spt3g_mask:
+        comp_arr = ['dust', 'synchrotron', 'freefree']
 elif pySM_yomori:
     #comp_arr = ['both']
     comp_arr = ['dust', 'synchrotron']
@@ -59,6 +69,7 @@ elif pySM_yomori:
         data_folder = '//u/home/s/srinirag/project-nwhiteho/pySM/yomori/galforegrounds/'
 else:
     comp_arr = ['dust', 'sync']
+
 
 for which_comp in comp_arr:
 

@@ -5,7 +5,9 @@ use_planck_mask = 0
 use_lat_step_mask = 0
 use_s4like_mask = 0
 use_s4like_mask_v2 = 0
+use_s4like_mask_v3 = 0
 use_spt3g_mask = 0
+use_s4delensing_mask = 0
 ##s,e = 0, 4
 zonca_sims = 1
 pySM_yomori = 0
@@ -51,23 +53,31 @@ if (1):
     nside = 2048
     lmax = 5000
 
-if (0):
+if (1): ### 20210512
     use_spt3g_mask = 1
     t_only = 0
     nside = 2048
     lmax = 6000
     s,e = 0, 4
 
+    use_planck_mask = 0
+    use_lat_step_mask = 0
+    use_s4like_mask = 0
+    use_s4like_mask_v2 = 0
+    use_s4like_mask_v3 = 0
+    use_s4delensing_mask = 0
+
 dust_sync_arr = ['dust', 'sync']
 
-if (0): #pySM YOmori for SPT-3G + Planck
+if (1): #pySM YOmori for SPT-3G + Planck
     use_spt3g_mask = 1
     t_only = 0
     nside = 2048
-    lmax = 6000
+    lmax = 2000 ##5000 ###6000
     s,e = 0, 1 #only the main winter field
-    zonca_sims = 0
-    pySM_yomori = 1
+    zonca_sims = 1 ###0
+    pySM_yomori = 0 ##1
+    dust_sync_arr = ['dust', 'sync', 'freefree']
     #dust_sync_arr = ['both']
 
 mask_arr = np.arange(s, e)
