@@ -1048,7 +1048,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
     #https://healpy.readthedocs.io/en/1.5.0/generated/healpy.sphtfunc.anafast.html#healpy.sphtfunc.anafast
     spec_inds_dic = { 'TT':0, 'EE':1, 'BB':2, 'TE':3, 'EB':4, 'TB':5} #py2
 
-    assert component in ['dust', 'sync']
+    assert component in ['dust', 'sync', 'freefree']
 
     try:
         which_gal_mask = param_dict['which_gal_mask']
@@ -1059,6 +1059,8 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
         cl_gal_dic_fname = param_dict['cl_gal_dic_dust_fname']
     elif component == 'sync':
         cl_gal_dic_fname = param_dict['cl_gal_dic_sync_fname']
+    elif component == 'freefree':
+        cl_gal_dic_fname = param_dict['cl_gal_dic_freefree_fname']
 
     try:
         cl_gal_folder = param_dict['cl_gal_folder']
