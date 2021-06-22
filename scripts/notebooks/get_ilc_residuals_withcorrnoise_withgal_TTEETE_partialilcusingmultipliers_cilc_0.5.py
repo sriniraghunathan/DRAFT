@@ -82,7 +82,7 @@ except:
 
 #S4 specs
 expname = 's4wide'
-expname = 's4wide_chlat_el40'
+#expname = 's4wide_chlat_el40'
 #expname = 'cmbhd'
 #expname = 's4deep'
 #expname = 's4deepv3r025' #20201019
@@ -485,7 +485,10 @@ for which_spec in ['TT']:
 '''
 fg_res_dic = {}
 #signal_arr = ['galdust', 'galsync']
-signal_arr = ['tsz', 'cib', 'radio', 'galdust', 'galsync', 'noise']#, 'tsz-cib']
+if include_gal:
+    signal_arr = ['tsz', 'cib', 'radio', 'galdust', 'galsync', 'noise']#, 'tsz-cib']
+else:
+    signal_arr = ['tsz', 'cib', 'radio', 'noise']#, 'tsz-cib']
 for which_spec in ['TT', 'EE']:
     fg_res_dic[which_spec] = {}
     for elcnt, currel in enumerate(el):
@@ -646,7 +649,7 @@ if not os.path.exists(opfolder): os.system('mkdir -p %s' %(opfolder))
 if not os.path.exists(plfolder): os.system('mkdir -p %s' %(plfolder))
 
 plname = opfname.replace(opfolder, plfolder).replace('.npy', '.png')
-if (1):#total_obs_time_default != total_obs_time:
+if expname.lower().find('s4')>-1:#total_obs_time_default != total_obs_time:
     opfname = opfname.replace('.npy', '_for%gyears.npy' %(total_obs_time))
     plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
     
