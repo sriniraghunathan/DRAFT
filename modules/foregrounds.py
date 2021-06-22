@@ -1043,7 +1043,7 @@ def perform_fit(el, cl, ell_norm = 80):
 
 def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask = 0, bl_dic = None, el = None, use_power_law_fit = False, use_sed_scaling = True, freq0_for_sed_scaling = 278., ell_norm = 80., Tdust = 20., beta_dust = 1.54):
 
-    gal_freq_dic = {20:20, 27:27, 39: 39, 93: 93, 90: 93, 143: 143, 145: 145, 150: 150, 225: 225, 220: 225, 278:278, }
+    gal_freq_dic = {20:20, 27:27, 39: 39, 93: 93, 90: 93, 143: 143, 145: 145, 150: 150, 225: 225, 220: 225, 278:278, 350: 350}
 
     #https://healpy.readthedocs.io/en/1.5.0/generated/healpy.sphtfunc.anafast.html#healpy.sphtfunc.anafast
     spec_inds_dic = { 'TT':0, 'EE':1, 'BB':2, 'TE':3, 'EB':4, 'TB':5} #py2
@@ -1076,21 +1076,32 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
         except:
             pass
 
-    cl_gal_dic = np.load(cl_gal_dic_fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][which_gal_mask]
-    freq1_to_use = gal_freq_dic[freq1]
-    freq2_to_use = gal_freq_dic[freq2]
-    try:
-        cl_gal = cl_gal_dic[ (freq1_to_use, freq2_to_use) ]
-    except:
-        cl_gal = cl_gal_dic[ (freq2_to_use, freq1_to_use) ]
-
     #pick the requested spectra: TT, EE, BB, TE, EB, TB.
     spec_ind = spec_inds_dic[which_spec]
 
-    #fix me
-    if np.ndim(cl_gal) == 1: #TT-only. Pol will fail.
-        cl_gal = np.asarray( [cl_gal] )
+    freq1_to_use = gal_freq_dic[freq1]
+    freq2_to_use = gal_freq_dic[freq2]
 
+    cl_gal_dic = np.load(cl_gal_dic_fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][which_gal_mask]
+    if freq1_to_use >= max(list(gal_freq_dic)) or freq2_to_use >= max(list(gal_freq_dic)):
+        freq0_for_sed_scaling = 278.
+        cl_dust_freq0 = cl_gal_dic[ (freq0_for_sed_scaling, freq0_for_sed_scaling) ]
+        if component == 'dust':
+            cl_gal = scale_cl_dust_galactic(cl_dust_freq0, freq1, freq2 = freq2, freq0 = freq0_for_sed_scaling, Tdust = Tdust, beta_dust = beta_dust)
+        else:
+            cl_gal = np.zeros(cl_dust_freq0.shape)
+        #print(freq1, freq2, component, cl_gal, cl_gal.shape)
+    else:
+        try:
+            cl_gal = cl_gal_dic[ (freq1_to_use, freq2_to_use) ]
+        except:
+            cl_gal = cl_gal_dic[ (freq2_to_use, freq1_to_use) ]
+
+        #fix me
+        if np.ndim(cl_gal) == 1: #TT-only. Pol will fail.
+            cl_gal = np.asarray( [cl_gal] )
+
+    #print(component, cl_gal, cl_gal.shape)#; sys.exit()
     ############################################################################################################
     ############################################################################################################
     ############################################################################################################
