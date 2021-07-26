@@ -397,14 +397,6 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
 
         freqscale_fac = np.asarray( freqscale_fac )
 
-        if final_comp.lower() == 'tsz': #tsz at 150 GHz
-            freqarr = np.asarray( freqarr )
-            if 150 in freqarr:
-                freqind = np.where(freqarr == 150)[0]
-            elif 145 in freqarr:
-                freqind = np.where(freqarr == 145)[0]
-            freqscale_fac = freqscale_fac / freqscale_fac[freqind]
-
     elif final_comp.lower() == 'cib' or final_comp.lower() == 'cibpo':
         freqscale_fac = []
         for freq in sorted( freqarr ):
@@ -589,14 +581,6 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
             freqscale_fac.append( compton_y_to_delta_Tcmb(freq * 1e9) )
 
         freqscale_fac = np.asarray( freqscale_fac )
-
-        if final_comp.lower() == 'tsz': #tsz at 150 GHz
-            freqarr = np.asarray( freqarr )
-            if 150 in freqarr:
-                freqind = np.where(freqarr == 150)[0]
-            elif 145 in freqarr:
-                freqind = np.where(freqarr == 145)[0]
-            freqscale_fac = freqscale_fac / freqscale_fac[freqind]
 
     elif final_comp.lower() == 'cib' or final_comp.lower() == 'cibpo':
         freqscale_fac = []
@@ -994,15 +978,6 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
 
     weightsarr = np.asarray( weightsarr )
     cl_residual = np.asarray( cl_residual )
-
-    if final_comp.lower() == 'tsz': #tsz at 150 GHz
-        freqarr = np.asarray( freqarr )
-        if 150 in freqarr:
-            freqind = np.where(freqarr == 150)[0]
-        elif 145 in freqarr:
-            freqind = np.where(freqarr == 145)[0]
-        ysz_Tsz_conv_fac = compton_y_to_delta_Tcmb(freqarr[freqind] * 1e9)
-        cl_residual = cl_residual / (ysz_Tsz_conv_fac**2.)
 
     #from IPython import embed; embed()
 
