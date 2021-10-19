@@ -81,17 +81,22 @@ except:
 
 
 #S4 specs
-expname = 's4wide'
+#expname = 's4wide'
 #expname = 's4wide_chlat_el40'
 #expname = 'cmbhd'
 #expname = 's4deep'
 #expname = 's4deepv3r025' #20201019
 #expname = 's4deepv3r025_plus_s4wide'
+
+if (1):
+    expname = 'spt3g'
+    corr_noise_for_spt = 0 ##1 ##0 ##1
+
 if expname == 's4deepv3r025_plus_s4wide':
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
-    specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide', remove_atm = remove_atm)
+    specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide')
 else:
-    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
+    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm, corr_noise_for_spt = corr_noise_for_spt)
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
 freqcalib_fac = None
@@ -348,6 +353,11 @@ colordic[39] = 'royalblue'
 colordic[93] = 'lightseagreen'
 colordic[145] = 'darkgreen'
 
+if expname.find('spt')>-1:
+    colordic[90] = colordic[95] = 'navy'
+    colordic[150] = 'goldenrod'
+    colordic[220] = 'darkred'    
+
 
 # In[34]:
 
@@ -594,22 +604,33 @@ if null_comp is not None:
 
 if not corr_noise:
     opfname = opfname.replace('.npy', '_nocorrnoise.npy')
-    
-if s4like_mask:
-    opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
 
-if s4like_mask_v2:
-    opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
-if s4like_mask_v3:
-    opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
-if s4delensing_mask:
-    opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
+if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
+    if s4like_mask:
+        opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
+
+    if s4like_mask_v2:
+        opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
+    if s4like_mask_v3:
+        opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
+    if s4delensing_mask:
+        opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
 
 if include_gal:
     opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
 
 if remove_atm:
     opfname = opfname.replace('.npy', '_noatmnoise.npy')
+
+if expname.find('spt')>-1:
+    if corr_noise_for_spt:
+        atm_noise_corr_str = 'rho%s' %(rho)
+        for freq in corr_noise_bands:
+            atm_noise_corr_str = '%s-%sx%s' %(atm_noise_corr_str, freq, corr_noise_bands[freq])
+        atm_noise_corr_str = atm_noise_corr_str.strip('-')
+        opfname = opfname.replace('.npy', '_%s.npy' %(atm_noise_corr_str))
+
+#print(opfname); sys.exit()
 
 if cl_multiplier_dic is not None:
     if len(cl_multiplier_dic) > 1:
@@ -733,6 +754,7 @@ for cntr, which_spec in enumerate( which_spec_arr ):
     else:
         ax = subplot(1, len(which_spec_arr), cntr+1, yscale = 'log')#, xscale = 'log')
     plot(el, cl_residual[which_spec], 'black', lw = 2., label = r'Residual')
+    title(r'%s' %(which_spec))
     if include_gal: #show gal residuals here as well
         if which_spec == 'TT':
             plot(el, fg_res_dic[which_spec]['galdust'], 'purple', lw = 2., label = r'Residual gal dust')
@@ -823,6 +845,7 @@ if cl_multiplier_dic is not None:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
 suptitle(r'%s' %tit, x = 0.53, y = 1.)
 savefig(plname)
+#show(); #sys.exit()
 print(plname)
 
 
@@ -830,6 +853,8 @@ print(plname)
 
 
 #first plot weights
+close()
+clf()
 fig = figure(figsize = (6,3))
 rspan, cspan = 2, 1
 curr_row = 0
@@ -867,6 +892,7 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
     title(r'%s' %(which_spec))#, fontsize = 10)
 
+show(); #sys.exit()
 
 # In[ ]:
 

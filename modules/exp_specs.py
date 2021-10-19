@@ -1,6 +1,6 @@
 import numpy as np
 
-def get_exp_specs(expname, remove_atm = 0):
+def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
 
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
         if expname == 's4wide':
@@ -283,8 +283,13 @@ def get_exp_specs(expname, remove_atm = 0):
         150: [beam_150, white_noise_T_150, elknee_T_150, alphaknee_T_150, white_noise_P_150, elknee_P_150, alphaknee_P_150],
         220: [beam_220, white_noise_T_220, elknee_T_220, alphaknee_T_220, white_noise_P_220, elknee_P_220, alphaknee_P_220],
         }
-        corr_noise = 0
-        corr_noise_bands = {90:[90], 150:[150], 220: [220]}
-        rho = 1.
+        
+        corr_noise = corr_noise_for_spt
+        if corr_noise:
+            corr_noise_bands = {90:[90], 150:[220], 220: [150]}
+        else:
+            corr_noise_bands = {90:[90], 150:[150], 220: [220]}
+
+        rho = 1.0
 
     return specs_dic, corr_noise_bands, rho, corr_noise

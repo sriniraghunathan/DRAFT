@@ -811,6 +811,8 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
             #print(f1, f2, conv_factor_f1, conv_factor_f2, curr_conv_factor)
             #curr_cls *= (curr_conv_factor)
             if units == 'tcmb':
+                print(curr_cls, curr_conv_factor)
+                sys.exit()
                 curr_cls *= (curr_conv_factor**2)
 
         elif units_flag_arr[cntr] == 1:
