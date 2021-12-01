@@ -264,6 +264,7 @@ for which_spec in which_spec_arr:
 # In[13]:
 
 
+
 if expname.find('spt4')>-1:
     colordic = {}
     colordic[90] = 'navy'
