@@ -72,17 +72,18 @@ if (1):
 
     if (1): #spt3g winter/summer field forecasts
         exparr = ['spt3g_winter_2020', 'spt3g_summer_el1c_el2c_2020', 'spt3g_summer_el1b_el2b_2020', 'spt3g_summer_el1_e5_2020']
-        exparr = ['spt3g']
-        final_comp = 'cmb'
+        exparr = ['spt3g', 'sogoal']
+        final_comp_arr = ['cmb', 'y']
         null_comp_arr = [None]
         use_websky_cib = 0
 
     for expname in exparr:
-        for null_comp in null_comp_arr:
-            cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s -use_sptspire_for_hfbands %s -use_mdpl2_cib %s -split_cross %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib, use_sptspire_for_hfbands, use_mdpl2_cib, split_cross)
-            print('\n###############\n%s\n' %(cmd))
-            #os.system(cmd)
-            sys.exit()
+        for final_comp in final_comp_arr:
+            for null_comp in null_comp_arr:
+                cmd = 'python3 %s -expname %s -null_comp %s -final_comp %s -use_websky_cib %s -use_sptspire_for_hfbands %s -use_mdpl2_cib %s -split_cross %s' %(pgmname, expname, null_comp, final_comp, use_websky_cib, use_sptspire_for_hfbands, use_mdpl2_cib, split_cross)
+                print('\n###############\n%s\n' %(cmd))
+                #os.system(cmd)
+                sys.exit()
 
 sys.exit()
 

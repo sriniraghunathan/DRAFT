@@ -12,9 +12,9 @@ get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('matplotlib', 'inline')
 '''
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = [r'\boldmath']
+#from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = [r'\boldmath']
 import os
-rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
+#rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 
 # In[2]:
@@ -30,7 +30,7 @@ rcParams["figure.facecolor"] = 'white'
 
 import argparse, sys, numpy as np, scipy as sc, warnings, os
 sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
-import flatsky, misc, exp_specs_for_spt as exp_specs
+import flatsky, misc, exp_specs_for_cluster_papers as exp_specs
 import ilc, foregrounds as fg
 
 #import matplotlib.cbook
@@ -49,6 +49,7 @@ parser.add_argument('-use_545', dest='use_545', action='store', help='use_545', 
 parser.add_argument('-use_sptspire_for_hfbands', dest='use_sptspire_for_hfbands', action='store', help='use_sptspire_for_hfbands', type = int, default=0)
 parser.add_argument('-split_cross', dest='split_cross', action='store', help='split_cross', type = int, default=0)
 parser.add_argument('-remove_atm', dest='remove_atm', action='store', help='remove_atm', type = int, default=0)
+parser.add_argument('-include_planck', dest='include_planck', action='store', help='include_planck', type = int, default=0)
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -130,8 +131,7 @@ if (0):
 
     # In[7]:
 """
-
-specs_dic, corr_noise_bands, rho, corr_noise, cib_corr_coeffs = exp_specs.get_exp_specs(expname, remove_atm = remove_atm)
+specs_dic, corr_noise_bands, rho, corr_noise, cib_corr_coeffs = exp_specs.get_exp_specs(expname, remove_atm = remove_atm, include_planck = include_planck)
 if use_websky_cib or use_mdpl2_cib:
     use_545 = 1
 
@@ -226,8 +226,9 @@ print(nl_dic['T'].keys())
 
 #get beams
 bl_dic = misc.get_beam_dic(freqarr, beam_noise_dic['T'], param_dict['lmax'])
-bl_dic['effective'] = bl_dic[150]
-print(bl_dic.keys())
+op_band = freqarr[np.argmin( abs(150-np.asarray(freqarr)))]
+bl_dic['effective'] = bl_dic[op_band]
+print(bl_dic.keys()); sys.exit()
 if (0):
     for freq in freqarr:
         plot(bl_dic[freq], label = freq)
@@ -296,6 +297,12 @@ else:
     colordic[90] = 'navy'
     colordic[150] = 'green'
     colordic[220] = 'darkred'
+
+if (1):
+    coloarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(freqarr))]
+    colordic = {}
+    for nucntr, nu in enumerate( freqarr ):
+        colordic[nu] = coloarr[nucntr]
 
 # In[14]:
 
@@ -418,7 +425,8 @@ if (0):
 #plot and results file name
 freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
 which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
-parent_folder = 'results/spt/20200708/'
+#parent_folder = 'results/spt/20200708/'
+parent_folder = 'results/for_cluster_papers/20211201/'
 if use_websky_cib:
     parent_folder = 'results/spt/20200708/websky_cib/'
 elif use_mdpl2_cib:
@@ -430,6 +438,8 @@ elif use_sptspire_for_hfbands:
 if expname.find('spt4')>-1:
     parent_folder = '%s/spt4' %(parent_folder)
 opfname = '%s/%s_ilc_%s_%s_%s.npy' %(parent_folder, expname, final_comp, freqarr_str, which_spec_arr_str)
+if include_planck:
+    opfname = opfname.replace(expname, '%splusplanck' %(expname))    
 
 if remove_atm:
     opfname = opfname.replace('.npy', '_noatmnoise.npy')
@@ -458,6 +468,9 @@ print(plname)
 
 # In[19]:
 
+if final_comp == 'y':
+    for which_spec in cl_residual:
+        cl_residual[which_spec] /= 1e12
 
 freq0, lmax = param_dict['freq0'], param_dict['lmax']
 foregrounds_to_plot = ['kSZ', 'tSZ', 'DG-Po', 'DG-Cl', 'RG']
@@ -479,7 +492,12 @@ lwval = 0.75
 plot_weights = 1
 xmin, xmax = 20, 10000
 xmin, xmax = 100, 10000
-ymin, ymax = 1e-9, 100000.
+#ymin, ymax = 1e-9, 100000.
+if final_comp == 'y':
+    ymin, ymax = 2e-13, 1e-9
+    xmin, xmax = 1000, 8000
+else:
+    ymin, ymax = 1e-9, 100000.
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
     subplots_adjust(wspace=0.1, hspace = 0.1)
@@ -527,12 +545,13 @@ for cntr, which_spec in enumerate( which_spec_arr ):
         ax = subplot2grid((tr,tc), (curr_row, cntr), rowspan = rspan, colspan = cspan, yscale = 'log')#, xscale = 'log')
     else:
         ax = subplot(1,2,cntr+1, xscale = 'log', yscale = 'log')
-    plot(el, cl_residual[which_spec], 'k', lw = 2., label = r'Residual')
+    dl_fac = el * (el+1)/2./np.pi
+    plot(el, dl_fac * cl_residual[which_spec], 'k', lw = 2., label = r'Residual')
     if which_spec == 'TT':
         if final_comp == 'cmb':
-            plot(el_camb, cl_TT, 'gray', lw = 1., label = r'TT')
+            plot(el_camb, dl_fac * cl_TT, 'gray', lw = 1., label = r'TT')
         if null_comp is not None:
-            plot(el, cl_residual_comp_nulled[which_spec], 'black', lw = 2., ls = '-.', label = r'Residual: comp-nulled')
+            plot(el, dl_fac * cl_residual_comp_nulled[which_spec], 'black', lw = 2., ls = '-.', label = r'Residual: comp-nulled')
         
         '''
         cl_fg = np.zeros(len(el))
@@ -545,10 +564,10 @@ for cntr, which_spec in enumerate( which_spec_arr ):
                 el_, cl_curr_fg = fg.get_foreground_power_spt(curr_fg, freq1 = freq0, lmax = lmax)
             #plot(el, cl_curr_fg, lw = 0.5, ls = '--', label = r'150: %s' %(curr_fg), alpha = 0.4)
             cl_fg += cl_curr_fg
-        plot(el, cl_fg, lw = 5., ls = '--', label = r'150: All foregrounds', alpha = 1.)
+        plot(el, dl_fac * cl_fg, lw = 5., ls = '--', label = r'150: All foregrounds', alpha = 1.)
         '''
     elif which_spec == 'EE':
-        plot(el_camb, cl_EE, 'gray', lw = 0.5)#, label = r'EE')
+        plot(el_camb, dl_fac * cl_EE, 'gray', lw = 0.5)#, label = r'EE')
         '''
         for curr_fg in pol_foregrounds_to_plot:
             if curr_fg == 'dust':
@@ -558,8 +577,8 @@ for cntr, which_spec in enumerate( which_spec_arr ):
             plot(el, cl_curr_fg, lw = 0.5, ls = '--', label = r'150: %s' %(curr_fg), alpha = 0.4)
         '''
     elif which_spec == 'TE':
-        plot(el_camb, cl_TE, 'gray', ls = '-', lw = 0.5)#, label = r'TE')        
-        plot(el_camb, abs( cl_TE ), 'gray', ls = '--', lw = 0.5) 
+        plot(el_camb, dl_fac * cl_TE, 'gray', ls = '-', lw = 0.5)#, label = r'TE')        
+        plot(el_camb, dl_fac * abs( cl_TE ), 'gray', ls = '--', lw = 0.5) 
         '''
         for curr_fg in pol_foregrounds_to_plot:
             if curr_fg == 'dust':
@@ -568,18 +587,19 @@ for cntr, which_spec in enumerate( which_spec_arr ):
                 el, cl_curr_fg = fg.get_cl_galactic(param_dict, 'sync', 145, 145, 'EE', bl_dic = bl_dic, el = el)
             plot(el, cl_curr_fg, lw = 0.5, ls = '--', label = r'150: %s' %(curr_fg), alpha = 0.4)
         '''
-    for freq in freqarr:
-        plot(el, cl_dic[which_spec][(freq,freq)], color = colordic[freq], lw = 0.5, ls = '-', label = r'%s' %(freq), alpha = 1.)        
-    for freq in freqarr:
-        if which_spec == 'TT':
-            nl = nl_dic['T'][(freq, freq)]
-        elif which_spec == 'EE':
-            nl = nl_dic['P'][(freq, freq)]
-        elif which_spec == 'TE':
-            nl = nl_dic['T'][(freq, freq)] * 0.
-        plot(el, nl, color = colordic[freq], lw = lwval, ls = '--', label = r'Noise: %s' %(freq))#, alpha = 0.5)
-    #legend(loc=3, fancybox=1, ncol = 4, fontsize = 6);
-    
+    if final_comp == 'cmb':
+        for freq in freqarr:
+            plot(el, dl_fac * cl_dic[which_spec][(freq,freq)], color = colordic[freq], lw = 0.5, ls = '-', label = r'%s' %(freq), alpha = 1.)
+        for freq in freqarr:
+            if which_spec == 'TT':
+                nl = nl_dic['T'][(freq, freq)]
+            elif which_spec == 'EE':
+                nl = nl_dic['P'][(freq, freq)]
+            elif which_spec == 'TE':
+                nl = nl_dic['T'][(freq, freq)] * 0.
+            plot(el, dl_fac * nl, color = colordic[freq], lw = lwval, ls = '--', label = r'Noise: %s' %(freq))#, alpha = 0.5)
+        #legend(loc=3, fancybox=1, ncol = 4, fontsize = 6);
+        
     xlim(xmin, xmax);
     #ylim(1e-8,1e6);
 
@@ -588,7 +608,7 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
-        ylabel(r'$C_{\ell}$')
+        ylabel(r'$D_{\ell}$')
         legend(loc = 1, fontsize = 6, ncol = 2, handlelength = 2., handletextpad = 0.1)
     else:
         setp(ax.get_yticklabels(which = 'both'), visible=False)
