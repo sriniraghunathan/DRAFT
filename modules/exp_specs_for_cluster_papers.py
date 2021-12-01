@@ -119,15 +119,6 @@ def get_exp_specs(expname, remove_atm = 0, include_planck = 0):
             278: [1.0, 3.07, 2100., 3.9, 4.34, 200, 2.2],
             }
 
-            if expname.find('spt4')>-1:
-                spt4_specs_dic = get_spt4_specs(expname, which_spt4 = 'spt4_C3')
-                for nu in spt4_specs_dic:
-                    if nu in specs_dic:
-                        nu_mod = nu + 1
-                    else:
-                        nu_mod = nu
-                    specs_dic[nu_mod] = spt4_specs_dic[nu]
-
         freqarr = sorted( specs_dic.keys() )
         nc = len( freqarr )
 

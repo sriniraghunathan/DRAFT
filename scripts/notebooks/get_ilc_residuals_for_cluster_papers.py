@@ -228,7 +228,7 @@ print(nl_dic['T'].keys())
 bl_dic = misc.get_beam_dic(freqarr, beam_noise_dic['T'], param_dict['lmax'])
 op_band = freqarr[np.argmin( abs(150-np.asarray(freqarr)))]
 bl_dic['effective'] = bl_dic[op_band]
-print(bl_dic.keys()); sys.exit()
+print(bl_dic.keys()); #sys.exit()
 if (0):
     for freq in freqarr:
         plot(bl_dic[freq], label = freq)
@@ -495,7 +495,8 @@ xmin, xmax = 100, 10000
 #ymin, ymax = 1e-9, 100000.
 if final_comp == 'y':
     ymin, ymax = 2e-13, 1e-9
-    xmin, xmax = 1000, 8000
+    #xmin, xmax = 1000, 8000
+    xmin, xmax = 100, 8000
 else:
     ymin, ymax = 1e-9, 100000.
 if plot_weights:
@@ -620,7 +621,10 @@ if remove_atm:
     tit = 'Bands = %s; no 1/f' %(str(freqarr))
 else:
     tit = 'Bands = %s' %(str(freqarr))
-suptitle(r'%s: %s' %(expname.replace('_','\_').upper(), final_comp))
+tit = r'%s: %s' %(expname.replace('_','\_').upper(), final_comp)
+if include_planck:
+    tit = r'%s + {\it Planck}: %s' %(expname.replace('_','\_').upper(), final_comp)
+suptitle(tit)
 #show(); #sys.exit()
 savefig(plname)
 
