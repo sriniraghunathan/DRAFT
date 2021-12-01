@@ -71,6 +71,7 @@ if (1):
 
     if (1): #spt3g winter/summer field forecasts
         exparr = ['spt3g_winter_2020', 'spt3g_summer_el1c_el2c_2020', 'spt3g_summer_el1b_el2b_2020', 'spt3g_summer_el1_e5_2020']
+        exparr = ['spt3g']
         final_comp = 'cmb'
         null_comp_arr = [None]
         use_websky_cib = 0
