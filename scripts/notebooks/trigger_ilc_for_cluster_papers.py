@@ -1,6 +1,7 @@
 import numpy as np, sys, os
 
-pgmname = 'get_ilc_residuals_spt.py'
+#pgmname = 'get_ilc_residuals_spt.py'
+pgmname = 'get_ilc_residuals_for_cluster_papers.py'
 
 
 if (0):
