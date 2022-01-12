@@ -66,10 +66,12 @@ if (1): ### 20210512
     use_s4like_mask_v2 = 0
     use_s4like_mask_v3 = 0
     use_s4delensing_mask = 0
+    splat_minobsel_galcuts = 1
+    min_obs_el = 30.0
 
 dust_sync_arr = ['dust', 'sync']
 
-if (1): #pySM YOmori for SPT-3G + Planck
+if (0): #pySM YOmori for SPT-3G + Planck
     use_spt3g_mask = 1
     t_only = 0
     nside = 2048
@@ -80,6 +82,17 @@ if (1): #pySM YOmori for SPT-3G + Planck
     dust_sync_arr = ['dust', 'sync', 'freefree']
     #dust_sync_arr = ['both']
 
+if (1): #20210111 - CMB-S4 SP-LAT - different min obs el and gal cuts
+    use_spt3g_mask = 0
+    t_only = 0
+    min_obs_el = 30.
+    use_splat_minobsel_galcuts = 1
+    nside = 2048
+    lmax = 5000
+    s,e = 0, 6 #different gal cuts #check https://github.com/sriniraghunathan/cmbs4_minobsel_galcuts/blob/main/analyse_results.ipynb
+    zonca_sims = 1
+    dust_sync_arr = ['dust', 'sync']
+    
 mask_arr = np.arange(s, e)
 #if mask_arr_default is not None:
 #    mask_arr = mask_arr_default
@@ -97,7 +110,10 @@ for which_mask in mask_arr:
             opf.writelines('%s\n' %(line.strip()))
 
         #opline = 'python %s -dust_or_sync %s -zonca_sims %s -pySM_yomori %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -use_s4like_mask_v2 %s -use_s4like_mask_v3 %s -use_spt3g_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, zonca_sims, pySM_yomori, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, use_s4like_mask_v2, use_s4like_mask_v3, use_spt3g_mask, t_only, nside, lmax)
-        opline = 'python %s -dust_or_sync %s -zonca_sims %s -pySM_yomori %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -use_s4like_mask_v2 %s -use_s4like_mask_v3 %s -use_s4delensing_mask %s -use_spt3g_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, zonca_sims, pySM_yomori, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, use_s4like_mask_v2, use_s4like_mask_v3, use_s4delensing_mask, use_spt3g_mask, t_only, nside, lmax)
+        #opline = 'python %s -dust_or_sync %s -zonca_sims %s -pySM_yomori %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -use_s4like_mask_v2 %s -use_s4like_mask_v3 %s -use_s4delensing_mask %s -use_spt3g_mask %s -t_only %s -nside %s -lmax %s ' %(pgmname, dust_or_sync, zonca_sims, pySM_yomori, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, use_s4like_mask_v2, use_s4like_mask_v3, use_s4delensing_mask, use_spt3g_mask, t_only, nside, lmax)
+        #20210111 - CMB-S4 SP-LAT - different min obs el and gal cuts
+        opline = 'python %s -dust_or_sync %s -zonca_sims %s -pySM_yomori %s -which_mask %s -use_planck_mask %s -use_lat_step_mask %s -use_s4like_mask %s -use_s4like_mask_v2 %s -use_s4like_mask_v3 %s -use_s4delensing_mask %s -use_spt3g_mask %s -t_only %s -nside %s -lmax %s -min_obs_el %s -use_splat_minobsel_galcuts %s ' %(pgmname, dust_or_sync, zonca_sims, pySM_yomori, int(which_mask), use_planck_mask, use_lat_step_mask, use_s4like_mask, use_s4like_mask_v2, use_s4like_mask_v3, use_s4delensing_mask, use_spt3g_mask, t_only, nside, lmax, min_obs_el, use_splat_minobsel_galcuts)
+        print(opline); sys.exit()
         opf.writelines('%s\n\n' %(opline))
         opf.close()
         template.close()
