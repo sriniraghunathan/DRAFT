@@ -334,7 +334,7 @@ if zonca_sims or pySM_yomori:
     elif use_spt3g_mask:
         opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_splat_minobsel_galcuts:
-        opfname = '%s/s4_use_splat_minobsel_galcuts/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/s4_use_splat_minobsel%s_galcuts/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, min_obs_el, dust_or_sync, nside, lmax)
 else:
     if local:
         sim_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/galactic/CUmilta/ampmod_maps/'
@@ -362,7 +362,7 @@ if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
 if use_s4like_mask_v3: os.system('mkdir %s/s4like_mask_v3/' %(sim_folder))
 if use_s4delensing_mask: os.system('mkdir %s/s4delensing_mask/' %(sim_folder))
 if use_spt3g_mask: os.system('mkdir %s/spt3g/' %(sim_folder))
-if use_splat_minobsel_galcuts: os.system('mkdir %s/s4_use_splat_minobsel_galcuts/' %(sim_folder))
+if use_splat_minobsel_galcuts: os.system('mkdir %s/s4_use_splat_minobsel%s_galcuts/' %(sim_folder, min_obs_el))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
 log_file = 'tmp/pspec_%s.txt' %(dust_or_sync)
