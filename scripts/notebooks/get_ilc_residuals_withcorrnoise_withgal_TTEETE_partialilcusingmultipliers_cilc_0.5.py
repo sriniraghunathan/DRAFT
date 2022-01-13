@@ -314,7 +314,7 @@ if (0):
     xlabel(r'Multipole $\ell$')
     ylabel(r'C$_{\ell}$ [$\mu K^{2}$]')
     title(r'Point source power @ 145  GHZ')
-    ylim(1e-7, 1e-4)
+    ylim(1e-9, 1e-4)
     xlim(100, 5000)
 if (0):#1):
     el_, cl_tsz_cib = fg.get_foreground_power_spt('tSZ-CIB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
@@ -853,7 +853,7 @@ for cntr, which_spec in enumerate( which_spec_arr ):
         #legend(loc=3, fancybox=1, ncol = 4, fontsize = 6);
 
     xlim(xmin, xmax);
-    ylim(1e-7,1e-1);
+    ylim(1e-9,1e-1);
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
         ylabel(r'$C_{\ell}$')
