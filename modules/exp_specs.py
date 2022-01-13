@@ -118,7 +118,7 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
             }
             '''
 
-        elif expname == 's4deepv3r025':
+        elif expname == 's4deepv3r025' or expname == 's4deepv3r025_tma':
             #https://cmb-s4.org/wiki/index.php/Delensing_sensitivity_-_updated_sensitivities,_beams,_TT_noise
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
@@ -130,6 +130,13 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
             225: [1.1, 1.29, 2100., 4.1, 1.83, 200, 2.2],
             278: [1.0, 3.07, 2100., 3.9, 4.34, 200, 2.2],
             }
+
+            if expname == 's4deepv3r025_tma':
+                s4deep_CD_dia = 6. #metres
+                s4deep_TMA_dia = 5. #metres
+                for nu in specs_dic:
+                    specs_dic[nu][0] = specs_dic[nu][0] * s4deep_CD_dia/s4deep_TMA_dia
+
 
         freqarr = sorted( specs_dic.keys() )
         nc = len( freqarr )

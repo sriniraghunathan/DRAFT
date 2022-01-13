@@ -175,6 +175,7 @@ for freq in freqarr:
 
 print(elkneearr_T)
 print(noisearr_T)
+print(beamarr)
 
 
 # In[28]:
