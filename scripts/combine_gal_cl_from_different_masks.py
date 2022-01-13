@@ -10,6 +10,7 @@ s4like_mask_v2=0
 s4like_mask_v3=0
 spt3g_mask = 0
 s4delensing_mask = 0
+splat_minobsel_galcuts = 0
 
 nside, lmax = 2048, 3500
 t_only = 0
@@ -39,7 +40,7 @@ if (0):
     nside, lmax = 2048, 5000
     t_only = 0
 
-if (1):
+if (0):
     spt3g_mask = 1
     #nside, lmax = 2048, 6000
     nside, lmax = 2048, 2000
@@ -50,6 +51,17 @@ if (1):
     s4like_mask_v2=0
     s4like_mask_v3=0
     s4delensing_mask = 0
+
+if (1):
+    spt3g_mask = 0
+    t_only = 0
+    min_obs_el = 30.
+    splat_minobsel_galcuts = 1
+    nside = 2048
+    lmax = 5000
+    s,e = 0, 6 #different gal cuts #check https://github.com/sriniraghunathan/cmbs4_minobsel_galcuts/blob/main/analyse_results.ipynb
+    zonca_sims = 1
+
 
 if zonca_sims:
     data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/xxxx/0000/'
@@ -81,6 +93,8 @@ for which_comp in comp_arr:
                 searchstr = '%s/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
             else:
                 searchstr = '%s/s4like_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, nside, lmax)
+        elif splat_minobsel_galcuts:
+            searchstr = '%s/s4_use_splat_minobsel%s_galcuts/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?_minobsel%s.npy' %(data_folder, min_obs_el, nside, lmax, min_obs_el)
         elif s4like_mask_v2 or s4like_mask_v3 or s4delensing_mask:
             if s4like_mask_v2:
                 searchstr = '%s/s4like_mask_v2/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
@@ -103,7 +117,7 @@ for which_comp in comp_arr:
     curr_searchstr = searchstr.replace('xxxx', which_comp)
     curr_searchstr = curr_searchstr.replace('_synchrotron_', '_sync_')
     flist = sorted( glob.glob(curr_searchstr) )
-    #print(curr_searchstr, which_comp, flist, data_folder); sys.exit()
+    ###print(curr_searchstr, which_comp, flist, data_folder); sys.exit()
 
     opdic = {}
     opdic['cl_dic'] = {}

@@ -37,6 +37,24 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 #warnings.filterwarnings('ignore', category=DeprecationWarning)
 #warnings.filterwarnings('ignore', category=matplotlib.cbook.mplDeprecation)
 
+parser = argparse.ArgumentParser(description='')
+parser.add_argument('-expname', dest='expname', action='store', help='expname', type=str, required=True)
+parser.add_argument('-total_obs_time', dest='total_obs_time', action='store', help='total_obs_time in years', type=float, default=7.0)
+parser.add_argument('-include_gal', dest='include_gal', action='store', help='include_gal', type=int, default=0)
+parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='which_gal_mask', type=int, default=-1)
+parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='interactive_mode', type=int, default=1)
+
+
+args = parser.parse_args()
+args_keys = args.__dict__
+for kargs in args_keys:
+    param_value = args_keys[kargs]
+    if isinstance(param_value, str):
+        cmd = '%s = "%s"' %(kargs, param_value)
+    else:
+        cmd = '%s = %s' %(kargs, param_value)
+    exec(cmd)
+# In[4]:
 
 # In[24]:
 
@@ -46,7 +64,7 @@ h=6.62607004e-34 #Planck constant in m2 kg / s
 k_B=1.38064852e-23 #Boltzmann constant in m2 kg s-2 / K-1
 Tcmb = 2.73 #Kelvin
 
-total_obs_time = float(sys.argv[1]) #in years
+###total_obs_time = float(sys.argv[1]) #in years
 # In[25]:
 
 
@@ -56,11 +74,19 @@ paramfile = 'params.ini'
 # read and store param dict
 param_dict = misc.fn_get_param_dict(paramfile)
 el = np.arange(param_dict['lmax'])
-include_gal = param_dict['include_gal'] ##1
+
+#20220112 - moved to argparse
+###include_gal = param_dict['include_gal'] ##1  
+param_dict['include_gal'] = include_gal
+
 s4like_mask = param_dict['s4like_mask']
 s4like_mask_v2 = param_dict['s4like_mask_v2']
 s4like_mask_v3 = param_dict['s4like_mask_v3']
 s4delensing_mask = param_dict['s4delensing_mask']
+splat_minobsel_galcuts_mask = param_dict['splat_minobsel_galcuts_mask']
+
+#20220112 - moved to argparse
+param_dict['which_gal_mask'] = which_gal_mask
 if not include_gal:
     if s4like_mask:
         param_dict['which_gal_mask'] = 3
@@ -71,6 +97,7 @@ if not include_gal:
     elif s4delensing_mask:
         param_dict['which_gal_mask'] = 0
 which_gal_mask = param_dict['which_gal_mask']
+
 try:
     remove_atm = param_dict['remove_atm']
 except:
@@ -87,10 +114,14 @@ except:
 #expname = 's4deep'
 #expname = 's4deepv3r025' #20201019
 #expname = 's4deepv3r025_plus_s4wide'
+corr_noise_for_spt = 0 ##1 ##0 ##1
 
-if (1):
+if (0):
     expname = 'spt3g'
     corr_noise_for_spt = 0 ##1 ##0 ##1
+
+if (0):#20220112 - CMB-S4 SP-LAT multiple noise levels, fksy, and gal cuts - moved it to argparse
+    expname = 's4deepv3r025'
 
 if expname == 's4deepv3r025_plus_s4wide':
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
@@ -143,6 +174,7 @@ for freq in freqarr:
     alphakneearr_P.append(alphaknee_P)    
 
 print(elkneearr_T)
+print(noisearr_T)
 
 
 # In[28]:
@@ -226,7 +258,7 @@ for TP in TParr:
             nl_dic[TP][(freq1, freq2)] = nl
 
 print(nl_dic['T'].keys())
-##sys.exit()
+###sys.exit()
 
 # In[30]:
 
@@ -264,7 +296,7 @@ for which_spec in which_spec_arr:
         el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance                    (param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
 print(cl_dic.keys(), cl_dic.keys())
 print(el)
-
+###sys.exit()
 
 # In[32]:
 
@@ -608,13 +640,14 @@ if not corr_noise:
 if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
     if s4like_mask:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
-
     if s4like_mask_v2:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
     if s4like_mask_v3:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
     if s4delensing_mask:
         opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
+    if splat_minobsel_galcuts_mask:
+        opfname = opfname.replace(parent_folder, '%s/splat_minobsel%s_galcuts_mask/TT-EE/baseline/' %(parent_folder, param_dict['min_obs_el']))
 
 if include_gal:
     opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
@@ -675,7 +708,7 @@ if expname.lower().find('s4')>-1:#total_obs_time_default != total_obs_time:
     plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
     
 print(opfname)
-print(plname)#; sys.exit()
+print(plname); #sys.exit()
 
 
 # In[ ]:
@@ -843,7 +876,7 @@ if (0):#not corr_noise:
 if cl_multiplier_dic is not None:
     if 'gal_dust' in cl_multiplier_dic:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
-suptitle(r'%s' %tit, x = 0.53, y = 1.)
+suptitle(r'%s; %s year(s)' %(tit, total_obs_time), x = 0.53, y = 1., fontsize = 12)
 savefig(plname)
 #show(); #sys.exit()
 print(plname)
@@ -854,45 +887,46 @@ print(plname)
 
 #first plot weights
 close()
-clf()
-fig = figure(figsize = (6,3))
-rspan, cspan = 2, 1
-curr_row = 0
-for cntr, which_spec in enumerate( which_spec_arr ):
-    ax = subplot(1,2,cntr+1)#, xscale = 'log')#, yscale = 'log')
-    if which_spec == 'TE':
-        continue
-        tot_teiter = 2
-        for teiter in range(tot_teiter):
-            if teiter == 0:
-                lsval = '-'
-            else:
-                lsval = ':'
-            shift = teiter * len(freqarr)
+if interactive_mode:
+    clf()
+    fig = figure(figsize = (6,3))
+    rspan, cspan = 2, 1
+    curr_row = 0
+    for cntr, which_spec in enumerate( which_spec_arr ):
+        ax = subplot(1,2,cntr+1)#, xscale = 'log')#, yscale = 'log')
+        if which_spec == 'TE':
+            continue
+            tot_teiter = 2
+            for teiter in range(tot_teiter):
+                if teiter == 0:
+                    lsval = '-'
+                else:
+                    lsval = ':'
+                shift = teiter * len(freqarr)
+                for frqcntr, freq in enumerate( freqarr ):
+                    #plot(weights_dic[which_spec][teiter][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
+                    plot(weights_dic[which_spec][frqcntr+shift], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
+                plot(np.sum(weights_dic[which_spec][teiter], axis = 0), 'k--', label = r'Sum', lw = lwval, ls = lsval)        
+        else:
             for frqcntr, freq in enumerate( freqarr ):
-                #plot(weights_dic[which_spec][teiter][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
-                plot(weights_dic[which_spec][frqcntr+shift], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
-            plot(np.sum(weights_dic[which_spec][teiter], axis = 0), 'k--', label = r'Sum', lw = lwval, ls = lsval)        
-    else:
-        for frqcntr, freq in enumerate( freqarr ):
-            plot(weights_dic[which_spec][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval)
-        plot(np.sum(weights_dic[which_spec], axis = 0), 'k--', label = r'Sum', lw = lwval)
-    axhline(lw=0.3);
-    xlabel(r'Multipole $\ell$');
-    #setp(ax.get_xticklabels(which = 'both'), visible=False)
-    if cntr == 0:
-        ylabel(r'Weight $W_{\ell}$')
-        legend(loc = 3, fontsize = 5, ncol = 4, handlelength = 2., handletextpad = 0.1)
-    else:
-        setp(ax.get_yticklabels(which = 'both'), visible=False)
-    ylim(-1., 2.);
-    xlim(xmin, xmax);
-    for label in ax.get_xticklabels(): label.set_fontsize(fsval)
-    for label in ax.get_yticklabels(): label.set_fontsize(fsval)        
+                plot(weights_dic[which_spec][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval)
+            plot(np.sum(weights_dic[which_spec], axis = 0), 'k--', label = r'Sum', lw = lwval)
+        axhline(lw=0.3);
+        xlabel(r'Multipole $\ell$');
+        #setp(ax.get_xticklabels(which = 'both'), visible=False)
+        if cntr == 0:
+            ylabel(r'Weight $W_{\ell}$')
+            legend(loc = 3, fontsize = 5, ncol = 4, handlelength = 2., handletextpad = 0.1)
+        else:
+            setp(ax.get_yticklabels(which = 'both'), visible=False)
+        ylim(-1., 2.);
+        xlim(xmin, xmax);
+        for label in ax.get_xticklabels(): label.set_fontsize(fsval)
+        for label in ax.get_yticklabels(): label.set_fontsize(fsval)        
 
-    title(r'%s' %(which_spec))#, fontsize = 10)
+        title(r'%s' %(which_spec))#, fontsize = 10)
 
-show(); #sys.exit()
+    show(); #sys.exit()
 
 # In[ ]:
 
