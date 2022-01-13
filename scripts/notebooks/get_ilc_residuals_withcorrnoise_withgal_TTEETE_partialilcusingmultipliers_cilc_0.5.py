@@ -43,7 +43,7 @@ parser.add_argument('-total_obs_time', dest='total_obs_time', action='store', he
 parser.add_argument('-include_gal', dest='include_gal', action='store', help='include_gal', type=int, default=0)
 parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='which_gal_mask', type=int, default=-1)
 parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='interactive_mode', type=int, default=1)
-
+parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='save_fg_res_and_weights', type=int, default=1)
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -961,12 +961,13 @@ if (1): #save residual files
     if cl_multiplier_dic is not None:
         opdic['cl_multiplier_dic'] = cl_multiplier_dic
     opdic['cl_residual'] = cl_residual
-    opdic['fg_res_dic'] = fg_res_dic
+    if save_fg_res_and_weights:
+        opdic['fg_res_dic'] = fg_res_dic
+        opdic['weights'] = weights_dic
     opdic['freqcalib_fac'] = freqcalib_fac
     opdic['param_dict'] = param_dict
     opdic['fsky_val'] = fsky_val
     opdic['which_gal_mask'] = which_gal_mask
-    opdic['weights'] = weights_dic
     #opdic['nl_dic'] = nl_dic
     opdic['beam_noise_dic'] = beam_noise_dic
     opdic['elknee_dic'] = elknee_dic
