@@ -453,6 +453,11 @@ show()#;sys.exit()
 cl_residual, weights_dic = {}, {}
 if null_comp is None:
     cl_residual_arr, weights_arr = ilc.residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = final_comp, freqcalib_fac = freqcalib_fac, return_weights = 1)
+    #print(cl_residual_arr[0][10:20], which_spec_arr); sys.exit()
+    if (0):
+        clf()
+        ax=subplot(111, yscale = 'log')
+        plot(cl_residual_arr[0]); xlim(100, 5000); ylim(1e-7, 1e-4); show(); sys.exit()
     for which_spec in which_spec_arr:
         if which_spec == 'TT':
            cl_res = cl_residual_arr[0]
