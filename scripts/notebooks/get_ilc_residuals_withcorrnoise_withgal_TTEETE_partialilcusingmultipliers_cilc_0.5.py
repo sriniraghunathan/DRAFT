@@ -44,6 +44,7 @@ parser.add_argument('-include_gal', dest='include_gal', action='store', help='in
 parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='which_gal_mask', type=int, default=-1)
 parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='interactive_mode', type=int, default=1)
 parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='save_fg_res_and_weights', type=int, default=1)
+parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='s4_so_joint_configs', type=int, default=0)
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -259,7 +260,7 @@ for TP in TParr:
             nl_dic[TP][(freq1, freq2)] = nl
 
 print(nl_dic['T'].keys())
-###sys.exit()
+#sys.exit()
 
 # In[30]:
 
@@ -292,9 +293,9 @@ cl_dic = {}
 fg_cl_dic = {}
 for which_spec in which_spec_arr:
     if which_spec == 'TT':
-        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el,                 nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power, cl_multiplier_dic = cl_multiplier_dic)
+        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el,nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power, cl_multiplier_dic = cl_multiplier_dic)
     else:
-        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance                    (param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
+        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
 print(cl_dic.keys(), cl_dic.keys())
 print(el)
 ###sys.exit()
@@ -630,6 +631,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
 #parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
 parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
+if s4_so_joint_configs:
+    parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
 if null_comp is not None:
     null_comp_str = 'nulled_%s' %('-'.join(null_comp))
     parent_folder = '%s/%s/' %(parent_folder, null_comp_str)
@@ -654,6 +657,7 @@ if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
         opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
     if splat_minobsel_galcuts_mask:
         opfname = opfname.replace(parent_folder, '%s/splat_minobsel%s_galcuts_mask/TT-EE/baseline/' %(parent_folder, param_dict['min_obs_el']))
+    #print(opfname); sys.exit()
 
 if include_gal:
     opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
@@ -932,6 +936,8 @@ if interactive_mode:
 
         title(r'%s' %(which_spec))#, fontsize = 10)
 
+    plname_mod = plname.replace('.png', '_weights.png')
+    savefig(plname_mod, dpi = 200.)
     show(); #sys.exit()
 
 # In[ ]:
