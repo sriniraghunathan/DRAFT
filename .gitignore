@@ -4,8 +4,8 @@
 .ipynb_checkpoints
 __pycache__
 tmp
-*SO*
-*so*
+*.SO*
+*.so*
 *.sav
 *.fits
 george_plot_bestfit_line.sav
