@@ -54,6 +54,20 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
                 }
             '''
 
+            #20220222 - modify S4 noise levels based on S4/SO detector scalings
+            scaling_factors = np.asarray( [1., 1., 1., 1., 1., 1.] )
+            if expname == 's4wide_scaled_sobaseline':
+                scaling_factors = np.sqrt( 2. ) * np.sqrt( [3.1, 3.1, 2.6*2., 2.5*2., 2.0*2., 1.8*2.] )
+            elif expname == 's4wide_scaled_aso':
+                scaling_factors = np.sqrt( 2. ) * np.sqrt( [3.1, 3.1, 2.6, 2.5, 2.0, 1.8] )
+            elif expname == 's4wide_single_chlat':
+                scaling_factors = scaling_factors * np.sqrt( 2. )
+
+            for nucntr, nu in enumerate( specs_dic ):
+                specs_dic[nu][1] *= scaling_factors[nucntr]
+                specs_dic[nu][4] *= scaling_factors[nucntr]
+            #20220222 - modify S4 noise levels based on S4/SO detector scalings
+
         elif expname == 's4wide_chlat_el40':
             #https://cmb-s4.atlassian.net/wiki/spaces/XC/pages/680853505/Neff+forecasts+for+CHLAT+for+different+observing+elevations
             specs_dic = {
