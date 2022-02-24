@@ -29,7 +29,9 @@ if (0):
 if (1): #SO scalings
     #expname_arr = ['s4wide', 's4wide_scaled_sobaseline', 's4wide_scaled_aso', 's4wide_single_chlat_plus_aso']
     #expname_arr = ['s4wide_scaled_sobaseline', 's4wide_scaled_aso', 's4wide_single_chlat_plus_aso']
-    expname_arr = ['s4wide']
+    #expname_arr = ['s4wide']
+    #expname_arr = ['s4wide_scaled_aso_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
+    expname_arr = ['s4wide_scaled_aso_plus_fulls4scaledsobaseline', 's4wide_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
     s4_so_joint_configs = 1
     include_gal = 1
     which_gal_mask = 2
@@ -37,12 +39,16 @@ if (1): #SO scalings
     save_fg_res_and_weights = 0
     total = 0
     for expname in expname_arr:
-        if expname == 's4wide_scaled_sobaseline' or expname == 's4wide_scaled_aso':
+        if expname.find('plus_fulls4scaledsobaseline')>-1:
+            include_fulls4scaledsobaseline = 1
+        else:
+            include_fulls4scaledsobaseline = 0
+        if expname == 's4wide_scaled_sobaseline' or expname == 's4wide_scaled_aso' or expname == 's4wide_scaled_aso_plus_fulls4scaledsobaseline':
             total_obs_time_arr = np.arange(1., 5.1, 1.)
         else:
             total_obs_time_arr = np.arange(1., 10.1, 1.)
         for total_obs_time in total_obs_time_arr:
-            cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, interactive_mode, save_fg_res_and_weights)
+            cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
             print('\n###############\n%s\n' %(cmd))
             os.system(cmd)
             #sys.exit()

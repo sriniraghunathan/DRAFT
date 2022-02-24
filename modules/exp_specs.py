@@ -3,7 +3,7 @@ import numpy as np, copy, sys
 def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
 
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
-        if expname == 's4wide' or expname.find('s4wide_scaled_sobaseline')>-1 or expname.find('s4wide_scaled_aso')>-1 or expname.find('s4wide_single_chlat')>-1 or expname.find('s4wide_single_chlat_plus_aso')>-1:
+        if expname == 's4wide' or expname.find('s4wide_scaled_sobaseline')>-1 or expname.find('s4wide_scaled_aso')>-1 or expname.find('s4wide_single_chlat')>-1 or expname.find('s4wide_single_chlat_plus_aso')>-1 or expname.find('s4wide_plus')>-1:
 
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 

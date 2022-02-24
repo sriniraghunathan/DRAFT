@@ -45,6 +45,7 @@ parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', he
 parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='interactive_mode', type=int, default=1)
 parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='save_fg_res_and_weights', type=int, default=1)
 parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='s4_so_joint_configs', type=int, default=0)
+parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scaledsobaseline', action='store', help='include_fulls4scaledsobaseline', type=int, default=0)
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -129,6 +130,11 @@ if expname == 's4deepv3r025_plus_s4wide':
     specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide')
 else:
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm, corr_noise_for_spt = corr_noise_for_spt)
+
+#20220223 - include full SO-baseline, if requested
+if include_fulls4scaledsobaseline:
+    specs_dic_fulls4scaledsobaseline, corr_noise_bands_fulls4scaledsobaseline, rho_fulls4scaledsobaseline, corr_noise_fulls4scaledsobaseline = exp_specs.get_exp_specs('s4wide_scaled_sobaseline')
+
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
 freqcalib_fac = None
@@ -165,7 +171,15 @@ for freq in freqarr:
     if (1): #noise scaling based on total_obs_time
         noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
         white_noise_T = white_noise_T * noise_scaling_fac
-        white_noise_P = white_noise_P * noise_scaling_fac        
+        white_noise_P = white_noise_P * noise_scaling_fac
+    #20220223 - include full SO-baseline, if requested
+    if include_fulls4scaledsobaseline:
+        beam_arcmins_2, white_noise_T_2, elknee_T_2, alphaknee_T_2, white_noise_P_2, elknee_P_2, alphaknee_P_2 = specs_dic_fulls4scaledsobaseline[freq]
+        white_noise_T_2 = white_noise_T_2 * np.sqrt(7./5.)
+        white_noise_P_2 = white_noise_P_2 * np.sqrt(7./5.)
+        white_noise_T = (1./white_noise_T**2. + 1./white_noise_T_2**2.)**-0.5
+        white_noise_P = (1./white_noise_P**2. + 1./white_noise_P_2**2.)**-0.5
+
     beamarr.append(beam_arcmins)
     noisearr_T.append(white_noise_T)
     noisearr_P.append(white_noise_P)
@@ -174,10 +188,12 @@ for freq in freqarr:
     alphakneearr_T.append(alphaknee_T)
     alphakneearr_P.append(alphaknee_P)    
 
-print(elkneearr_T)
-print(noisearr_T)
-print(beamarr)
-
+print('\n')
+#print(elkneearr_T)
+print('Delta T =', noisearr_T)
+print('Delta P =', noisearr_P)
+#print(beamarr)
+print('\n')
 
 # In[28]:
 
