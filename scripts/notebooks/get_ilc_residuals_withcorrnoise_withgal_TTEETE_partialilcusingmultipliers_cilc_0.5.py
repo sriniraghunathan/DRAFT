@@ -194,6 +194,7 @@ print('Delta T =', noisearr_T)
 print('Delta P =', noisearr_P)
 #print(beamarr)
 print('\n')
+#sys.exit()
 
 # In[28]:
 
