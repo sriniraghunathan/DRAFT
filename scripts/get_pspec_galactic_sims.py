@@ -104,7 +104,11 @@ def get_spt3g_mask(which_field, nside_out = 4096):
         dec1, dec2 = -64., -42.
 
     elif which_field == 'summer_field_el1c_el2c': #summer field
-        ra1, ra2 = 155., 205.
+        #20220225
+        #ra1, ra2 = 155., 205.
+        #dec1, dec2 = -42., -28.
+        #https://pole.uchicago.edu/spt3g/index.php/Observing_Cadence_Summer_2020_2021#Field_Definition
+        ra1, ra2 = 155., 225.
         dec1, dec2 = -42., -28.
 
     elif which_field == 'summer_field_el1b_el2b': #summer field
@@ -114,6 +118,11 @@ def get_spt3g_mask(which_field, nside_out = 4096):
     elif which_field == 'summer_field_el1_el5': #summer field
         ra1, ra2 = 50., 100.
         dec1, dec2 = -63., -28.
+
+    #20220225 - https://pole.uchicago.edu/spt3g/index.php/Observing_Cadence_Summer_2020_2021#Field_Definition
+    elif which_field == 'summer_field_el1_el2': #summer field
+        ra1, ra2 = 50., 100.
+        dec1, dec2 = -42., -28.
 
     delra, deldec = 0.1, 0.1
     raarr = np.arange(ra1, ra2, delra)
