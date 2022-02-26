@@ -128,12 +128,17 @@ if (0):#20220112 - CMB-S4 SP-LAT multiple noise levels, fksy, and gal cuts - mov
 if expname == 's4deepv3r025_plus_s4wide':
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
     specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide')
+#20220225 - 2028 ASO + single-CHLAT - we will take an inverse variance combination of Nyear single CHLAT and N+1 ASO
+elif expname.find('s4wide_single_chlat_plus_2028aso')>-1: 
+    specs_dic_aso, corr_noise_bands_aso, rho_aso, corr_noise_aso = exp_specs.get_exp_specs('s4wide_scaled_aso')
+    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4wide_single_chlat')
 else:
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm, corr_noise_for_spt = corr_noise_for_spt)
 
 #20220223 - include full SO-baseline, if requested
 if include_fulls4scaledsobaseline:
     specs_dic_fulls4scaledsobaseline, corr_noise_bands_fulls4scaledsobaseline, rho_fulls4scaledsobaseline, corr_noise_fulls4scaledsobaseline = exp_specs.get_exp_specs('s4wide_scaled_sobaseline')
+
 
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
@@ -172,6 +177,20 @@ for freq in freqarr:
         noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
         white_noise_T = white_noise_T * noise_scaling_fac
         white_noise_P = white_noise_P * noise_scaling_fac
+    #add N+1 year aso via inverse variance combination now
+    if expname.find('s4wide_single_chlat_plus_2028aso')>-1:
+        #the above noise numbers for N year single CHLAT
+        #now we will add N+1 year ASO
+        total_obs_time_2028_aso = total_obs_time + 1
+        white_noise_T_aso, white_noise_P_aso = specs_dic_aso[freq][1], specs_dic_aso[freq][4]
+        noise_scaling_fac_2028_aso = (total_obs_time_default / (total_obs_time_2028_aso))**0.5
+        white_noise_T_2028_aso = white_noise_T_aso * noise_scaling_fac_2028_aso
+        white_noise_P_2028_aso = white_noise_P_aso * noise_scaling_fac_2028_aso
+
+        white_noise_T = ( (1./white_noise_T**2.) + (1./white_noise_T_2028_aso**2.) )**-0.5
+        white_noise_P = ( (1./white_noise_P**2.) + (1./white_noise_P_2028_aso**2.) )**-0.5
+
+
     #20220223 - include full SO-baseline, if requested
     if include_fulls4scaledsobaseline:
         beam_arcmins_2, white_noise_T_2, elknee_T_2, alphaknee_T_2, white_noise_P_2, elknee_P_2, alphaknee_P_2 = specs_dic_fulls4scaledsobaseline[freq]

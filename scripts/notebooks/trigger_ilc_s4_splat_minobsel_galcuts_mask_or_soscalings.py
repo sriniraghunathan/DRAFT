@@ -31,10 +31,8 @@ if (1): #SO scalings
     #expname_arr = ['s4wide_scaled_sobaseline', 's4wide_scaled_aso', 's4wide_single_chlat_plus_aso']
     #expname_arr = ['s4wide']
     #expname_arr = ['s4wide_scaled_aso_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
-    expname_arr = ['s4wide_scaled_aso_plus_fulls4scaledsobaseline', 's4wide_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
-    #expname_arr = ['s4wide_scaled_aso_plus_fulls4scaledsobaseline']
-    #expname_arr = ['s4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
-    expname_arr = ['s4wide_plus_fulls4scaledsobaseline']
+    #expname_arr = ['s4wide_scaled_aso_plus_fulls4scaledsobaseline', 's4wide_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
+    expname_arr = ['s4wide_single_chlat_plus_2028aso_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_2028aso']
     s4_so_joint_configs = 1
     include_gal = 1
     which_gal_mask = 2
