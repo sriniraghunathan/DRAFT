@@ -33,7 +33,8 @@ if (1): #SO scalings
 
     #expname_arr = ['s4wide', 's4wide_scaled_aso_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
     #expname_arr = ['s4wide_scaled_aso_plus_fulls4scaledsobaseline', 's4wide_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline']
-    expname_arr = ['s4wide_single_chlat_plus_2028aso_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_2028aso']
+    #expname_arr = ['s4wide_single_chlat_plus_2028aso_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_2028aso']
+    expname_arr = ['s4deepv3r025']
 
     s4_so_joint_configs = 1
     include_gal = 1
@@ -42,6 +43,9 @@ if (1): #SO scalings
     save_fg_res_and_weights = 0
     total = 0
     for expname in expname_arr:
+        if expname == 's4deepv3r025':
+            include_gal = 0
+            which_gal_mask = -1
         if expname.find('plus_fulls4scaledsobaseline')>-1:
             include_fulls4scaledsobaseline = 1
         else:

@@ -105,7 +105,6 @@ try:
 except:
     remove_atm = 0
 
-
 # In[26]:
 
 
@@ -335,6 +334,7 @@ for which_spec in which_spec_arr:
 print(cl_dic.keys(), cl_dic.keys())
 print(el)
 ###sys.exit()
+
 
 # In[32]:
 
