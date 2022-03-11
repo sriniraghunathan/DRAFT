@@ -866,6 +866,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
             curr_cls[np.isnan(curr_cls)] = 0.
 
             if comps_to_subtract is not None:
+                #print('\n')
                 for comp in comps_to_subtract:
                     if comp.lower() == 'cmb':
                         el, curr_cl_to_subtract = get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
@@ -876,7 +877,30 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                     elif comp.lower() == 'tsz':
                         el, curr_cl_to_subtract = get_cl_tsz(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
                     curr_cl_to_subtract = curr_cl_to_subtract[:len(el_for_interp)]
+                    if (0):#f1==600 and f2==600:# and f2==857:
+                        #f1, f2 = 353, 353
+                        el, cl_cmb = get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+                        el, cl_dg_po, cl_dg_clus = get_cl_dust(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+                        cl_cib = cl_dg_po+cl_dg_clus
+                        el, cl_tsz = get_cl_tsz(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+                        clf()
+                        loglog(el, cl_cmb)
+                        loglog(el, cl_cib)
+                        loglog(el, cl_tsz)
+                        title('(%sx%s)' %(f1, f2))
+                        xlim(200, 3500); ylim(1e-6, 100.)
+                        show(); sys.exit()
+
+                        clf()
+                        loglog(el_for_interp, curr_cls)
+                        loglog(el_for_interp, curr_cl_to_subtract)
+                        loglog(el_for_interp, curr_cls-curr_cl_to_subtract)
+                        title('(%sx%s): %s' %(f1, f2, comp))
+                        xlim(200, 3500); ylim(1e-6, 100.)
+                        show(); #sys.exit()
+                        print(f1, f2, comp, curr_cl_to_subtract, curr_cls, curr_cls-curr_cl_to_subtract)
                     curr_cls = curr_cls - curr_cl_to_subtract
+                #sys.exit()
 
             if (1): # stitch it with a \ell^0.8 D_{\ell} or \ell^-1.2 C_{\ell}spectra
                 ext_inds = np.where(curr_els<el_norm)[0]

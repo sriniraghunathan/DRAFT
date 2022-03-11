@@ -1,9 +1,10 @@
 import numpy as np, sys, os, scipy as sc, foregrounds as fg, misc, re, flatsky#, healpy as H
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True):
+def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands=500, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True):
 
     #ignore_fg = foreground terms that must be ignored
+    debug=False
     possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
     if len(ignore_fg)>0:
         if 'cmb' in ignore_fg: ignore_fg.append('ksz')
@@ -91,6 +92,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 cib_corr_coeffs = None
 
             cl_dust[np.isnan(cl_dust)] = 0.
+            cl_dust = np.interp(el, el_, cl_dust)
             cl_dust_ori = np.copy(cl_dust)
             tit = 'G15/R20 CIB'
             if use_websky_cib:
@@ -103,18 +105,19 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'MDPL2 CIB'                
             if use_sptspire_for_hfbands:
-                if freq1>500 or freq2>500:
+                if freq1>minval_for_hfbands or freq2>minval_for_hfbands:
                     #el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
                     el_, cl_spt_spire = spt_spire_freq_crosses_dic[(freq1, freq2)]
-                    cl_dust = np.copy( cl_spt_spire )
-                    if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ) and freq1>500 or freq2>500: #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
+                    if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ) and freq1>minval_for_hfbands or freq2>minval_for_hfbands: #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
+                        #nl_dic[(freq1, freq1)] = nl_dic[(freq2, freq2)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'SPTxSPIRE CIB'
 
             #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
-            reqd_freq = 150 ##220 ##150 ##90
+            reqd_freq = 220 ##220 ##150 ##220 ##150 ##90
             if (0):#freq1 == reqd_freq or freq2 == reqd_freq: 
+                debug=True
                 #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
                 #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
@@ -157,7 +160,10 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     else:
                         colorval = shadearr[cind]
                     #print(colorval)
-                    ax = subplot(111, yscale = 'log', xscale = 'log')
+                    try:
+                        ax
+                    except:
+                        ax = subplot(111, yscale = 'log', xscale = 'log')
                     #print(freq1, freq2, cl_dust)
                     plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
                     plot(el, cl_dust_ori, color = colorval, ls = ':')
@@ -167,6 +173,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
                     title(r'%s spectra' %(tit))
                     ylim(1e-7, 1e5)
+                    #show(); sys.exit()
 
             if which_spec == 'EE':
                 cl_dust = cl_dust * pol_frac_per_cent_dust**2.
@@ -370,7 +377,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 legend(loc = 3, ncol = 2, fontsize = 6) 
 
             cl_dic[(freq1, freq2)] = cl
-
+    if debug: legend(loc = 1, ncol = 2, fontsize = 10); show(); sys.exit()
     if return_fg_spectra:
         return el, cl_dic, fg_cl_dic
     else:
