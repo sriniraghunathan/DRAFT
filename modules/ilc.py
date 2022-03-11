@@ -108,9 +108,15 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 if freq1>minval_for_hfbands or freq2>minval_for_hfbands:
                     #el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
                     el_, cl_spt_spire = spt_spire_freq_crosses_dic[(freq1, freq2)]
+                    cl_dust = np.copy( cl_spt_spire )
+                    #20220311 - actually what is written below is not true, I think.
+                    #SPTxSPIRE:
+                        #cross spectra obviously does not include noise.
+                        #auto spectra: also should not include noise because there are obtained by crossing different halves.
+                    """
                     if which_spec == 'TT' and ( (freq1, freq2) in nl_dic or (freq2, freq1) in nl_dic ) and freq1>minval_for_hfbands or freq2>minval_for_hfbands: #null nl_TT as SPTxSPIRE bandpowers already inlcudes them.
                         nl_dic[(freq1, freq2)] = nl_dic[(freq2, freq1)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
-                        #nl_dic[(freq1, freq1)] = nl_dic[(freq2, freq2)] = np.zeros( len(nl_dic[(freq1, freq2)]) )
+                    """
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'SPTxSPIRE CIB'
 
@@ -202,7 +208,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     ylim(0.1, 1e4); xlim(2000, 1e4)
                     show()
             else: 
-                el_, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic, reduce_tsz_power = reduce_tsz_power)
+                el_, cl_tsz_cib = fg.get_cl_tsz_cib(freq1, freq2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'], spec_index_dg_po = param_dict['spec_index_dg_po'], spec_index_dg_clus = param_dict['spec_index_dg_clus'], Tcib = param_dict['Tcib'], use_websky_cib = use_websky_cib, use_sptspire_for_hfbands = use_sptspire_for_hfbands, minval_for_hfbands = minval_for_hfbands,  use_mdpl2_cib = use_mdpl2_cib, cl_cib_dic = spt_spire_freq_crosses_dic, reduce_tsz_power = reduce_tsz_power)
             if which_spec == 'EE' or which_spec == 'TE':
                 cl_tsz_cib = cl_tsz_cib * 0.
 

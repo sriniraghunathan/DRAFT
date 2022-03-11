@@ -260,7 +260,7 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15', reduce_tsz_powe
 
     return el, cl_tsz
 
-def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, cl_cib_dic = None, reduce_tsz_power = None):
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands = 500, use_mdpl2_cib = 0, cl_cib_dic = None, reduce_tsz_power = None):
 
     if fg_model == 'george15':
         corr_coeff = 0.1
@@ -281,7 +281,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
             #el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
             el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2_v0p3(freq1, freq1, el = el)
         elif use_sptspire_for_hfbands:
-            if freq1>500:
+            if freq1>minval_for_hfbands:
                 el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
 
     #get tSZ and CIB spectra for freq2
@@ -298,13 +298,14 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
             #el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
             el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2_v0p3(freq2, freq2, el = el)
         elif use_sptspire_for_hfbands:
-            if freq2>500:
+            if freq2>minval_for_hfbands:
                 el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)
     if len(el) != len(cl_tsz_freq2_freq2):
         cl_tsz_freq1_freq1 = np.interp(el, np.arange(len(cl_tsz_freq1_freq1)),cl_tsz_freq1_freq1)
         cl_tsz_freq2_freq2 = np.interp(el, np.arange(len(cl_tsz_freq2_freq2)),cl_tsz_freq2_freq2)
 
     cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
+    cl_tsz_cib = cl_tsz_cib * 0.
 
     return el, cl_tsz_cib
 
