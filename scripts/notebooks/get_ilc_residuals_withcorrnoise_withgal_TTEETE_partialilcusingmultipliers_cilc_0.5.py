@@ -11,9 +11,9 @@ get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('matplotlib', 'inline')
 '''
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
-import os
-rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
+#from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
+#import os
+#rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 
 # In[22]:
@@ -387,7 +387,7 @@ if (0):#1):
     ylabel(r'D$_{\ell}$ [$\mu K^{2}$]')
     title(r'Point sources / tSZ power @ 145 GHZ')
     ylim(1e-1, 1e3)
-    xlim(100, 5000)
+    xlim(100, param_dict['lmax'])
     setp(ax.get_xticklabels(which = 'both'), visible=False)
 
     ax = subplot2grid((tr,tc), (rspan+1, 0), rowspan = rspan2)
@@ -405,7 +405,7 @@ if (0):#1):
     xlabel(r'Multipole $\ell$')
     ylabel(r'DRAFT/WAFTT', fontsize = 8)
     ylim(0.5, 1.5)
-    xlim(100, 5000)
+    xlim(100, param_dict['lmax'])
     axhline(1., lw = 0.5)
 
 
@@ -494,7 +494,7 @@ if null_comp is None:
     if (0):
         clf()
         ax=subplot(111, yscale = 'log')
-        plot(cl_residual_arr[0]); xlim(100, 5000); ylim(1e-7, 1e-4); show(); sys.exit()
+        plot(cl_residual_arr[0]); xlim(100, param_dict['lmax']); ylim(1e-7, 1e-4); show(); sys.exit()
     for which_spec in which_spec_arr:
         if which_spec == 'TT':
            cl_res = cl_residual_arr[0]
@@ -673,6 +673,8 @@ if null_comp is not None:
     null_comp_str = 'nulled_%s' %('-'.join(null_comp))
     parent_folder = '%s/%s/' %(parent_folder, null_comp_str)
 
+if param_dict['lmax']>5002:
+    parent_folder = '%s/lmax_%s/' %(parent_folder, param_dict['lmax'])    
 parent_folder = '%s/%s/' %(parent_folder, expname)
 
 opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
@@ -783,7 +785,8 @@ fig = figure(figsize = (6,3))
 fsval = 8
 lwval = 0.75
 plot_weights = 0
-xmin, xmax = 100, 5000
+xmin, xmax = 100, param_dict['lmax']
+print(xmin, xmax)
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
     subplots_adjust(wspace=0.1, hspace = 0.1)

@@ -299,7 +299,10 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
             el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2_v0p3(freq2, freq2, el = el)
         elif use_sptspire_for_hfbands:
             if freq2>500:
-                el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)    
+                el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)
+    if len(el) != len(cl_tsz_freq2_freq2):
+        cl_tsz_freq1_freq1 = np.interp(el, np.arange(len(cl_tsz_freq1_freq1)),cl_tsz_freq1_freq1)
+        cl_tsz_freq2_freq2 = np.interp(el, np.arange(len(cl_tsz_freq2_freq2)),cl_tsz_freq2_freq2)
 
     cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
 
@@ -811,8 +814,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
             #print(f1, f2, conv_factor_f1, conv_factor_f2, curr_conv_factor)
             #curr_cls *= (curr_conv_factor)
             if units == 'tcmb':
-                print(curr_cls, curr_conv_factor)
-                sys.exit()
+                #print(curr_cls, curr_conv_factor);sys.exit()
                 curr_cls *= (curr_conv_factor**2)
 
         elif units_flag_arr[cntr] == 1:
