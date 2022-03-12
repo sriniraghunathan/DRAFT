@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, foregrounds as fg, misc, re, flatsky#, healpy as H
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands=500, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True):
+def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, scale_spt_using_sptspire = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands=500, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True):
 
     #ignore_fg = foreground terms that must be ignored
     debug=False
@@ -29,7 +29,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
     cl_dic = {}
     cl_ori = np.zeros(len(el))
-    if use_sptspire_for_hfbands:
+    if use_sptspire_for_hfbands or scale_spt_using_sptspire:
         param_dict['reduce_radio_power_150'] = reduce_radio_power_150
         comps_to_subtract_from_spt_spire = ['CMB', 'kSZ', 'tSZ', 'radio']
         spt_spire_freq_crosses_dic = fg.get_spt_spire_bandpower(el_for_interp = el, comps_to_subtract = comps_to_subtract_from_spt_spire, param_dict = param_dict)
@@ -104,11 +104,19 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 el_,  cl_dust = fg.get_cl_cib_mdpl2_v0p3(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'MDPL2 CIB'                
-            if use_sptspire_for_hfbands:
+            if use_sptspire_for_hfbands or scale_spt_using_sptspire:
                 if freq1>minval_for_hfbands or freq2>minval_for_hfbands:
                     #el, cl_dust = fg.get_spt_spire_bandpower(freq1, freq2, el_for_interp = el)
                     el_, cl_spt_spire = spt_spire_freq_crosses_dic[(freq1, freq2)]
-                    cl_dust = np.copy( cl_spt_spire )
+                    if use_sptspire_for_hfbands:
+                        cl_dust = np.copy( cl_spt_spire )
+                    elif scale_spt_using_sptspire: #20220311 - scale G15/R21 based on SPTxSPIRE
+                        el_for_scaling = 3000
+                        spt_spire_val = np.interp( el_for_scaling, el_, cl_spt_spire )
+                        curr_val = np.interp( el_for_scaling, el, cl_dust )
+                        scaling_val = spt_spire_val/curr_val
+                        cl_dust = cl_dust * scaling_val
+
                     #20220311 - actually what is written below is not true, I think.
                     #SPTxSPIRE:
                         #cross spectra obviously does not include noise.

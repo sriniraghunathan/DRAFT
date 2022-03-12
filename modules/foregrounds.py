@@ -305,6 +305,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
         cl_tsz_freq2_freq2 = np.interp(el, np.arange(len(cl_tsz_freq2_freq2)),cl_tsz_freq2_freq2)
 
     cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
+    #cl_tsz_cib = cl_tsz_cib * 0.
 
     return el, cl_tsz_cib
 
@@ -836,7 +837,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                     plot(curr_els, curr_cls)
                     plot(curr_els, curr_cls_smoothed)
                     show(); sys.exit()
-            '''
+            '''            
             curr_els_ori = np.copy(curr_els)
             if (0): #extrapolating to lower \ell as well
                 fn_curr_cls_ip = intrp.interp1d(curr_els, curr_cls, fill_value = 'extrapolate')
@@ -901,6 +902,18 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                         print(f1, f2, comp, curr_cl_to_subtract, curr_cls, curr_cls-curr_cl_to_subtract)
                     curr_cls = curr_cls - curr_cl_to_subtract
                 #sys.exit()
+
+            '''
+            clf()
+            ax = subplot(111, yscale = 'log')
+            plot(curr_els, curr_cls);
+            ext_inds = np.where(curr_els<el_norm)[0]
+            curr_cls[ext_inds] = curr_cls[curr_els == el_norm][0] * (1.*el_norm/curr_els[ext_inds])**1.2
+            plot(curr_els, curr_cls); 
+            curr_cls = smooth_cib_spectra(curr_els, curr_cls)
+            plot(curr_els, curr_cls); 
+            show(); sys.exit()
+            '''
 
             if (1): # stitch it with a \ell^0.8 D_{\ell} or \ell^-1.2 C_{\ell}spectra
                 ext_inds = np.where(curr_els<el_norm)[0]
