@@ -1,9 +1,10 @@
-import numpy as np
+import numpy as np, copy, sys
 
 def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
 
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
-        if expname == 's4wide':
+        #if expname == 's4wide' or expname.find('s4wide_scaled_sobaseline')>-1 or expname.find('s4wide_scaled_aso')>-1 or expname.find('s4wide_single_chlat')>-1 or expname.find('s4wide_single_chlat_plus_aso')>-1 or expname.find('s4wide_plus')>-1:
+        if expname == 's4wide' or expname.find('s4wide_scaled')>-1 or expname.find('s4wide_single')>-1:
 
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
@@ -53,6 +54,40 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
                 278: [0.9, 16.7, 7308., 0., 23.6, 700, 0.],
                 }
             '''
+
+            #20220222 - modify S4 noise levels based on S4/SO detector scalings
+            if expname == 's4wide_scaled_sobaseline':
+                scaling_factors = np.sqrt( 2. ) * np.sqrt( [3.1, 3.1, 2.6*2., 2.5*2., 2.0*2., 1.8*2.] )
+            elif expname == 's4wide_scaled_aso' or expname == 's4wide_scaled_aso_plus_fulls4scaledsobaseline':
+                scaling_factors = np.sqrt( 2. ) * np.sqrt( [3.1, 3.1, 2.6, 2.5, 2.0, 1.8] )
+            elif expname == 's4wide_single_chlat':
+                scaling_factors = np.sqrt( 2. ) * np.sqrt( [1., 1., 1., 1., 1., 1.] )
+            elif expname == 's4wide_single_chlat_plus_aso' or expname == 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline':
+                scaling_factors_1 = np.sqrt( 2. ) * np.sqrt( [1., 1., 1., 1., 1., 1.] ) #single ch-lat
+                scaling_factors_2 = np.sqrt( 2. ) * np.sqrt( [3.1, 3.1, 2.6, 2.5, 2.0, 1.8] ) #advanced-SO
+            elif expname == 's4wide' or expname == 's4wide_plus_fulls4scaledsobaseline':
+                scaling_factors = np.asarray( [1., 1., 1., 1., 1., 1.] )
+            
+
+            specs_dic_ori = copy.deepcopy(specs_dic)
+            if expname == 's4wide_single_chlat_plus_aso' or expname == 's4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline':
+                for nucntr, nu in enumerate( specs_dic ):
+                    delta_t_1 = specs_dic[nu][1] * scaling_factors_1[nucntr]
+                    delta_t_2 = specs_dic[nu][1] * scaling_factors_2[nucntr]
+
+                    delta_p_1 = specs_dic[nu][4] * scaling_factors_1[nucntr]
+                    delta_p_2 = specs_dic[nu][4] * scaling_factors_2[nucntr]
+
+                    delta_t = (1./delta_t_1**2. + 1./delta_t_2**2.)**-0.5
+                    delta_p = (1./delta_p_1**2. + 1./delta_p_2**2.)**-0.5
+
+                    specs_dic[nu][1] = delta_t
+                    specs_dic[nu][4] = delta_p
+            else:
+                for nucntr, nu in enumerate( specs_dic ):
+                    specs_dic[nu][1] *= scaling_factors[nucntr]
+                    specs_dic[nu][4] *= scaling_factors[nucntr]                
+            #20220222 - modify S4 noise levels based on S4/SO detector scalings
 
         elif expname == 's4wide_chlat_el40':
             #https://cmb-s4.atlassian.net/wiki/spaces/XC/pages/680853505/Neff+forecasts+for+CHLAT+for+different+observing+elevations
@@ -118,7 +153,7 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
             }
             '''
 
-        elif expname == 's4deepv3r025':
+        elif expname == 's4deepv3r025' or expname == 's4deepv3r025_tma':
             #https://cmb-s4.org/wiki/index.php/Delensing_sensitivity_-_updated_sensitivities,_beams,_TT_noise
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
@@ -130,6 +165,13 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
             225: [1.1, 1.29, 2100., 4.1, 1.83, 200, 2.2],
             278: [1.0, 3.07, 2100., 3.9, 4.34, 200, 2.2],
             }
+
+            if expname == 's4deepv3r025_tma':
+                s4deep_CD_dia = 6. #metres
+                s4deep_TMA_dia = 5. #metres
+                for nu in specs_dic:
+                    specs_dic[nu][0] = specs_dic[nu][0] * s4deep_CD_dia/s4deep_TMA_dia
+
 
         freqarr = sorted( specs_dic.keys() )
         nc = len( freqarr )

@@ -1,5 +1,31 @@
 ################################################################################################################
 
+def get_lat_based_masks(nside, max_lat_mask = 50., delta_lat = 10., rotate_to_radec = False):
+    """
+    #get lat-based masks in ra/dec coordinates
+    """
+    lat_arr = np.arange( 0., max_lat_mask+1., delta_lat)
+
+    hmask_dic = {}
+    npix = H.nside2npix( nside )
+    phi_deg, theta_deg = H.pix2ang( nside, np.arange(npix), lonlat = 1 )
+    
+    for lval in lat_arr:
+        curr_mask = np.ones( npix )
+        unmask_pixels = np.where( (theta_deg>=-lval) & (theta_deg<=lval) )[0]
+        curr_mask[unmask_pixels] = 0.
+
+        if rotate_to_radec:#rotate to ra/dec
+            curr_mask = healpix_rotate_coords(curr_mask, coord = ['G', 'C'])
+
+        '''
+        H.mollview( curr_mask, coord = ['C', 'G'], sub = (2,2,1) ); H.graticule();
+        H.mollview( curr_mask, sub = (2,2,2) ); H.graticule(); show(); #sys.exit()
+        '''
+        hmask_dic[lval] = curr_mask
+
+    return hmask_dic #these are lat masks in ra/dec coordinates
+
 def split_mask_into_smaller_masks(large_hmask, which_field = 'low_gal', hit_map = None):
     nside = 512 #this is okay to get a rough fsky number
     npix = H.nside2npix(nside) #total number of pixels
@@ -37,7 +63,7 @@ def split_mask_into_smaller_masks(large_hmask, which_field = 'low_gal', hit_map 
         H.mollview(large_hmask_mod, sub = (1,3,3), cmap = cm.jet)    
     return large_hmask_mod, hmask
 
-def healpix_rotate_coords(hmap, coord):
+def healpix_rotate_coords(hmap, coord, beam_to_use_for_smoothing = None, threshold = 0.001):
     """
     coord = ['C', 'G'] to convert a map in RADEC to Gal.    
     """
@@ -60,6 +86,10 @@ def healpix_rotate_coords(hmap, coord):
 
     #push the original map pixel to the new map (in the rotated pixel positions)
     rot_hmap[rotated_pixel] = hmap[pixel]
+    if beam_to_use_for_smoothing is not None:
+        rot_hmap = H.smoothing(rot_hmap, fwhm = np.radians(beam_to_use_for_smoothing))
+        rot_hmap[rot_hmap>threshold] = 1.
+        rot_hmap[rot_hmap<threshold] = 0.
 
     return rot_hmap
 
@@ -74,7 +104,11 @@ def get_spt3g_mask(which_field, nside_out = 4096):
         dec1, dec2 = -64., -42.
 
     elif which_field == 'summer_field_el1c_el2c': #summer field
-        ra1, ra2 = 155., 205.
+        #20220225
+        #ra1, ra2 = 155., 205.
+        #dec1, dec2 = -42., -28.
+        #https://pole.uchicago.edu/spt3g/index.php/Observing_Cadence_Summer_2020_2021#Field_Definition
+        ra1, ra2 = 155., 225.
         dec1, dec2 = -42., -28.
 
     elif which_field == 'summer_field_el1b_el2b': #summer field
@@ -84,6 +118,11 @@ def get_spt3g_mask(which_field, nside_out = 4096):
     elif which_field == 'summer_field_el1_el5': #summer field
         ra1, ra2 = 50., 100.
         dec1, dec2 = -63., -28.
+
+    #20220225 - https://pole.uchicago.edu/spt3g/index.php/Observing_Cadence_Summer_2020_2021#Field_Definition
+    elif which_field == 'summer_field_el1_el2': #summer field
+        ra1, ra2 = 50., 100.
+        dec1, dec2 = -42., -28.
 
     delra, deldec = 0.1, 0.1
     raarr = np.arange(ra1, ra2, delra)
@@ -103,10 +142,70 @@ def get_spt3g_mask(which_field, nside_out = 4096):
 
     return HMASK
 
+def set_telescope_observer(lat = -89.991066, lon = -44.65, elevation = 2835.0, astropy = 1):#, location = 'southpole'):
+    '''
+    if location == 'southpole':
+        lat, lon, elevation = -22.57, -67.47, 5200. #Chile
+    elif location == 'chile':
+        lat, lon, elevation = -22.57, -67.47, 5200. #Chile
+    '''
+    splat = coord.EarthLocation(lat=lat*u.deg,lon=lon*u.deg, height=elevation*u.meter)
+
+    return splat
+
+def get_footprint_for_min_obs_el(nside, min_obs_el, max_obs_el = 85., timearr = None, ra_dec_arr = None, yyyy = 2029, delta_mm = 1, delta_dd = 30., delta_hh = 24., location = 'southpole', beam_to_use_for_smoothing = 0.5, threshold = 0.001):#, epoch = 'J2000'):
+    if ra_dec_arr is None:
+        raarr = np.arange(-180, 180., 0.1)
+        decarr = np.arange(-90., 90., 0.1)
+
+        ra_dec_arr = []
+        for r in raarr:
+            for d in decarr:
+                ra_dec_arr.append( [r, d])
+        ra_dec_arr = np.asarray( ra_dec_arr )
+
+    if timearr is None: #does not matter for pole.
+        timearr = []
+        for mm in np.arange(1, 13, delta_mm):
+            for dd in np.arange(1, 30, delta_dd):
+                for hh in np.arange(1, 24, delta_hh):
+                    tval = '%04d-%02d-%02dT%02d:00:00' %(yyyy, mm, dd, hh)
+                    try:
+                        t = Time(tval, format='isot', scale='utc')
+                        timearr.append( tval )
+                    except:
+                        pass
+        timearr = Time(timearr, format='isot', scale='utc')
+
+    astropy_coord_radec = SkyCoord(ra_dec_arr[:,0], ra_dec_arr[:,1], unit='deg', frame='icrs')
+    splat = set_telescope_observer()
+    npix = H.nside2npix(nside)
+    hmask = np.zeros(npix)
+
+    for t in timearr:
+        astropy_coord_altaz = astropy_coord_radec.transform_to(coord.AltAz(obstime=t,location=splat))
+        az, el = astropy_coord_altaz.az.value, astropy_coord_altaz.alt.value
+        good_inds = np.where( (el>=min_obs_el) & (el<=max_obs_el) )[0]
+        good_ra_dec = ra_dec_arr[good_inds]
+
+        good_pixels = H.ang2pix(nside, np.radians(90.-good_ra_dec[:,1]), np.radians(good_ra_dec[:,0]))
+
+        hmask[good_pixels] = 1.
+        if location == 'southpole': break
+
+    hmask = H.smoothing(hmask, fwhm = np.radians(beam_to_use_for_smoothing))    
+    hmask[hmask<threshold] = 0.
+    hmask[hmask>threshold] = 1.
+
+    return hmask
 ############################################################
 ############################################################
 
 import healpy as H, numpy as np, glob, sys, os, argparse
+from astropy.time import Time
+from astropy import units as u
+from astropy import coordinates as coord
+from astropy.coordinates import SkyCoord, EarthLocation
 
 local = 1
 if str(os.getcwd()).find('sri')>-1: local = 0
@@ -136,6 +235,10 @@ parser.add_argument('-use_s4like_mask_v3', dest='use_s4like_mask_v3', action='st
 parser.add_argument('-use_s4delensing_mask', dest='use_s4delensing_mask', action='store', help='use_s4delensing_mask', type=int, default=0) #no mask * delensing footprint (or hit map actually).
 parser.add_argument('-cos_el', dest='cos_el', action='store', help='cos_el', type=int, default=40) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-use_spt3g_mask', dest='use_spt3g_mask', action='store', help='use_spt3g_mask', type=int, default=0) #SPT-3G summer/winter field
+
+#20210111 - CMB-S4 SP-LAT - different min obs el and gal cuts
+parser.add_argument('-min_obs_el', dest='min_obs_el', action='store', help='min_obs_el', type=float, default=30.)
+parser.add_argument('-use_splat_minobsel_galcuts', dest='use_splat_minobsel_galcuts', action='store', help='use_splat_minobsel_galcuts', type=int, default=0)
 
 
 parser.add_argument('-testing', dest='testing', action='store', help='testing', type=int, default=0)
@@ -178,7 +281,7 @@ if testing or local:
     nuarr = [ 145 ]
     if pySM_yomori:
         nuarr = [ 143 ]
-    t_only = 1
+    t_only = 0 #1
 
 '''
 if not local:
@@ -239,6 +342,8 @@ if zonca_sims or pySM_yomori:
         opfname = '%s/s4delensing_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_spt3g_mask:
         opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+    elif use_splat_minobsel_galcuts:
+        opfname = '%s/s4_use_splat_minobsel%s_galcuts/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, min_obs_el, dust_or_sync, nside, lmax)
 else:
     if local:
         sim_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/ilc/galactic/CUmilta/ampmod_maps/'
@@ -266,6 +371,7 @@ if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
 if use_s4like_mask_v3: os.system('mkdir %s/s4like_mask_v3/' %(sim_folder))
 if use_s4delensing_mask: os.system('mkdir %s/s4delensing_mask/' %(sim_folder))
 if use_spt3g_mask: os.system('mkdir %s/spt3g/' %(sim_folder))
+if use_splat_minobsel_galcuts: os.system('mkdir %s/s4_use_splat_minobsel%s_galcuts/' %(sim_folder, min_obs_el))
 
 if not os.path.exists('tmp/'): os.system('mkdir tmp/')
 log_file = 'tmp/pspec_%s.txt' %(dust_or_sync)
@@ -281,12 +387,14 @@ if not use_spt3g_mask:##cos_el != 30:
     if use_s4delensing_mask:
         log_file = log_file.replace('.txt', '_delensing.txt') 
         opfname = opfname.replace('.npy', '_delensing.npy')
+    elif use_splat_minobsel_galcuts:
+        log_file = log_file.replace('.txt', '_minobsel%s.txt' %(min_obs_el))
+        opfname = opfname.replace('.npy', '_minobsel%s.npy' %(min_obs_el))
     else:
         log_file = log_file.replace('.txt', '_cos_el_%s.txt' %(cos_el))     
         opfname = opfname.replace('.npy', '_cos_el_%s.npy' %(cos_el))
 
 lf = open(log_file, 'w'); lf.close()
-
 if (1):#testing or not local:
 
     totthreads = 2
@@ -337,15 +445,18 @@ if (1):#testing or not local:
         map_dic[nu] = currmap
 
     if not use_spt3g_mask: #get cmbs4 footprint if not SPT
-        if not use_s4delensing_mask:
-            cmbs4_hit_map_fname = '%s/high_cadence_hits_el%s_cosecant_modulation.fits' %(cmbs4_footprint_folder, cos_el)
+        if use_splat_minobsel_galcuts:
+            cmbs4_hit_map = get_footprint_for_min_obs_el(nside, min_obs_el = min_obs_el)
         else:
-            cmbs4_hit_map_fname = '%s/cmbs4_hitmap_LAT-MFPL1_pole_nside4096_1_of_1.fits' %(cmbs4_footprint_folder)
-        #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
-        cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
-        cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
-        if H.get_nside(cmbs4_hit_map) != nside:
-            cmbs4_hit_map = H.ud_grade(cmbs4_hit_map, nside_out = nside)
+            if not use_s4delensing_mask:
+                cmbs4_hit_map_fname = '%s/high_cadence_hits_el%s_cosecant_modulation.fits' %(cmbs4_footprint_folder, cos_el)
+            else:
+                cmbs4_hit_map_fname = '%s/cmbs4_hitmap_LAT-MFPL1_pole_nside4096_1_of_1.fits' %(cmbs4_footprint_folder)
+            #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
+            cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
+            cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
+            if H.get_nside(cmbs4_hit_map) != nside:
+                cmbs4_hit_map = H.ud_grade(cmbs4_hit_map, nside_out = nside)
 
     #now get masks
     if use_planck_mask:
@@ -363,6 +474,13 @@ if (1):#testing or not local:
         '''
 
         tot_masks = len(planck_mask)
+
+    elif use_splat_minobsel_galcuts: #20210111 - CMB-S4 SP-LAT - different min obs el and gal cuts
+        lat_mask_dic = get_lat_based_masks(nside)#, use_lat_steps = use_lat_steps)
+        splat_minobsel_galcuts_mask_arr = []
+        for galcut_bval in lat_mask_dic:
+            splat_minobsel_galcuts_mask_arr.append( lat_mask_dic[galcut_bval] )
+        tot_masks = len(splat_minobsel_galcuts_mask_arr)
 
     elif use_lat_step_mask:
 
@@ -452,6 +570,10 @@ if (1):#testing or not local:
 
             mask = np.copy(planck_mask[mask_iter])
 
+        elif use_splat_minobsel_galcuts:
+
+            mask = splat_minobsel_galcuts_mask_arr[mask_iter]
+
         elif use_lat_step_mask:
 
             mask = lat_mask_arr[mask_iter]
@@ -516,6 +638,12 @@ if (1):#testing or not local:
             '''
         mask_arr = np.concatenate( (mask_arr, unclean_mask_arr) )
         tot_masks = len(mask_arr)
+
+    if use_splat_minobsel_galcuts: #20220111 - CMB-S4 SP-LAT
+        mask_arr = mask_arr * cmbs4_hit_map
+        if (0):
+            for i in range(len(mask_arr)):
+                H.mollview(mask_arr[i]); show()
 
     if use_s4like_mask_v3: #20210204: split clean regiosn into 2 sub-fields
         tots4masks = len(s4like_mask_arr)

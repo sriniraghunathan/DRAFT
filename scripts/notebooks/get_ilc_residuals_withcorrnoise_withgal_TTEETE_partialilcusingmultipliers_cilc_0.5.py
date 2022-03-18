@@ -11,9 +11,9 @@ get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('matplotlib', 'inline')
 '''
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
-import os
-rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
+#from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
+#import os
+#rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 
 # In[22]:
@@ -37,6 +37,26 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 #warnings.filterwarnings('ignore', category=DeprecationWarning)
 #warnings.filterwarnings('ignore', category=matplotlib.cbook.mplDeprecation)
 
+parser = argparse.ArgumentParser(description='')
+parser.add_argument('-expname', dest='expname', action='store', help='expname', type=str, required=True)
+parser.add_argument('-total_obs_time', dest='total_obs_time', action='store', help='total_obs_time in years', type=float, default=7.0)
+parser.add_argument('-include_gal', dest='include_gal', action='store', help='include_gal', type=int, default=0)
+parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='which_gal_mask', type=int, default=-1)
+parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='interactive_mode', type=int, default=1)
+parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='save_fg_res_and_weights', type=int, default=1)
+parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='s4_so_joint_configs', type=int, default=0)
+parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scaledsobaseline', action='store', help='include_fulls4scaledsobaseline', type=int, default=0)
+
+args = parser.parse_args()
+args_keys = args.__dict__
+for kargs in args_keys:
+    param_value = args_keys[kargs]
+    if isinstance(param_value, str):
+        cmd = '%s = "%s"' %(kargs, param_value)
+    else:
+        cmd = '%s = %s' %(kargs, param_value)
+    exec(cmd)
+# In[4]:
 
 # In[24]:
 
@@ -46,7 +66,7 @@ h=6.62607004e-34 #Planck constant in m2 kg / s
 k_B=1.38064852e-23 #Boltzmann constant in m2 kg s-2 / K-1
 Tcmb = 2.73 #Kelvin
 
-total_obs_time = float(sys.argv[1]) #in years
+###total_obs_time = float(sys.argv[1]) #in years
 # In[25]:
 
 
@@ -56,11 +76,19 @@ paramfile = 'params.ini'
 # read and store param dict
 param_dict = misc.fn_get_param_dict(paramfile)
 el = np.arange(param_dict['lmax'])
-include_gal = param_dict['include_gal'] ##1
+
+#20220112 - moved to argparse
+###include_gal = param_dict['include_gal'] ##1  
+param_dict['include_gal'] = include_gal
+
 s4like_mask = param_dict['s4like_mask']
 s4like_mask_v2 = param_dict['s4like_mask_v2']
 s4like_mask_v3 = param_dict['s4like_mask_v3']
 s4delensing_mask = param_dict['s4delensing_mask']
+splat_minobsel_galcuts_mask = param_dict['splat_minobsel_galcuts_mask']
+
+#20220112 - moved to argparse
+param_dict['which_gal_mask'] = which_gal_mask
 if not include_gal:
     if s4like_mask:
         param_dict['which_gal_mask'] = 3
@@ -71,11 +99,11 @@ if not include_gal:
     elif s4delensing_mask:
         param_dict['which_gal_mask'] = 0
 which_gal_mask = param_dict['which_gal_mask']
+
 try:
     remove_atm = param_dict['remove_atm']
 except:
     remove_atm = 0
-
 
 # In[26]:
 
@@ -87,16 +115,30 @@ except:
 #expname = 's4deep'
 #expname = 's4deepv3r025' #20201019
 #expname = 's4deepv3r025_plus_s4wide'
+corr_noise_for_spt = 0 ##1 ##0 ##1
 
-if (1):
+if (0):
     expname = 'spt3g'
     corr_noise_for_spt = 0 ##1 ##0 ##1
+
+if (0):#20220112 - CMB-S4 SP-LAT multiple noise levels, fksy, and gal cuts - moved it to argparse
+    expname = 's4deepv3r025'
 
 if expname == 's4deepv3r025_plus_s4wide':
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
     specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide')
+#20220225 - 2028 ASO + single-CHLAT - we will take an inverse variance combination of Nyear single CHLAT and N+1 ASO
+elif expname.find('s4wide_single_chlat_plus_2028aso')>-1: 
+    specs_dic_aso, corr_noise_bands_aso, rho_aso, corr_noise_aso = exp_specs.get_exp_specs('s4wide_scaled_aso')
+    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4wide_single_chlat')
 else:
     specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm, corr_noise_for_spt = corr_noise_for_spt)
+
+#20220223 - include full SO-baseline, if requested
+if include_fulls4scaledsobaseline:
+    specs_dic_fulls4scaledsobaseline, corr_noise_bands_fulls4scaledsobaseline, rho_fulls4scaledsobaseline, corr_noise_fulls4scaledsobaseline = exp_specs.get_exp_specs('s4wide_scaled_sobaseline')
+
+
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
 freqcalib_fac = None
@@ -133,7 +175,29 @@ for freq in freqarr:
     if (1): #noise scaling based on total_obs_time
         noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
         white_noise_T = white_noise_T * noise_scaling_fac
-        white_noise_P = white_noise_P * noise_scaling_fac        
+        white_noise_P = white_noise_P * noise_scaling_fac
+    #add N+1 year aso via inverse variance combination now
+    if expname.find('s4wide_single_chlat_plus_2028aso')>-1:
+        #the above noise numbers for N year single CHLAT
+        #now we will add N+1 year ASO
+        total_obs_time_2028_aso = total_obs_time + 1
+        white_noise_T_aso, white_noise_P_aso = specs_dic_aso[freq][1], specs_dic_aso[freq][4]
+        noise_scaling_fac_2028_aso = (total_obs_time_default / (total_obs_time_2028_aso))**0.5
+        white_noise_T_2028_aso = white_noise_T_aso * noise_scaling_fac_2028_aso
+        white_noise_P_2028_aso = white_noise_P_aso * noise_scaling_fac_2028_aso
+
+        white_noise_T = ( (1./white_noise_T**2.) + (1./white_noise_T_2028_aso**2.) )**-0.5
+        white_noise_P = ( (1./white_noise_P**2.) + (1./white_noise_P_2028_aso**2.) )**-0.5
+
+
+    #20220223 - include full SO-baseline, if requested
+    if include_fulls4scaledsobaseline:
+        beam_arcmins_2, white_noise_T_2, elknee_T_2, alphaknee_T_2, white_noise_P_2, elknee_P_2, alphaknee_P_2 = specs_dic_fulls4scaledsobaseline[freq]
+        white_noise_T_2 = white_noise_T_2 * np.sqrt(7./5.)
+        white_noise_P_2 = white_noise_P_2 * np.sqrt(7./5.)
+        white_noise_T = (1./white_noise_T**2. + 1./white_noise_T_2**2.)**-0.5
+        white_noise_P = (1./white_noise_P**2. + 1./white_noise_P_2**2.)**-0.5
+
     beamarr.append(beam_arcmins)
     noisearr_T.append(white_noise_T)
     noisearr_P.append(white_noise_P)
@@ -142,8 +206,13 @@ for freq in freqarr:
     alphakneearr_T.append(alphaknee_T)
     alphakneearr_P.append(alphaknee_P)    
 
-print(elkneearr_T)
-
+print('\n')
+#print(elkneearr_T)
+print('Delta T =', noisearr_T)
+print('Delta P =', noisearr_P)
+#print(beamarr)
+print('\n')
+#sys.exit()
 
 # In[28]:
 
@@ -226,7 +295,7 @@ for TP in TParr:
             nl_dic[TP][(freq1, freq2)] = nl
 
 print(nl_dic['T'].keys())
-##sys.exit()
+#sys.exit()
 
 # In[30]:
 
@@ -259,11 +328,12 @@ cl_dic = {}
 fg_cl_dic = {}
 for which_spec in which_spec_arr:
     if which_spec == 'TT':
-        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el,                 nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power, cl_multiplier_dic = cl_multiplier_dic)
+        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el,nl_dic = nl_dic['T'], ignore_fg = ignore_fg, include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power, cl_multiplier_dic = cl_multiplier_dic)
     else:
-        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance                    (param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
+        el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
 print(cl_dic.keys(), cl_dic.keys())
 print(el)
+###sys.exit()
 
 
 # In[32]:
@@ -282,7 +352,7 @@ if (0):
     xlabel(r'Multipole $\ell$')
     ylabel(r'C$_{\ell}$ [$\mu K^{2}$]')
     title(r'Point source power @ 145  GHZ')
-    ylim(1e-7, 1e-4)
+    ylim(1e-9, 1e-4)
     xlim(100, 5000)
 if (0):#1):
     el_, cl_tsz_cib = fg.get_foreground_power_spt('tSZ-CIB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
@@ -317,7 +387,7 @@ if (0):#1):
     ylabel(r'D$_{\ell}$ [$\mu K^{2}$]')
     title(r'Point sources / tSZ power @ 145 GHZ')
     ylim(1e-1, 1e3)
-    xlim(100, 5000)
+    xlim(100, param_dict['lmax'])
     setp(ax.get_xticklabels(which = 'both'), visible=False)
 
     ax = subplot2grid((tr,tc), (rspan+1, 0), rowspan = rspan2)
@@ -335,7 +405,7 @@ if (0):#1):
     xlabel(r'Multipole $\ell$')
     ylabel(r'DRAFT/WAFTT', fontsize = 8)
     ylim(0.5, 1.5)
-    xlim(100, 5000)
+    xlim(100, param_dict['lmax'])
     axhline(1., lw = 0.5)
 
 
@@ -420,6 +490,11 @@ show()#;sys.exit()
 cl_residual, weights_dic = {}, {}
 if null_comp is None:
     cl_residual_arr, weights_arr = ilc.residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = final_comp, freqcalib_fac = freqcalib_fac, return_weights = 1)
+    #print(cl_residual_arr[0][10:20], which_spec_arr); sys.exit()
+    if (0):
+        clf()
+        ax=subplot(111, yscale = 'log')
+        plot(cl_residual_arr[0]); xlim(100, param_dict['lmax']); ylim(1e-7, 1e-4); show(); sys.exit()
     for which_spec in which_spec_arr:
         if which_spec == 'TT':
            cl_res = cl_residual_arr[0]
@@ -592,10 +667,14 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
 #parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
 parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
+if s4_so_joint_configs:
+    parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
 if null_comp is not None:
     null_comp_str = 'nulled_%s' %('-'.join(null_comp))
     parent_folder = '%s/%s/' %(parent_folder, null_comp_str)
 
+if param_dict['lmax']>5002:
+    parent_folder = '%s/lmax_%s/' %(parent_folder, param_dict['lmax'])    
 parent_folder = '%s/%s/' %(parent_folder, expname)
 
 opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
@@ -608,13 +687,15 @@ if not corr_noise:
 if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
     if s4like_mask:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
-
     if s4like_mask_v2:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
     if s4like_mask_v3:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
     if s4delensing_mask:
         opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
+    if splat_minobsel_galcuts_mask:
+        opfname = opfname.replace(parent_folder, '%s/splat_minobsel%s_galcuts_mask/TT-EE/baseline/' %(parent_folder, param_dict['min_obs_el']))
+    #print(opfname); sys.exit()
 
 if include_gal:
     opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
@@ -675,7 +756,7 @@ if expname.lower().find('s4')>-1:#total_obs_time_default != total_obs_time:
     plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
     
 print(opfname)
-print(plname)#; sys.exit()
+print(plname); #sys.exit()
 
 
 # In[ ]:
@@ -704,7 +785,8 @@ fig = figure(figsize = (6,3))
 fsval = 8
 lwval = 0.75
 plot_weights = 0
-xmin, xmax = 100, 5000
+xmin, xmax = 100, param_dict['lmax']
+print(xmin, xmax)
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
     subplots_adjust(wspace=0.1, hspace = 0.1)
@@ -820,7 +902,7 @@ for cntr, which_spec in enumerate( which_spec_arr ):
         #legend(loc=3, fancybox=1, ncol = 4, fontsize = 6);
 
     xlim(xmin, xmax);
-    ylim(1e-7,1e-1);
+    ylim(1e-9,1e-1);
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
         ylabel(r'$C_{\ell}$')
@@ -843,7 +925,7 @@ if (0):#not corr_noise:
 if cl_multiplier_dic is not None:
     if 'gal_dust' in cl_multiplier_dic:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
-suptitle(r'%s' %tit, x = 0.53, y = 1.)
+suptitle(r'%s; %s year(s)' %(tit, total_obs_time), x = 0.53, y = 1., fontsize = 12)
 savefig(plname)
 #show(); #sys.exit()
 print(plname)
@@ -854,45 +936,48 @@ print(plname)
 
 #first plot weights
 close()
-clf()
-fig = figure(figsize = (6,3))
-rspan, cspan = 2, 1
-curr_row = 0
-for cntr, which_spec in enumerate( which_spec_arr ):
-    ax = subplot(1,2,cntr+1)#, xscale = 'log')#, yscale = 'log')
-    if which_spec == 'TE':
-        continue
-        tot_teiter = 2
-        for teiter in range(tot_teiter):
-            if teiter == 0:
-                lsval = '-'
-            else:
-                lsval = ':'
-            shift = teiter * len(freqarr)
+if interactive_mode:
+    clf()
+    fig = figure(figsize = (6,3))
+    rspan, cspan = 2, 1
+    curr_row = 0
+    for cntr, which_spec in enumerate( which_spec_arr ):
+        ax = subplot(1,2,cntr+1)#, xscale = 'log')#, yscale = 'log')
+        if which_spec == 'TE':
+            continue
+            tot_teiter = 2
+            for teiter in range(tot_teiter):
+                if teiter == 0:
+                    lsval = '-'
+                else:
+                    lsval = ':'
+                shift = teiter * len(freqarr)
+                for frqcntr, freq in enumerate( freqarr ):
+                    #plot(weights_dic[which_spec][teiter][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
+                    plot(weights_dic[which_spec][frqcntr+shift], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
+                plot(np.sum(weights_dic[which_spec][teiter], axis = 0), 'k--', label = r'Sum', lw = lwval, ls = lsval)        
+        else:
             for frqcntr, freq in enumerate( freqarr ):
-                #plot(weights_dic[which_spec][teiter][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
-                plot(weights_dic[which_spec][frqcntr+shift], color = colordic[freq], label = r'%s' %(freq), lw = lwval, ls = lsval)
-            plot(np.sum(weights_dic[which_spec][teiter], axis = 0), 'k--', label = r'Sum', lw = lwval, ls = lsval)        
-    else:
-        for frqcntr, freq in enumerate( freqarr ):
-            plot(weights_dic[which_spec][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval)
-        plot(np.sum(weights_dic[which_spec], axis = 0), 'k--', label = r'Sum', lw = lwval)
-    axhline(lw=0.3);
-    xlabel(r'Multipole $\ell$');
-    #setp(ax.get_xticklabels(which = 'both'), visible=False)
-    if cntr == 0:
-        ylabel(r'Weight $W_{\ell}$')
-        legend(loc = 3, fontsize = 5, ncol = 4, handlelength = 2., handletextpad = 0.1)
-    else:
-        setp(ax.get_yticklabels(which = 'both'), visible=False)
-    ylim(-1., 2.);
-    xlim(xmin, xmax);
-    for label in ax.get_xticklabels(): label.set_fontsize(fsval)
-    for label in ax.get_yticklabels(): label.set_fontsize(fsval)        
+                plot(weights_dic[which_spec][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval)
+            plot(np.sum(weights_dic[which_spec], axis = 0), 'k--', label = r'Sum', lw = lwval)
+        axhline(lw=0.3);
+        xlabel(r'Multipole $\ell$');
+        #setp(ax.get_xticklabels(which = 'both'), visible=False)
+        if cntr == 0:
+            ylabel(r'Weight $W_{\ell}$')
+            legend(loc = 3, fontsize = 5, ncol = 4, handlelength = 2., handletextpad = 0.1)
+        else:
+            setp(ax.get_yticklabels(which = 'both'), visible=False)
+        ylim(-1., 2.);
+        xlim(xmin, xmax);
+        for label in ax.get_xticklabels(): label.set_fontsize(fsval)
+        for label in ax.get_yticklabels(): label.set_fontsize(fsval)        
 
-    title(r'%s' %(which_spec))#, fontsize = 10)
+        title(r'%s' %(which_spec))#, fontsize = 10)
 
-show(); #sys.exit()
+    plname_mod = plname.replace('.png', '_weights.png')
+    savefig(plname_mod, dpi = 200.)
+    show(); #sys.exit()
 
 # In[ ]:
 
@@ -927,12 +1012,13 @@ if (1): #save residual files
     if cl_multiplier_dic is not None:
         opdic['cl_multiplier_dic'] = cl_multiplier_dic
     opdic['cl_residual'] = cl_residual
-    opdic['fg_res_dic'] = fg_res_dic
+    if save_fg_res_and_weights:
+        opdic['fg_res_dic'] = fg_res_dic
+        opdic['weights'] = weights_dic
     opdic['freqcalib_fac'] = freqcalib_fac
     opdic['param_dict'] = param_dict
     opdic['fsky_val'] = fsky_val
     opdic['which_gal_mask'] = which_gal_mask
-    opdic['weights'] = weights_dic
     #opdic['nl_dic'] = nl_dic
     opdic['beam_noise_dic'] = beam_noise_dic
     opdic['elknee_dic'] = elknee_dic

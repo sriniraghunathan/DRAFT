@@ -260,7 +260,7 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15', reduce_tsz_powe
 
     return el, cl_tsz
 
-def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, use_mdpl2_cib = 0, cl_cib_dic = None, reduce_tsz_power = None):
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands = 500, use_mdpl2_cib = 0, cl_cib_dic = None, reduce_tsz_power = None):
 
     if fg_model == 'george15':
         corr_coeff = 0.1
@@ -281,7 +281,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
             #el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
             el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2_v0p3(freq1, freq1, el = el)
         elif use_sptspire_for_hfbands:
-            if freq1>500:
+            if freq1>minval_for_hfbands:
                 el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
 
     #get tSZ and CIB spectra for freq2
@@ -298,10 +298,14 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
             #el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
             el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2_v0p3(freq2, freq2, el = el)
         elif use_sptspire_for_hfbands:
-            if freq2>500:
-                el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)    
+            if freq2>minval_for_hfbands:
+                el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)
+    if len(el) != len(cl_tsz_freq2_freq2):
+        cl_tsz_freq1_freq1 = np.interp(el, np.arange(len(cl_tsz_freq1_freq1)),cl_tsz_freq1_freq1)
+        cl_tsz_freq2_freq2 = np.interp(el, np.arange(len(cl_tsz_freq2_freq2)),cl_tsz_freq2_freq2)
 
     cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
+    #cl_tsz_cib = cl_tsz_cib * 0.
 
     return el, cl_tsz_cib
 
@@ -811,8 +815,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
             #print(f1, f2, conv_factor_f1, conv_factor_f2, curr_conv_factor)
             #curr_cls *= (curr_conv_factor)
             if units == 'tcmb':
-                print(curr_cls, curr_conv_factor)
-                sys.exit()
+                #print(curr_cls, curr_conv_factor);sys.exit()
                 curr_cls *= (curr_conv_factor**2)
 
         elif units_flag_arr[cntr] == 1:
@@ -834,7 +837,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                     plot(curr_els, curr_cls)
                     plot(curr_els, curr_cls_smoothed)
                     show(); sys.exit()
-            '''
+            '''            
             curr_els_ori = np.copy(curr_els)
             if (0): #extrapolating to lower \ell as well
                 fn_curr_cls_ip = intrp.interp1d(curr_els, curr_cls, fill_value = 'extrapolate')
@@ -864,6 +867,7 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
             curr_cls[np.isnan(curr_cls)] = 0.
 
             if comps_to_subtract is not None:
+                #print('\n')
                 for comp in comps_to_subtract:
                     if comp.lower() == 'cmb':
                         el, curr_cl_to_subtract = get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
@@ -874,7 +878,42 @@ def get_spt_spire_bandpower(freq1 = None, freq2 = None, fd = None, units = 'tcmb
                     elif comp.lower() == 'tsz':
                         el, curr_cl_to_subtract = get_cl_tsz(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
                     curr_cl_to_subtract = curr_cl_to_subtract[:len(el_for_interp)]
+                    if (0):#f1==600 and f2==600:# and f2==857:
+                        #f1, f2 = 353, 353
+                        el, cl_cmb = get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+                        el, cl_dg_po, cl_dg_clus = get_cl_dust(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+                        cl_cib = cl_dg_po+cl_dg_clus
+                        el, cl_tsz = get_cl_tsz(f1, f2, freq0 = param_dict['freq0'], fg_model = param_dict['fg_model'])
+                        clf()
+                        loglog(el, cl_cmb)
+                        loglog(el, cl_cib)
+                        loglog(el, cl_tsz)
+                        title('(%sx%s)' %(f1, f2))
+                        xlim(200, 3500); ylim(1e-6, 100.)
+                        show(); sys.exit()
+
+                        clf()
+                        loglog(el_for_interp, curr_cls)
+                        loglog(el_for_interp, curr_cl_to_subtract)
+                        loglog(el_for_interp, curr_cls-curr_cl_to_subtract)
+                        title('(%sx%s): %s' %(f1, f2, comp))
+                        xlim(200, 3500); ylim(1e-6, 100.)
+                        show(); #sys.exit()
+                        print(f1, f2, comp, curr_cl_to_subtract, curr_cls, curr_cls-curr_cl_to_subtract)
                     curr_cls = curr_cls - curr_cl_to_subtract
+                #sys.exit()
+
+            '''
+            clf()
+            ax = subplot(111, yscale = 'log')
+            plot(curr_els, curr_cls);
+            ext_inds = np.where(curr_els<el_norm)[0]
+            curr_cls[ext_inds] = curr_cls[curr_els == el_norm][0] * (1.*el_norm/curr_els[ext_inds])**1.2
+            plot(curr_els, curr_cls); 
+            curr_cls = smooth_cib_spectra(curr_els, curr_cls)
+            plot(curr_els, curr_cls); 
+            show(); sys.exit()
+            '''
 
             if (1): # stitch it with a \ell^0.8 D_{\ell} or \ell^-1.2 C_{\ell}spectra
                 ext_inds = np.where(curr_els<el_norm)[0]
