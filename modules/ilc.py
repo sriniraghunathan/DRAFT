@@ -38,7 +38,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
     if return_fg_spectra:
         fg_cl_dic = {}
-        
+
     for freq1 in freqarr:
         for freq2 in freqarr:
 
@@ -332,10 +332,10 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     cl = cl + np.copy(nl)
 
             if return_fg_spectra:
-                if 'cmb' not in ignore_fg:
+                if (1):#'cmb' not in ignore_fg:
                     if 'cmb' not in fg_cl_dic: fg_cl_dic['cmb'] = {}
                     fg_cl_dic['cmb'][(freq1, freq2)] = fg_cl_dic['cmb'][(freq2, freq1)] = cl_cmb
-                if 'ksz' not in ignore_fg:
+                if (1):#'ksz' not in ignore_fg:
                     if 'ksz' not in fg_cl_dic: fg_cl_dic['ksz'] = {}
                     fg_cl_dic['ksz'][(freq1, freq2)] = fg_cl_dic['ksz'][(freq2, freq1)] = cl_ksz
                 if 'tsz' not in ignore_fg:
