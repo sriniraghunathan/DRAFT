@@ -304,7 +304,12 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
         cl_tsz_freq1_freq1 = np.interp(el, np.arange(len(cl_tsz_freq1_freq1)),cl_tsz_freq1_freq1)
         cl_tsz_freq2_freq2 = np.interp(el, np.arange(len(cl_tsz_freq2_freq2)),cl_tsz_freq2_freq2)
 
-    cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
+    #20220325
+    #cl_tsz_cib = corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
+    if freq1 >= 217 and freq2 >=217:
+        corr_coeff = corr_coeff * -1.
+
+    cl_tsz_cib = -corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
     #cl_tsz_cib = cl_tsz_cib * 0.
 
     return el, cl_tsz_cib
@@ -577,7 +582,7 @@ def get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, perform_
     elif which_spec == 'tsz_cib':
         which_spec_str = 'tszi'
 
-    print(freq1, freq2)
+    #print(freq1, freq2, plancksptstr_freq1, plancksptstr_freq2); #sys.exit()
 
     fname = '%s/tsz_and_cib/cl%s_%s%sghz_%s%sghz.dat' %(mdpl2_folder, which_spec_str, plancksptstr_freq1, freq1, plancksptstr_freq2, freq2)
     if not os.path.exists(fname):
@@ -601,7 +606,8 @@ def get_cl_tsz_tszcib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, perform_
         cl_spec /= reduce_tsz_power
 
     if which_spec == 'tsz_cib':
-        cl_spec = abs(cl_spec)
+        pass
+        #cl_spec = abs(cl_spec)
     #print(freq1, freq2, len(el), len(cl_spec), which_spec)
     return el_spec, cl_spec
 
