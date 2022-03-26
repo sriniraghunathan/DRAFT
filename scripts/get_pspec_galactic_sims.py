@@ -268,7 +268,7 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 if (1):##use_spt3g_mask:
-    nuarr = [93, 145, 225]
+    nuarr = [93, 145]##, 225]
 
 if pySM_yomori:
     #nuarr = [90, 100, 143, 150, 217, 220, 353]
@@ -454,6 +454,7 @@ if (1):#testing or not local:
                 cmbs4_hit_map_fname = '%s/cmbs4_hitmap_LAT-MFPL1_pole_nside4096_1_of_1.fits' %(cmbs4_footprint_folder)
             #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
             cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
+            cmbs4_hit_map = cmbs4_hit_map/np.max(cmbs4_hit_map)
             #20220325 - removing this binary mask
             ###cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
             if H.get_nside(cmbs4_hit_map) != nside:

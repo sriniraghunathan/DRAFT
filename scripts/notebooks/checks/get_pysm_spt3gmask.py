@@ -5,7 +5,6 @@
 
 
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold')
 rcParams["figure.facecolor"] = 'white'
 
 
@@ -43,10 +42,11 @@ param_dict = {}
 
 
 #spt3g masks
-nside, lmax = 2048, 2000 ##6000
 TParr = ['T', 'P']
-#data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
-data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202102_design_tool_input/4096/'
+nside, lmax = 2048, 6000
+data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+###nside, lmax = 2048, 2000 ##6000
+###data_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202102_design_tool_input/4096/'
 param_dict['cl_gal_dic_dust_fname'] = '%s/dust/0000/spt3g/cls_galactic_sims_dust_nside%s_lmax%s.npy' %(data_folder, nside, lmax)
 param_dict['cl_gal_dic_sync_fname'] = '%s/synchrotron/0000/spt3g/cls_galactic_sims_sync_nside%s_lmax%s.npy' %(data_folder, nside, lmax)
 param_dict['cl_gal_dic_freefree_fname'] = '%s/freefree/0000/spt3g/cls_galactic_sims_freefree_nside%s_lmax%s.npy' %(data_folder, nside, lmax)
@@ -78,6 +78,7 @@ which_gal_mask = 0
 use_sed_scaling = False
 bl_dic = None
 
+'''
 clf()
 fig = figure(figsize=(8., 4.))
 subplots_adjust(wspace=0.05)
@@ -119,9 +120,10 @@ for freq1 in freqarr:
         xlabel(r'Multipole $\ell$', fontsize = 12)
         plotted.append((freq1, freq2))
 suptitle(r'Sim set = 202102 design tool input (Beam = Not deconvolved)', fontsize = 12, y = 1.)
-savefig('pysm3_202102_design_tool_input_spt3gmask_%s.png' %(which_spec), dpi = 200.)
-#show(); 
+###savefig('pysm3_202102_design_tool_input_spt3gmask_%s.png' %(which_spec), dpi = 200.)
+show(); 
 sys.exit()
+'''
 
 
 
@@ -159,7 +161,7 @@ if extra_str.find('spt3g')>-1:
     color_dic = {0: 'navy', 1: 'darkred', 2: 'darkgreen', 3: 'goldenrod'}
     mask_str_dic = {0: 'Winter', 1: 'Summer: el1c-el2c', 2: 'Summer: el1b-el2b', 3: 'Summer: el1-el5'}
     freqarr = [145]
-    which_spec = 'EE' #'TT'
+    which_spec = 'TT' #'EE' #'TT'
 
 
 #xscale_val = 'log' ##None#'log' #None
@@ -177,10 +179,11 @@ for mask_iter in range(tot_mask_iter):
             if freq1 != freq2: continue
                 
             try:
-                el, cl_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec = which_spec, which_gal_mask = mask_iter)
+                el, cl_dust = fg.get_cl_galactic(param_dict, 'dust', freq1, freq2, which_spec = which_spec, which_gal_mask = mask_iter, use_sed_scaling = False)
             except:
-                cl_dust = None  
-                
+                cl_dust = None
+
+
             try:
                 el, cl_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec = which_spec, which_gal_mask = mask_iter)
             except:
@@ -257,7 +260,7 @@ for cntr, which_comp in enumerate( ['dust', 'sync'] ):
     ylim(1e-10, 1e4)
 
     #xlim(None, 200); ylim(1e-6, 1e-2)
-suptitle('Sim set = %s' %(which_sim_set.replace('_','\_')), fontsize = 12, y = 1.02)
+#suptitle('Sim set = %s' %(which_sim_set.replace('_','\_')), fontsize = 12, y = 1.02)
 show();sys.exit()
 plfolder = 'reports/galactic_sims/dust_sync_spectra/%s/' %(extra_str)
 os.system('mkdir -p %s' %(plfolder))
