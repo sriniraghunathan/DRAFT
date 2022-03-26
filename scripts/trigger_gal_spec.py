@@ -37,12 +37,10 @@ if (1):
     s,e = 0, 6#3, 5
     #mask_arr_default = [2, 5]
 
-    '''
     #delensing LAT
     use_s4like_mask_v2 = 0
     use_s4delensing_mask = 1
     s,e = 0, 1
-    '''
 
     use_s4like_mask_v3 = 0
     #s,e = 0, 3
@@ -53,7 +51,7 @@ if (1):
     nside = 2048
     lmax = 5000
 
-if (1): ### 20210512
+if (0): ### 20210512
     use_spt3g_mask = 1
     t_only = 0
     nside = 2048
@@ -82,7 +80,7 @@ if (0): #pySM YOmori for SPT-3G + Planck
     dust_sync_arr = ['dust', 'sync', 'freefree']
     #dust_sync_arr = ['both']
 
-if (1): #20210111 - CMB-S4 SP-LAT - different min obs el and gal cuts
+if (0): #20210111 - CMB-S4 SP-LAT - different min obs el and gal cuts
     use_spt3g_mask = 0
     t_only = 0
     min_obs_el = 30.
