@@ -12,6 +12,7 @@ use_s4delensing_mask = 0
 zonca_sims = 1
 pySM_yomori = 0
 mask_arr_default = None
+min_obs_el = 30.0
 
 if (0):
     use_lat_step_mask = 1
