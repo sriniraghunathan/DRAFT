@@ -260,7 +260,7 @@ def get_cl_tsz(freq1, freq2, freq0 = 150, fg_model = 'george15', reduce_tsz_powe
 
     return el, cl_tsz
 
-def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands = 500, use_mdpl2_cib = 0, cl_cib_dic = None, reduce_tsz_power = None):
+def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., use_websky_cib = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands = 500, use_mdpl2_cib = 0, cl_cib_dic = None, reduce_tsz_power = None, cib_flux_threshold = 1.5, mdpl2_cib_version = 'v0p3'):
 
     if fg_model == 'george15':
         corr_coeff = 0.1
@@ -279,7 +279,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
             el,  cl_dg_freq1_freq1 = get_cl_cib_websky(freq1, freq1, el = el)
         elif use_mdpl2_cib:
             #el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2(freq1, freq1, el = el)
-            el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2_v0p3(freq1, freq1, el = el)
+            el,  cl_dg_freq1_freq1 = get_cl_cib_mdpl2_v0p3(freq1, freq1, el = el, flux_threshold = cib_flux_threshold, v0p3_or_v0p5 = mdpl2_cib_version)
         elif use_sptspire_for_hfbands:
             if freq1>minval_for_hfbands:
                 el, cl_dg_freq1_freq1 = get_spt_spire_bandpower(freq1, freq1, el_for_interp = el)    
@@ -296,7 +296,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
             el,  cl_dg_freq2_freq2 = get_cl_cib_websky(freq2, freq2, el = el)
         elif use_mdpl2_cib:
             #el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2(freq2, freq2, el = el)
-            el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2_v0p3(freq2, freq2, el = el)
+            el,  cl_dg_freq2_freq2 = get_cl_cib_mdpl2_v0p3(freq2, freq2, el = el, flux_threshold = cib_flux_threshold, v0p3_or_v0p5 = mdpl2_cib_version)
         elif use_sptspire_for_hfbands:
             if freq2>minval_for_hfbands:
                 el, cl_dg_freq2_freq2 = get_spt_spire_bandpower(freq2, freq2, el_for_interp = el)
@@ -519,10 +519,12 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
 
     return hmap
 
-def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0, perform_smoothing = 0):
+def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0, perform_smoothing = 0, v0p3_or_v0p5 = 'v0p3'):
     #mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
     mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 143, 145: 150, 150: 150, 217: 217, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 353, 545: 600, 600: 600, 857: 857}
     fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)    
+    if v0p3_or_v0p5 == 'v0p5':
+        fname = fname.replace('v0.3', 'v0.5')
     cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
 
     if freq1<90 or freq2<90:
@@ -549,6 +551,11 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
         cl_cib = np.interp(el, el_cib, cl_cib, left = 0., right = 0.)
         el_cib = np.copy( el )
 
+    ##print(freq1, freq2, mdpl2_freq1); sys.exit()
+    ##print(freq1, freq2, mdpl2_freq1)
+
+    ##print(freq1, freq2, mdpl2_freq1, cl_cib, el_cib, v0p3_or_v0p5, fname)
+    ###if max(el)>3500: print(freq1, freq2, max(el), v0p3_or_v0p5)
     if freq1 == freq2 and freq1 != mdpl2_freq1:
         scale_fac_power = 1.
         if (freq1, mdpl2_freq1) in mdpl2_planck_to_spt_herschel_scaling_power:
@@ -559,6 +566,8 @@ def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold 
 
     if perform_smoothing: 
         cl_cib = smooth_cib_spectra(el_cib, cl_cib)
+
+    ##oglog(el_cib, cl_cib); ylim(1e-6, 1e6); xlim(100, 3500); title('%s, %s: %s' %(freq1, freq2, v0p3_or_v0p5)); show()
 
     return el_cib, cl_cib
 
