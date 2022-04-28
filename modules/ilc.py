@@ -1,7 +1,7 @@
 import numpy as np, sys, os, scipy as sc, foregrounds as fg, misc, re, flatsky#, healpy as H
 from pylab import *
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, scale_spt_using_sptspire = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands=500, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, cib_flux_threshold = 1.5, mdpl2_cib_version = 'v0p3', use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True):
+def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, scale_spt_using_sptspire = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands=500, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, cib_flux_threshold = 1.5, mdpl2_cib_version = 'v0p3', use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True, force_cl_dic = None):
 
     #ignore_fg = foreground terms that must be ignored
     debug=False
@@ -26,6 +26,15 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             cl_cmb = np.copy(cl_cmb) * cl_multiplier_dic['cmb']
         if 'ksz' in cl_multiplier_dic:
             cl_ksz = np.copy(cl_ksz) * cl_multiplier_dic['ksz']
+
+    #20220428 - force cl if force_cl_dic is supplied
+    if force_cl_dic is None: force_cl_dic = {}
+    if 'cmb' in force_cl_dic:
+        cl_cmb = np.interp(el, np.arange(len(force_cl_dic['cmb'])), force_cl_dic['cmb'])
+    if 'ksz' in force_cl_dic:
+        cl_ksz = np.interp(el, np.arange(len(force_cl_dic['ksz'])), force_cl_dic['ksz'])
+    #20220428 - force cl if force_cl_dic is supplied
+
 
     cl_dic = {}
     cl_ori = np.zeros(len(el))
@@ -250,6 +259,34 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                         cl_gal_dust = np.copy(cl_gal_dust) * cl_multiplier_dic['gal_dust']
                     if 'gal_sync' in cl_multiplier_dic:
                         cl_gal_sync = np.copy(cl_gal_sync) * cl_multiplier_dic['gal_sync']
+
+            #20220428 - force cl if force_cl_dic is supplied
+            tsz_forced, cib_forced = False, False
+            if 'y' in force_cl_dic:
+                tsz_forced = True
+                cl_y_force = force_cl_dic['y']
+                tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1*1e9)
+                tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
+                tsz_fac = tsz_fac_freq1 * tsz_fac_freq2
+                cl_tsz_force = cl_y_force * tsz_fac
+                ###loglog(cl_y_force); loglog(cl_tsz_force); loglog(cl_tsz); show(); sys.exit()
+                cl_tsz = np.interp(el, np.arange(len(cl_tsz_force)), cl_tsz_force)
+            if 'tsz' in force_cl_dic:
+                tsz_forced = True
+                cl_tsz_force = force_cl_dic['tsz'][(freq1, freq2)]
+                cl_tsz = np.interp(el, np.arange(len(cl_tsz_force)), cl_tsz_force)
+            if 'cib' in force_cl_dic:
+                cib_forced = True
+                cl_dust_force = force_cl_dic['cib'][(freq1, freq2)]
+                #loglog(cl_dust_force); loglog(cl_dust); show(); sys.exit()
+                cl_dust = np.interp(el, np.arange(len(cl_dust_force)), cl_dust_force)
+            if tsz_forced and cib_forced: #in this case, tSZ x CIB should already be encoded in each of them.
+                cl_tsz_cib = cl_tsz_cib * 0. 
+            if 'radio' in force_cl_dic:
+                cl_radio_force = force_cl_dic['radio'][(freq1, freq2)]
+                cl_radio = np.interp(el, np.arange(len(cl_radio_force)), cl_radio_force)
+            #print(cl_dust, cl_tsz, freq1, freq2); #sys.exit()
+            #20220428 - force cl if force_cl_dic is supplied
 
             if 'cmb' not in ignore_fg:
                 cl = cl + np.copy(cl_cmb[el])
