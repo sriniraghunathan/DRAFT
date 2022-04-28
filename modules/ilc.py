@@ -96,7 +96,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             cl_dust_ori = np.copy(cl_dust)
             tit = 'G15/R20 CIB'
             if use_websky_cib:
-                el_,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr)
+                el_,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr, threshold_mjy = cib_flux_threshold)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'Websky CIB'
             if use_mdpl2_cib:
