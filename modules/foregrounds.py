@@ -310,6 +310,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
         corr_coeff = corr_coeff * -1.
 
     cl_tsz_cib = -corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
+    cl_tsz_cib = cl_tsz_cib * 2. #since SPT definitons are x2 lower.
     #cl_tsz_cib = cl_tsz_cib * 0.
 
     return el, cl_tsz_cib
