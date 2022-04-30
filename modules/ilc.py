@@ -51,6 +51,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
     for freq1 in freqarr:
         for freq2 in freqarr:
 
+            #20220429: removing this as tsz x cib is not symmetric.
             if (freq2, freq1) in cl_dic:
                 cl_dic[(freq1, freq2)] = cl_dic[(freq2, freq1)]
                 continue
@@ -269,7 +270,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
                 tsz_fac = tsz_fac_freq1 * tsz_fac_freq2
                 cl_tsz_force = cl_y_force * tsz_fac
-                ###loglog(cl_y_force); loglog(cl_tsz_force); loglog(cl_tsz); show(); sys.exit()
+                #loglog(cl_tsz, 'k'); loglog(cl_y_force, 'r'); loglog(cl_tsz_force, 'g'); show(); sys.exit()
                 cl_tsz = np.interp(el, np.arange(len(cl_tsz_force)), cl_tsz_force)
             if 'tsz' in force_cl_dic:
                 tsz_forced = True
@@ -279,9 +280,43 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 cib_forced = True
                 cl_dust_force = force_cl_dic['cib'][(freq1, freq2)]
                 #loglog(cl_dust_force); loglog(cl_dust); show(); sys.exit()
-                cl_dust = np.interp(el, np.arange(len(cl_dust_force)), cl_dust_force)
-            if tsz_forced and cib_forced: #in this case, tSZ x CIB should already be encoded in each of them.
-                cl_tsz_cib = cl_tsz_cib * 0. 
+                cl_dust = np.interp(el, np.arange(len(cl_dust_force)), cl_dust_force)            
+            if 'y_cib' in force_cl_dic or 'cib_y' in force_cl_dic:
+                #this is CIB at freq1 x y. So we need tsz_fac at freq2 to get cl_tszfreq2_cibfreq1
+                cl_y_cib_force = force_cl_dic['y_cib'][freq1]
+                #print(cl_y_cib_force, freq1); sys.exit()
+                tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
+                cl_tsz_cib_force = cl_y_cib_force * tsz_fac_freq2
+                if (0):
+                    clf()
+                    ax = subplot(111, yscale = 'log')
+                    plot(cl_tsz_cib*2, 'k-'); plot(abs(cl_tsz_cib)*2, 'k-.'); 
+                    plot(cl_tsz_cib_force, 'r-'); plot(abs(cl_tsz_cib_force), 'r-.'); 
+                    show(); sys.exit()
+                cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
+
+            if (cib_forced and tsz_forced) and 'y_cib' not in force_cl_dic and 'cib_y' not in force_cl_dic:
+                #get tsz at freq1 and freq2
+                cl_y_force = force_cl_dic['y']
+                tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1*1e9)
+                tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
+                cl_tsz_force_freq1_freq2 = cl_y_force * tsz_fac_freq1**2.
+                cl_tsz_force_freq2_freq2 = cl_y_force * tsz_fac_freq2**2.
+
+                cl_dust_force_freq1_freq1 = force_cl_dic['cib'][(freq1, freq1)]
+                cl_dust_force_freq2_freq2 = force_cl_dic['cib'][(freq2, freq2)]
+
+                cl_tsz_cib_force = fg.get_cl_tsz_cib_simple(freq1, freq2, cl_tsz_force_freq1_freq2, cl_tsz_force_freq2_freq2, cl_dust_force_freq1_freq1, cl_dust_force_freq2_freq2)
+
+                if (0):
+                    clf()
+                    ax = subplot(111, yscale = 'log')
+                    plot(cl_tsz_cib, 'k-'); plot(abs(cl_tsz_cib), 'k-.'); 
+                    plot(cl_tsz_cib_force, 'r-'); plot(abs(cl_tsz_cib_force), 'r-.'); 
+                    show(); sys.exit()
+                
+                cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
+
             if 'radio' in force_cl_dic:
                 cl_radio_force = force_cl_dic['radio'][(freq1, freq2)]
                 cl_radio = np.interp(el, np.arange(len(cl_radio_force)), cl_radio_force)

@@ -310,10 +310,23 @@ def get_cl_tsz_cib(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_
         corr_coeff = corr_coeff * -1.
 
     cl_tsz_cib = -corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_dg_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_dg_freq1_freq1) )
-    cl_tsz_cib = cl_tsz_cib * 2. #since SPT definitons are x2 lower.
     #cl_tsz_cib = cl_tsz_cib * 0.
 
     return el, cl_tsz_cib
+
+def get_cl_tsz_cib_simple(freq1, freq2, cl_tsz_freq1_freq1, cl_tsz_freq2_freq2, cl_cib_freq1_freq1, cl_cib_freq2_freq2, fg_model = 'george15'):
+
+    if fg_model == 'george15':
+        corr_coeff = 0.1
+    elif fg_mode == 'reichardt20':
+        corr_coeff = 0.078
+
+    if freq1 >= 217 and freq2 >=217:
+        corr_coeff = corr_coeff * -1.
+
+    cl_tsz_cib = -corr_coeff * ( np.sqrt(cl_tsz_freq1_freq1 * cl_cib_freq2_freq2) + np.sqrt(cl_tsz_freq2_freq2 * cl_cib_freq1_freq1) )
+
+    return cl_tsz_cib
 
 def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg = -0.9, null_highfreq_radio = 1, reduce_radio_power_150 = None):
 
