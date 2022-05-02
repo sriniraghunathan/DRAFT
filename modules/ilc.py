@@ -409,16 +409,16 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 if (1):#'ksz' not in ignore_fg:
                     if 'ksz' not in fg_cl_dic: fg_cl_dic['ksz'] = {}
                     fg_cl_dic['ksz'][(freq1, freq2)] = fg_cl_dic['ksz'][(freq2, freq1)] = cl_ksz
-                if 'tsz' not in ignore_fg:
+                if (1):#'tsz' not in ignore_fg:
                     if 'tsz' not in fg_cl_dic: fg_cl_dic['tsz'] = {}
                     fg_cl_dic['tsz'][(freq1, freq2)] = fg_cl_dic['tsz'][(freq2, freq1)] = cl_tsz
-                if 'radio' not in ignore_fg:
+                if (1):#'radio' not in ignore_fg:
                     if 'radio' not in fg_cl_dic: fg_cl_dic['radio'] = {}
                     fg_cl_dic['radio'][(freq1, freq2)] = fg_cl_dic['radio'][(freq2, freq1)] = cl_radio
-                if 'dust' not in ignore_fg:
+                if (1):#'dust' not in ignore_fg:
                     if 'cib' not in fg_cl_dic: fg_cl_dic['cib'] = {}
                     fg_cl_dic['cib'][(freq1, freq2)] = fg_cl_dic['cib'][(freq2, freq1)] = cl_dust
-                if 'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
+                if (1):#'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
                     if 'tsz_cib' not in fg_cl_dic: fg_cl_dic['tsz_cib'] = {}
                     fg_cl_dic['tsz_cib'][(freq1, freq2)] = fg_cl_dic['tsz_cib'][(freq2, freq1)] = cl_tsz_cib
                 if 'noise' not in ignore_fg and which_spec != 'TE':
