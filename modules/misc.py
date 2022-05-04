@@ -167,7 +167,7 @@ def get_bl(beamval, el):
 
 ################################################################################################################
 
-def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None):
+def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1.):
 
     cross_band_noise = 0
     if noiseval2 is not None and beamval2 is not None:
@@ -198,9 +198,15 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
         if cross_band_noise: nl2 *= bl2
 
     if elknee != -1.:
-        nl = np.copy(nl) * (1. + (elknee * 1./el)**alphaknee )
-        if cross_band_noise and elknee2 != -1.:
-            nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
+        if Nred1==-1:
+            nl = np.copy(nl) * (1. + (elknee * 1./el)**alphaknee )
+        else:
+            nl = np.copy(nl) + Nred1*(elknee * 1./el)**alphaknee
+            if cross_band_noise and elknee2 != -1.:
+                if Nred2==-1:
+                    nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
+                else:
+                    nl2 = np.copy(nl2) + Nred2*(elknee2 * 1./el)**alphaknee2
 
     if cross_band_noise:
         ###final_nl = rho * nl**0.5 * nl2**0.5
