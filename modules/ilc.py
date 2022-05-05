@@ -248,18 +248,6 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 el_, cl_gal_sync = fg.get_cl_galactic(param_dict, 'sync', freq1, freq2, which_spec, el = el, bl_dic = bl_dic)
 
             cl = np.copy( cl_ori )
-            if cl_multiplier_dic is not None:
-                if 'tsz' in cl_multiplier_dic:
-                    cl_tsz = np.copy(cl_tsz) * cl_multiplier_dic['tsz']
-                if 'radio' in cl_multiplier_dic:
-                    cl_radio = np.copy(cl_radio) * cl_multiplier_dic['radio']
-                if 'dust' in cl_multiplier_dic:
-                    cl_dust = np.copy(cl_dust) * cl_multiplier_dic['dust']
-                if include_gal:
-                    if 'gal_dust' in cl_multiplier_dic:
-                        cl_gal_dust = np.copy(cl_gal_dust) * cl_multiplier_dic['gal_dust']
-                    if 'gal_sync' in cl_multiplier_dic:
-                        cl_gal_sync = np.copy(cl_gal_sync) * cl_multiplier_dic['gal_sync']
 
             #20220428 - force cl if force_cl_dic is supplied
             tsz_forced, cib_forced = False, False
@@ -288,10 +276,16 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
                 cl_tsz_cib_force = cl_y_cib_force * tsz_fac_freq2
                 if (0):
+                    print(freq1, freq2)
                     clf()
+                    cl_tsz_cib = cl_tsz_cib[:len(el)]
+                    tmp_el, tmp_el_force = np.arange(len(cl_tsz_cib)), np.arange(len(cl_tsz_cib_force))
+                    dl_fac, dl_fac_force = tmp_el * (tmp_el+1)/2/np.pi, tmp_el_force * (tmp_el_force+1)/2/np.pi
                     ax = subplot(111, yscale = 'log')
-                    plot(cl_tsz_cib*2, 'k-'); plot(abs(cl_tsz_cib)*2, 'k-.'); 
-                    plot(cl_tsz_cib_force, 'r-'); plot(abs(cl_tsz_cib_force), 'r-.'); 
+                    plot(tmp_el, dl_fac * cl_tsz_cib*2, 'k-'); plot(tmp_el, dl_fac * abs(cl_tsz_cib)*2, 'k-.'); 
+                    plot(tmp_el, dl_fac * cl_dust, 'darkred')
+                    plot(tmp_el_force, dl_fac_force * cl_tsz_cib_force, 'r-'); plot(tmp_el_force, dl_fac_force * abs(cl_tsz_cib_force), 'r-.'); 
+                    ylim(0.1, 1e3); xlim(100, 5000)
                     show(); sys.exit()
                 cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
 
@@ -322,6 +316,21 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 cl_radio = np.interp(el, np.arange(len(cl_radio_force)), cl_radio_force)
             #print(cl_dust, cl_tsz, freq1, freq2); #sys.exit()
             #20220428 - force cl if force_cl_dic is supplied
+
+            if cl_multiplier_dic is not None:
+                if 'tsz' in cl_multiplier_dic:
+                    cl_tsz = np.copy(cl_tsz) * cl_multiplier_dic['tsz']
+                if 'radio' in cl_multiplier_dic:
+                    cl_radio = np.copy(cl_radio) * cl_multiplier_dic['radio']
+                if 'dust' in cl_multiplier_dic:
+                    cl_dust = np.copy(cl_dust) * cl_multiplier_dic['dust']
+                if 'tsz_cib' in cl_multiplier_dic:
+                    cl_tsz_cib = np.copy(cl_tsz_cib) * cl_multiplier_dic['tsz_cib']
+                if include_gal:
+                    if 'gal_dust' in cl_multiplier_dic:
+                        cl_gal_dust = np.copy(cl_gal_dust) * cl_multiplier_dic['gal_dust']
+                    if 'gal_sync' in cl_multiplier_dic:
+                        cl_gal_sync = np.copy(cl_gal_sync) * cl_multiplier_dic['gal_sync']
 
             if 'cmb' not in ignore_fg:
                 cl = cl + np.copy(cl_cmb[el])
