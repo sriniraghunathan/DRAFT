@@ -275,20 +275,46 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 #print(cl_y_cib_force, freq1); sys.exit()
                 tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
                 cl_tsz_cib_force = cl_y_cib_force * tsz_fac_freq2
-                if (0):
+                if (1):
+                    cl_y_force = force_cl_dic['y']
+                    tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1*1e9)
+                    tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
+                    cl_tsz_force_freq1_freq2 = cl_y_force * tsz_fac_freq1**2.
+                    cl_tsz_force_freq2_freq2 = cl_y_force * tsz_fac_freq2**2.
+
+                    cl_dust_force_freq1_freq1 = force_cl_dic['cib'][(freq1, freq1)]
+                    cl_dust_force_freq2_freq2 = force_cl_dic['cib'][(freq2, freq2)]
+
+                    cl_tsz_cib_force_v2 = fg.get_cl_tsz_cib_simple(freq1, freq2, cl_tsz_force_freq1_freq2, cl_tsz_force_freq2_freq2, cl_dust_force_freq1_freq1, cl_dust_force_freq2_freq2)
+
+                if (1): #check mdpl2
+                    import glob
+                    mdpl2_fd = 'DRAFT/data/mdpl2/v0.3/tsz_and_cib/'
+                    mdpl2_searchstr = '%s/cltszi*%s*%s*' %(mdpl2_fd, freq1, freq2)
+                    mdpl2_fname = glob.glob(mdpl2_searchstr)[0]
+                    mdpl2_tsz_cib_els, mdpl2_tsz_cib_cl = np.loadtxt(mdpl2_fname, unpack = True)
+                    mdpl2_tsz_cib_dl_fac = mdpl2_tsz_cib_els * (mdpl2_tsz_cib_els+1)/2/np.pi
+
+                if (1):
+
                     print(freq1, freq2)
                     clf()
                     cl_tsz_cib = cl_tsz_cib[:len(el)]
                     tmp_el, tmp_el_force = np.arange(len(cl_tsz_cib)), np.arange(len(cl_tsz_cib_force))
                     dl_fac, dl_fac_force = tmp_el * (tmp_el+1)/2/np.pi, tmp_el_force * (tmp_el_force+1)/2/np.pi
                     ax = subplot(111, yscale = 'log')
-                    plot(tmp_el, dl_fac * cl_tsz_cib*2, 'k-'); plot(tmp_el, dl_fac * abs(cl_tsz_cib)*2, 'k-.'); 
-                    plot(tmp_el, dl_fac * cl_dust, 'darkred')
-                    plot(tmp_el_force, dl_fac_force * cl_tsz_cib_force, 'r-'); plot(tmp_el_force, dl_fac_force * abs(cl_tsz_cib_force), 'r-.'); 
-                    ylim(0.1, 1e3); xlim(100, 5000)
-                    show(); sys.exit()
+                    plot(tmp_el, dl_fac * cl_tsz_cib*2, color = 'black', ls = '-', label = r'G15 original'); plot(tmp_el, dl_fac * abs(cl_tsz_cib)*2, color = 'black', ls ='-.'); 
+                    #plot(tmp_el, dl_fac * cl_dust, 'darkred', label = r'Websky CIB')
+                    plot(tmp_el_force, dl_fac_force * cl_tsz_cib_force, color = 'red', ls = '-', label = r'Websky tSZ X CIB'); plot(tmp_el_force, dl_fac_force * abs(cl_tsz_cib_force), color = 'r', ls = '-.'); 
+                    plot(tmp_el_force, dl_fac_force * cl_tsz_cib_force_v2*2, color = 'goldenrod', ls = '-', label = r'G15 parameterisation of websky tSZ X CIB'); plot(tmp_el_force, dl_fac_force * abs(cl_tsz_cib_force_v2)*2, color = 'goldenrod', ls = '-.'); 
+                    plot(mdpl2_tsz_cib_els, mdpl2_tsz_cib_dl_fac * mdpl2_tsz_cib_cl, color = 'darkgreen', ls = '-', label = r'MDPL2 tSZ X CIB v0.3'); plot(mdpl2_tsz_cib_els, mdpl2_tsz_cib_dl_fac * abs(mdpl2_tsz_cib_cl), color = 'darkgreen', ls = '-.'); 
+                    legend(loc = 1)
+                    ylim(0.001, 1e3); 
+                    xlim(100, 5000); title('%s x %s' %(freq1, freq2))
+                    show(); #sys.exit()
                 cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
 
+            #if force_cl_dic is not None and len(force_cl_dic)>0:#(cib_forced and tsz_forced) and 'y_cib' not in force_cl_dic and 'cib_y' not in force_cl_dic:
             if (cib_forced and tsz_forced) and 'y_cib' not in force_cl_dic and 'cib_y' not in force_cl_dic:
                 #get tsz at freq1 and freq2
                 cl_y_force = force_cl_dic['y']
