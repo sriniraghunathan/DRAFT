@@ -52,9 +52,11 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
         for freq2 in freqarr:
 
             #20220429: removing this as tsz x cib is not symmetric.
+            '''
             if (freq2, freq1) in cl_dic:
                 cl_dic[(freq1, freq2)] = cl_dic[(freq2, freq1)]
                 continue
+            '''
 
             #get tsz
             if use_mdpl2_tsz and use_mdpl2_cib: #20201120  - use MDPL2 tsz spectra for SPT3G/ Planck bands
@@ -266,7 +268,10 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 cl_tsz = np.interp(el, np.arange(len(cl_tsz_force)), cl_tsz_force)
             if 'cib' in force_cl_dic:
                 cib_forced = True
-                cl_dust_force = force_cl_dic['cib'][(freq1, freq2)]
+                if (freq1, freq2) in force_cl_dic['cib']:
+                    cl_dust_force = force_cl_dic['cib'][(freq1, freq2)]
+                else:
+                    cl_dust_force = force_cl_dic['cib'][(freq2, freq1)]
                 #loglog(cl_dust_force); loglog(cl_dust); show(); sys.exit()
                 cl_dust = np.interp(el, np.arange(len(cl_dust_force)), cl_dust_force)            
             if 'y_cib' in force_cl_dic or 'cib_y' in force_cl_dic:
@@ -372,7 +377,12 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             if 'dust' not in ignore_fg:
                 #print('dust')
                 cl = cl + cl_dust[el]
-            if 'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
+
+            #20220503 - add tszxcib if either tsz or cib is included.
+            add_cl_tsz_cib = True
+            if ('dust' in ignore_fg and 'tsz' in ignore_fg) or 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
+                add_cl_tsz_cib = False 
+            if add_cl_tsz_cib: #'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
                 cl = cl + cl_tsz_cib[el]                
 
             if include_gal:# and not pol: #get galactic dust and sync
