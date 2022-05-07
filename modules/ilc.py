@@ -107,11 +107,11 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             cl_dust = np.interp(el, el_, cl_dust)
             cl_dust_ori = np.copy(cl_dust)
             tit = 'G15/R20 CIB'
-            if use_websky_cib:
+            if use_websky_cib and force_cl_dic is None:
                 el_,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr, threshold_mjy = cib_flux_threshold)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'Websky CIB'
-            if use_mdpl2_cib:
+            if use_mdpl2_cib and force_cl_dic is None:
                 #el_,  cl_dust = fg.get_cl_cib_mdpl2(freq1, freq2, el = el)
                 el_,  cl_dust = fg.get_cl_cib_mdpl2_v0p3(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr, flux_threshold = cib_flux_threshold, v0p3_or_v0p5 = mdpl2_cib_version)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
@@ -273,7 +273,16 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 else:
                     cl_dust_force = force_cl_dic['cib'][(freq2, freq1)]
                 #loglog(cl_dust_force); loglog(cl_dust); show(); sys.exit()
-                cl_dust = np.interp(el, np.arange(len(cl_dust_force)), cl_dust_force)            
+                cl_dust = np.interp(el, np.arange(len(cl_dust_force)), cl_dust_force)
+            if 'tsz_cib' in force_cl_dic or 'cib_tsz' in force_cl_dic:
+                tsz_cib_forced = True
+                if 'tsz_cib' in force_cl_dic:
+                    cl_tsz_cib_force = force_cl_dic['tsz_cib'][(freq1, freq2)]
+                else:
+                    cl_tsz_cib_force = force_cl_dic['cib_cib'][(freq2, freq1)]
+                #loglog(abs(cl_tsz_cib_force)); loglog(abs(cl_tsz_cib)); show(); sys.exit()
+                cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
+            '''#20220507 - calculated tszxcib for mdpl2 and websky. so commenting these things out.       
             if 'y_cib' in force_cl_dic or 'cib_y' in force_cl_dic:
                 #this is CIB at freq1 x y. So we need tsz_fac at freq2 to get cl_tszfreq2_cibfreq1
                 cl_y_cib_force = force_cl_dic['y_cib'][freq1]
@@ -341,6 +350,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     show(); sys.exit()
                 
                 cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
+            '''       
 
             if 'radio' in force_cl_dic:
                 cl_radio_force = force_cl_dic['radio'][(freq1, freq2)]
@@ -384,7 +394,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             if 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
                 add_cl_tsz_cib = False 
             if add_cl_tsz_cib: #'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
-                cl = cl + cl_tsz_cib[el]                
+                cl = cl + cl_tsz_cib[el]
 
             if include_gal:# and not pol: #get galactic dust and sync
 
@@ -721,8 +731,9 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
 
         freqscale_fac = np.asarray( freqscale_fac )
 
-    '''
     elif final_comp.lower() == 'tsz_cib' or final_comp.lower() == 'cib_tsz':
+        pass
+        '''
         tsz_cib_dic = {90: -0.0160040465551, 93: -0.0157431190535, 145: -0.0250242003427, 150: -0.0234920051701, 220: 0.00239951463962, 225: 0.00780531042154, 278: 0.157247256562, 345:1.0}
         freqscale_fac = []
         for freq in sorted( freqarr ):
@@ -730,7 +741,7 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
 
         freqscale_fac = np.asarray( freqscale_fac )
         freqscale_fac /= np.max(freqscale_fac)
-    '''
+        '''
 
     elif final_comp.lower() == 'cib' or final_comp.lower() == 'cibpo':
         freqscale_fac = []

@@ -538,7 +538,8 @@ def get_mdpl2_healpix(freq, which_set = 'spt', use_mask = 1, threshold_mjy_freq0
 def get_cl_cib_mdpl2_v0p3(freq1, freq2, units = 'uk', el = None, flux_threshold = 1.5, remove_cib_decorr = 0, perform_smoothing = 0, v0p3_or_v0p5 = 'v0p3'):
     #mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 150, 145: 150, 150: 150, 217: 220, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 345, 545: 600, 600: 600, 857: 857}
     mdpl2_freq_dic = {90: 90, 93: 90, 95: 90, 100: 100, 143: 143, 145: 150, 150: 150, 217: 217, 220: 220, 225: 221, 278: 286, 286: 286, 345: 345, 353: 353, 545: 600, 600: 600, 857: 857}
-    fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)    
+    #fname = '%s/cl_cib_%smJymasked.npy' %(mdpl2_folder, flux_threshold)
+    fname = '%s/mdpl2/v0.3/cl_cib_%smJymasked.npy' %(data_folder, flux_threshold)
     if v0p3_or_v0p5 == 'v0p5':
         fname = fname.replace('v0.3', 'v0.5')
     cl_cib_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic']
