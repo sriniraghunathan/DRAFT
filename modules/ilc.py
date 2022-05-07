@@ -380,7 +380,8 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
             #20220503 - add tszxcib if either tsz or cib is included.
             add_cl_tsz_cib = True
-            if ('dust' in ignore_fg and 'tsz' in ignore_fg) or 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
+            #if ('dust' in ignore_fg and 'tsz' in ignore_fg) or 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
+            if 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
                 add_cl_tsz_cib = False 
             if add_cl_tsz_cib: #'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
                 cl = cl + cl_tsz_cib[el]                
@@ -719,6 +720,17 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1)
             freqscale_fac.append( compton_y_to_delta_Tcmb(freq * 1e9) )
 
         freqscale_fac = np.asarray( freqscale_fac )
+
+    '''
+    elif final_comp.lower() == 'tsz_cib' or final_comp.lower() == 'cib_tsz':
+        tsz_cib_dic = {90: -0.0160040465551, 93: -0.0157431190535, 145: -0.0250242003427, 150: -0.0234920051701, 220: 0.00239951463962, 225: 0.00780531042154, 278: 0.157247256562, 345:1.0}
+        freqscale_fac = []
+        for freq in sorted( freqarr ):
+            freqscale_fac.append( tsz_cib_dic[freq] )
+
+        freqscale_fac = np.asarray( freqscale_fac )
+        freqscale_fac /= np.max(freqscale_fac)
+    '''
 
     elif final_comp.lower() == 'cib' or final_comp.lower() == 'cibpo':
         freqscale_fac = []
