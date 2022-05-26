@@ -139,66 +139,6 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     """
                     cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'SPTxSPIRE CIB'
-            #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
-            reqd_freq = 220 ##220 ##150 ##220 ##150 ##90
-            if (0):#freq1 == reqd_freq or freq2 == reqd_freq: 
-                debug=True
-                #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
-                #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
-                #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
-                if (1):##which_spec == 'TT': 
-                    freq_combs = []
-                    color_dic = {}
-                    shades_90 = [cm.Blues(int(d)) for d in np.linspace(100, 255, 5)]
-                    shades_150 = [cm.Purples(int(d)) for d in np.linspace(100, 255, 4)]
-                    shades_220 = [cm.Greens(int(d)) for d in np.linspace(100, 255, 3)]
-                    shades_600 = ['red', 'maroon']
-                    shades_857 = ['black']
-                    shadearr = np.vstack( (shades_90, shades_150, shades_220 ))#, shades_600, shades_857) )
-                    shadearr = shadearr.tolist()
-                    shadearr.extend( shades_600 )
-                    shadearr.extend( shades_857 )
-
-                    for fcntr1, f1 in enumerate( freqarr ):
-                        for fcntr2, f2 in enumerate( freqarr ):
-                            if (f2, f1) in freq_combs: continue
-                            freq_combs.append((f1,f2))
-
-                    freq_combs = np.asarray( freq_combs )                    
-                    colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(freq_combs))]
-                    colorarr = np.asarray( colorarr )
-                    if freq1 == 90:
-                        ls = ':'
-                    elif freq1 == 150:
-                        ls = '-.'
-                    elif freq1 == 220:
-                        ls = '--'
-                    else:
-                        ls = '-'
-
-                    ls = '-'
-
-                    cind = np.where( (freq_combs[:,0] == freq1) & (freq_combs[:,1] == freq2) )[0][0]
-                    #colorval = colorarr[cind]
-                    if 345 in freqarr:
-                        colorval = colorarr[cind]
-                    else:
-                        colorval = shadearr[cind]
-                    #print(colorval)
-                    try:
-                        ax
-                    except:
-                        ax = subplot(111, yscale = 'log', xscale = 'log')
-                    #print(freq1, freq2, cl_dust)
-                    plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
-                    plot(el, cl_dust_ori, color = colorval, ls = ':')
-                    #axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
-                    #ax.yaxis.set_major_locator(MaxNLocator(nbins=10))
-                    xlabel(r'Multipole $\ell$', fontsize = 14)
-                    ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
-                    title(r'%s spectra' %(tit))
-                    ylim(1e-7, 1e5)
-                    #show(); sys.exit()
 
             if which_spec == 'EE':
                 cl_dust = cl_dust * pol_frac_per_cent_dust**2.
@@ -357,6 +297,67 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 cl_radio = np.interp(el, np.arange(len(cl_radio_force)), cl_radio_force)
             #print(cl_dust, cl_tsz, freq1, freq2); #sys.exit()
             #20220428 - force cl if force_cl_dic is supplied
+
+            #if (1): #make a plot of CIB SPT x SPIRE interpolated + extended power spectra
+            reqd_freq = 145 ##220 ##150 ##220 ##150 ##90
+            if (0):#(freq1 == reqd_freq or freq2 == reqd_freq) and freq2>=freq1: 
+                debug=True
+                #if which_spec == 'TT' and (freq1==90): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                #if which_spec == 'TT' and (freq1==150): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                #if which_spec == 'TT' and (freq1==220): loglog(el, cl_dust, label = r'%s,%s' %(freq1,freq2)); 
+                if (1):##which_spec == 'TT': 
+                    freq_combs = []
+                    color_dic = {}
+                    shades_90 = [cm.Blues(int(d)) for d in np.linspace(100, 255, 5)]
+                    shades_150 = [cm.Purples(int(d)) for d in np.linspace(100, 255, 4)]
+                    shades_220 = [cm.Greens(int(d)) for d in np.linspace(100, 255, 3)]
+                    shades_600 = ['red', 'maroon']
+                    shades_857 = ['black']
+                    shadearr = np.vstack( (shades_90, shades_150, shades_220 ))#, shades_600, shades_857) )
+                    shadearr = shadearr.tolist()
+                    shadearr.extend( shades_600 )
+                    shadearr.extend( shades_857 )
+
+                    for fcntr1, f1 in enumerate( freqarr ):
+                        for fcntr2, f2 in enumerate( freqarr ):
+                            if (f2, f1) in freq_combs: continue
+                            freq_combs.append((f1,f2))
+                    print(freq_combs, freq1, freq2)
+                    freq_combs = np.asarray( freq_combs )
+                    colorarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(freq_combs))]
+                    colorarr = np.asarray( colorarr )
+                    if freq1 == 90:
+                        ls = ':'
+                    elif freq1 == 150 or freq1 == 145:
+                        ls = '-.'
+                    elif freq1 == 220:
+                        ls = '--'
+                    else:
+                        ls = '-'
+
+                    ls = '-'
+
+                    cind = np.where( (freq_combs[:,0] == freq1) & (freq_combs[:,1] == freq2) )[0][0]
+                    #colorval = colorarr[cind]
+                    if 345 in freqarr:
+                        colorval = colorarr[cind]
+                    else:
+                        colorval = shadearr[cind]
+                    #print(colorval)
+                    try:
+                        ax
+                    except:
+                        ax = subplot(111, yscale = 'log', xscale = 'log')
+                    #print(freq1, freq2, cl_dust)
+                    plot(el, cl_dust, color = colorval, ls = ls, label = r'%s,%s' %(freq1,freq2)); ylim(1e-7,1e6)
+                    plot(el, cl_dust_ori, color = colorval, ls = ':')
+                    #axvline(3000., ls = ':', lw = 0.25);axhline(1015., ls = ':', lw = 0.25)
+                    #ax.yaxis.set_major_locator(MaxNLocator(nbins=10))
+                    xlabel(r'Multipole $\ell$', fontsize = 14)
+                    ylabel(r'C$_{\ell}$ $[\mu K^{2}]$', fontsize = 14)
+                    title(r'%s spectra' %(tit))
+                    ylim(1e-7, 1e5)
+                    #show(); sys.exit()
 
             if cl_multiplier_dic is not None:
                 if 'tsz' in cl_multiplier_dic:
