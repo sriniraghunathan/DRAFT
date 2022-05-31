@@ -454,6 +454,9 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 print('\n\n\t\tfix me: there must be noise correlation in case of atmospheric noise')
                 sys.exit()
 
+            if cl_multiplier_dic is not None:
+                if 'noise' in cl_multiplier_dic:
+                    nl = np.copy(nl) * cl_multiplier_dic['noise']
 
             if 'noise' not in ignore_fg:
                 if which_spec != 'TE':
