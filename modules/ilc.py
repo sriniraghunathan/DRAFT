@@ -481,7 +481,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 if (1):#'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
                     if 'tsz_cib' not in fg_cl_dic: fg_cl_dic['tsz_cib'] = {}
                     fg_cl_dic['tsz_cib'][(freq1, freq2)] = fg_cl_dic['tsz_cib'][(freq2, freq1)] = cl_tsz_cib
-                if 'noise' not in ignore_fg and which_spec != 'TE':
+                if (1):#'noise' not in ignore_fg and which_spec != 'TE':
                     if 'noise' not in fg_cl_dic: fg_cl_dic['noise'] = {}
                     fg_cl_dic['noise'][(freq1, freq2)] = fg_cl_dic['noise'][(freq2, freq1)] = nl
                 if include_gal:
