@@ -717,8 +717,134 @@ def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cm
 ################################################################################################################
 ################################################################################################################
 ################################################################################################################
+def get_effective_frequencies(experiment, band, component):
+    """
+    Function to get the SPT-SZ/SPT-SZ+SPTpol/SPT-3G/Planck effective freqeuncies for
+    different foreground component.
 
-def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1):
+    Parameters
+    ----------
+    experiment: str
+        spt experiment for which we need the effective frequencies.
+        can be one of: 'george', sptsz', 'reichardt', 'sptszpol', 'stp3g', '3g', 'planck'
+        george/sptsz - Sec 5.7 of https://arxiv.org/pdf/1408.3161.pdf
+        reichardt/sptszpol - Sec 5.1 of https://arxiv.org/pdf/2002.06197.pdf
+        spt3g/3g - The effective band centres are calculated by Zhaodi
+        (https://pole.uchicago.edu/spt3g/images/Effective_band_center_for_3G.pdf).
+        Planck - calculated by Tom C. and included here by Srini.
+            spt.uchicago.edu:/home/tcrawfor/spt_analysis/temp/nu_eff_planck_for_sr_batch_03may21.pro
+        Galactic dust (GD): scratch/wlwu/script21_0413_solve_nueff_galdust.py
+    band: str
+        95GHz or 150GHz or 220GHz (SPT)
+        100GHz or 143GHz or 217GHz or 353GHz or 545GHz or 857GHz (Planck)
+        for which we need the effective band centre
+    component : str
+        The foreground component to use. Must be one of
+        'tSZ', 'DG-Cl', 'DG-Po', 'DG', 'RG','GD'
+    Returns
+    -------
+    band_centre: float for the desired foreground component.
+    """
+    band = '%sGHz' %(band)
+    experiment = experiment.lower()
+    component = component.lower()
+
+    if component == 'cmb' or component == 'ksz':
+        return band
+
+    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g']
+    cmb_exps = ['s4wide', 's4deepv3r025', 's4deep', 'cmbs4']
+    assert experiment in spt_exps or experiment == 'planck' or experiment in cmb_exps
+    assert component in ['tsz', 'dg-cl', 'dg-po', 'dg', 'rg', 'y']
+
+    if band == '90GHz':
+        band = '95GHz'
+
+    if experiment in spt_exps:
+        if band not in ['95GHz', '150GHz', '220GHz']:
+            raise ValueError("band must be one of 90/95, 150, 220GHz for SPT")
+        if component == 'dg-cl' or component == 'dg-po' or component == 'dg':
+            component = 'dg'
+
+    if experiment == 'planck':
+        if band not in ['100GHz', '143GHz', '217GHz', '353GHz', '545GHz', '857GHz']:
+            raise ValueError(
+                "band must be one of 100, 143, 217, 353, 545, 857GHz for Planck"
+            )
+        if component == 'dg':
+            component = 'dg-po'
+
+    if experiment == 'george' or experiment == 'sptsz':
+        eff_frequencies = {
+            'dg': {'95GHz': 96.9, '150GHz': 153.4, '220GHz': 221.6},
+            'rg': {'95GHz': 93.5, '150GHz': 149.5, '220GHz': 215.8},
+            'tsz': {'95GHz': 96.6, '150GHz': 152.3, '220GHz': 220.1},
+        }
+    elif experiment == 'reichardt' or experiment == 'sptszpol':
+        eff_frequencies = {
+            'dg': {'95GHz': 96.9, '150GHz': 153.4, '220GHz': 221.6},
+            'rg': {'95GHz': 93.5, '150GHz': 149.5, '220GHz': 215.8},
+            'tsz': {'95GHz': 96.6, '150GHz': 152.3, '220GHz': 220.1},
+        }
+    elif experiment == 'spt3g' or experiment == '3g':
+        eff_frequencies = {
+            'dg': {'95GHz': 95.96, '150GHz': 150.01, '220GHz': 222.76},
+            'rg': {'95GHz': 93.52, '150GHz': 145.92, '220GHz': 213.34},
+            'tsz': {'95GHz': 95.69, '150GHz': 148.85, '220GHz': 220.15},
+            'gd':{'95GHz': 95.4791, '150GHz': 149.5289, '220GHz': 222.3065},
+        }
+    elif experiment.find('s4')>-1:
+        eff_frequencies = {
+            'dg': {'93GHz': 95.96, '145GHz': 150.01, '225GHz': 222.76, '278GHz': 222.76},
+            'rg': {'93GHz': 93.52, '145GHz': 145.92, '225GHz': 213.34, '278GHz': 222.76},
+            'tsz': {'93GHz': 95.69, '145GHz': 148.85, '225GHz': 220.15, '278GHz': 222.76},
+        }
+    elif experiment == 'planck':
+        eff_frequencies = {
+            'dg-cl': {
+                '100GHz': 103.471,
+                '143GHz': 145.689,
+                '217GHz': 224.882,
+                '353GHz': 362.999,
+                '545GHz': 552.200,
+                '857GHz': 833.825,
+            },
+            'dg-po': {
+                '100GHz': 103.194,
+                '143GHz': 145.319,
+                '217GHz': 224.399,
+                '353GHz': 362.200,
+                '545GHz': 550.585,
+                '857GHz': 831.285,
+            },
+            'rg': {
+                '100GHz': 100.895,
+                '143GHz': 141.513,
+                '217GHz': 216.254,
+                '353GHz': 360.852,
+                '545GHz': 543.832,
+                '857GHz': 820.825,
+            },
+            'tsz': {
+                '100GHz': 102.942,
+                '143GHz': 144.423,
+                '217GHz': 234.162,
+                '353GHz': 355.093,
+                '545GHz': 529.123,
+                '857GHz': 784.019,
+            },
+        }
+    eff_frequencies['y'] = eff_frequencies['tsz']
+    return eff_frequencies[component][band]
+
+def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1, experiment = None):
+
+    #if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
+    if experiment is not None and experiment.find('spt')>-1 and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
+        freqarr_mod = []
+        for freq in sorted( freqarr ):
+            freqarr_mod.append( get_effective_frequencies(experiment, freq, final_comp) )
+        freqarr = np.copy(freqarr_mod)
 
     nc = len(freqarr)
 
@@ -961,22 +1087,22 @@ def get_clinv_new(freqarr, elcnt, cl_dic, return_clmat = 0):
     else:
         return clinv
 
-def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcalib_fac = None, lmin = 10, return_weights = 0, null_comp = None):
+def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcalib_fac = None, lmin = 10, return_weights = 0, null_comp = None, experiment = None):
 
     #acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
     teb_len, pspec_arr = get_teb_spec_combination(cl_dic) #20200527 - teb
-    acap = get_acap_new(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+    acap = get_acap_new(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
 
     if null_comp is not None:
         total_comp_to_null = 0
         if np.ndim(null_comp) == 0:
-            bcap = get_acap_new(freqarr, final_comp = null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+            bcap = get_acap_new(freqarr, final_comp = null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
             total_comp_to_null += 1
         else:
             #from IPython import embed; embed()
             bcap = None
             for curr_null_comp in null_comp:
-                curr_bcap = get_acap_new(freqarr, final_comp = curr_null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+                curr_bcap = get_acap_new(freqarr, final_comp = curr_null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
                 if bcap is None:
                     bcap = np.copy( curr_bcap )
                 else:
