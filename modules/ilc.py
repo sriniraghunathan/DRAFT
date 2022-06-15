@@ -799,7 +799,7 @@ def get_effective_frequencies(experiment, band, component):
         }
     elif experiment.find('spt4')>-1 or experiment.find('spt3g+')>-1:
         eff_frequencies = {
-            'tsz': {'221GHz': 221.16065337121762, '286GHz': 285.25585052369, '345GHz': 344.61575620337703},
+            'tsz': {'95GHz': 95.69, '150GHz': 148.85, '220GHz': 220.15, '221GHz': 221.16065337121762, '286GHz': 285.25585052369, '345GHz': 344.61575620337703},
         }
     elif experiment == 'planck':
         eff_frequencies = {
@@ -843,11 +843,12 @@ def get_effective_frequencies(experiment, band, component):
 def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1, experiment = None):
 
     #if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
-    if experiment is not None and experiment.find('spt')>-1 and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
-        freqarr_mod = []
-        for freq in sorted( freqarr ):
-            freqarr_mod.append( get_effective_frequencies(experiment, freq, final_comp) )
-        freqarr = np.copy(freqarr_mod)
+    if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
+        if final_comp.lower() == 'tsz' or final_comp.lower() == 'y': #20220614 - only for tSZ for now.
+            freqarr_mod = []
+            for freq in sorted( freqarr ):
+                freqarr_mod.append( get_effective_frequencies(experiment, freq, final_comp) )
+            freqarr = np.copy(freqarr_mod)
 
     nc = len(freqarr)
 
