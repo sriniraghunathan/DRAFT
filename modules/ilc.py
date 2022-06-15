@@ -752,7 +752,7 @@ def get_effective_frequencies(experiment, band, component):
     if component == 'cmb' or component == 'ksz':
         return band
 
-    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g']
+    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g', 'spt4', 'spt3g+']
     cmb_exps = ['s4wide', 's4deepv3r025', 's4deep', 'cmbs4']
     assert experiment in spt_exps or experiment == 'planck' or experiment in cmb_exps
     assert component in ['tsz', 'dg-cl', 'dg-po', 'dg', 'rg', 'y']
@@ -761,7 +761,7 @@ def get_effective_frequencies(experiment, band, component):
         band = '95GHz'
 
     if experiment in spt_exps:
-        if band not in ['95GHz', '150GHz', '220GHz']:
+        if band not in ['95GHz', '150GHz', '220GHz', '221GHz', '286GHz', '345GHz']:
             raise ValueError("band must be one of 90/95, 150, 220GHz for SPT")
         if component == 'dg-cl' or component == 'dg-po' or component == 'dg':
             component = 'dg'
@@ -795,9 +795,11 @@ def get_effective_frequencies(experiment, band, component):
         }
     elif experiment.find('s4')>-1:
         eff_frequencies = {
-            'dg': {'93GHz': 95.96, '145GHz': 150.01, '225GHz': 222.76, '278GHz': 222.76},
-            'rg': {'93GHz': 93.52, '145GHz': 145.92, '225GHz': 213.34, '278GHz': 222.76},
-            'tsz': {'93GHz': 95.69, '145GHz': 148.85, '225GHz': 220.15, '278GHz': 222.76},
+            'tsz': {'93GHz': 95.90933019795854, '145GHz': 145.7404333477917, '155GHz': 155.78797681444541, '225GHz': 220.1482522978387, '278GHz': 269.2497424257618},
+        }
+    elif experiment.find('spt4')>-1 or experiment.find('spt3g+')>-1:
+        eff_frequencies = {
+            'tsz': {'221GHz': 221.16065337121762, '286GHz': 285.25585052369, '345GHz': 344.61575620337703},
         }
     elif experiment == 'planck':
         eff_frequencies = {
@@ -835,6 +837,7 @@ def get_effective_frequencies(experiment, band, component):
             },
         }
     eff_frequencies['y'] = eff_frequencies['tsz']
+
     return eff_frequencies[component][band]
 
 def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1, experiment = None):
