@@ -752,9 +752,9 @@ def get_effective_frequencies(experiment, band, component):
     if component == 'cmb' or component == 'ksz':
         return band
 
-    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g', 'spt4', 'spt3g+']
+    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g', 'spt4', 'spt4_c3', 'spt4_c4', 'spt3g+']
     cmb_exps = ['s4wide', 's4deepv3r025', 's4deep', 'cmbs4']
-    assert experiment in spt_exps or experiment == 'planck' or experiment in cmb_exps
+    assert experiment.lower() in spt_exps or experiment.lower() == 'planck' or experiment.lower() in cmb_exps
     assert component in ['tsz', 'dg-cl', 'dg-po', 'dg', 'rg', 'y']
 
     if band == '90GHz':
