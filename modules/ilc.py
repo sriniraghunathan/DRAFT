@@ -290,10 +290,12 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     show(); sys.exit()
                 
                 cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
-            '''       
-
-            if 'radio' in force_cl_dic:
-                cl_radio_force = force_cl_dic['radio'][(freq1, freq2)]
+            '''
+            if 'rad' in force_cl_dic or 'radio' in force_cl_dic:
+                if 'rad' in force_cl_dic:
+                    cl_radio_force = force_cl_dic['rad'][(freq1, freq2)]
+                else:
+                    cl_radio_force = force_cl_dic['radio'][(freq1, freq2)]
                 cl_radio = np.interp(el, np.arange(len(cl_radio_force)), cl_radio_force)
             #print(cl_dust, cl_tsz, freq1, freq2); #sys.exit()
             #20220428 - force cl if force_cl_dic is supplied
@@ -752,7 +754,7 @@ def get_effective_frequencies(experiment, band, component):
     if component == 'cmb' or component == 'ksz':
         return band
 
-    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g', 'spt4', 'spt4_c3', 'spt4_c4', 'spt3g+']
+    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g', 'spt4', 'spt4_c3', 'spt4_c4', 'spt3g+', 'spt3g_201920_plancksevenbands']
     cmb_exps = ['s4wide', 's4deepv3r025', 's4deep', 'cmbs4']
     assert experiment.lower() in spt_exps or experiment.lower() == 'planck' or experiment.lower() in cmb_exps
     assert component in ['tsz', 'dg-cl', 'dg-po', 'dg', 'rg', 'y']
@@ -843,7 +845,7 @@ def get_effective_frequencies(experiment, band, component):
 def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1, experiment = None):
 
     #if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
-    if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz') and experiment.find('sptpolplusultradeepplus3gplusherschel') == -1:
+    if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz') and experiment.find('sptpolplusultradeepplus3gplusherschel') == -1 and experiment.find('spt3g_201920_plancksevenbands') == -1:
         if final_comp.lower() == 'tsz' or final_comp.lower() == 'y': #20220614 - only for tSZ for now.
             freqarr_mod = []
             for freq in sorted( freqarr ):
@@ -1188,10 +1190,12 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             drinv = np.dot( np.linalg.pinv(dr), ncap)
             weight = np.dot(nr, drinv)
 
-            if (0):
+            if (0):#currel>1500:
                 #from IPython import embed; embed()
                 acap_sum = np.sum( np.asarray(acap) * np.asarray(weight) )
                 bcap_1_sum = np.sum( np.asarray(bcap[:, 0]) * np.asarray(weight) )
+                print(currel, acap_sum, bcap_1_sum)
+                '''
                 if total_comp_to_null == 2:
                     bcap_2_sum = np.sum( np.asarray(bcap[:, 1]) * np.asarray(weight) )
                     print(weight, G, ncap, acap_sum, bcap_1_sum, bcap_2_sum)
@@ -1202,6 +1206,7 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
                 else:
                     print(weight, G, ncap, acap_sum, bcap_1_sum)
                 sys.exit()
+                '''
 
         #ILC residuals
         #cl_residual[elcnt] = np.asarray(1./dr).squeeze()
