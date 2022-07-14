@@ -845,7 +845,7 @@ def get_effective_frequencies(experiment, band, component):
 def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1, experiment = None):
 
     #if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
-    if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz') and experiment.find('sptpolplusultradeepplus3gplusherschel') == -1 and experiment.find('spt3g_201920_plancksevenbands') == -1:
+    if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz') and experiment.find('sptpolplusultradeepplus3gplusherschel') == -1 and experiment.find('spt3g_201920_planck') == -1:
         if final_comp.lower() == 'tsz' or final_comp.lower() == 'y': #20220614 - only for tSZ for now.
             freqarr_mod = []
             for freq in sorted( freqarr ):
