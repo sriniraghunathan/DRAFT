@@ -107,11 +107,11 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             cl_dust = np.interp(el, el_, cl_dust)
             cl_dust_ori = np.copy(cl_dust)
             tit = 'G15/R20 CIB'
-            if use_websky_cib and force_cl_dic is None:
+            if use_websky_cib and (force_cl_dic is None or len(force_cl_dic) == 0):
                 el_,  cl_dust = fg.get_cl_cib_websky(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr, threshold_mjy = cib_flux_threshold)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
                 tit = 'Websky CIB'
-            if use_mdpl2_cib and force_cl_dic is None:
+            if use_mdpl2_cib and (force_cl_dic is None or len(force_cl_dic) == 0):
                 #el_,  cl_dust = fg.get_cl_cib_mdpl2(freq1, freq2, el = el)
                 el_,  cl_dust = fg.get_cl_cib_mdpl2_v0p3(freq1, freq2, el = el, remove_cib_decorr = remove_cib_decorr, flux_threshold = cib_flux_threshold, v0p3_or_v0p5 = mdpl2_cib_version)
                 cib_corr_coeffs = None #do not use this as websky already takes it into account
@@ -754,7 +754,7 @@ def get_effective_frequencies(experiment, band, component):
     if component == 'cmb' or component == 'ksz':
         return band
 
-    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g', 'spt4', 'spt4_c3', 'spt4_c4', 'spt3g+', 'spt3g_201920_plancksevenbands']
+    spt_exps = ['george', 'sptsz', 'reichardt', 'sptszpol', 'spt3g', '3g', 'spt4', 'spt4_c3', 'spt4_c4', 'spt3g+', 'spt3g_201920', 'spt3g_201920_plancksevenbands']
     cmb_exps = ['s4wide', 's4deepv3r025', 's4deep', 'cmbs4']
     assert experiment.lower() in spt_exps or experiment.lower() == 'planck' or experiment.lower() in cmb_exps
     assert component in ['tsz', 'dg-cl', 'dg-po', 'dg', 'rg', 'y']
@@ -788,7 +788,7 @@ def get_effective_frequencies(experiment, band, component):
             'rg': {'95GHz': 93.5, '150GHz': 149.5, '220GHz': 215.8},
             'tsz': {'95GHz': 96.6, '150GHz': 152.3, '220GHz': 220.1},
         }
-    elif experiment == 'spt3g' or experiment == '3g':
+    elif experiment == 'spt3g' or experiment == '3g' or experiment == 'spt3g_201920':
         eff_frequencies = {
             'dg': {'95GHz': 95.96, '150GHz': 150.01, '220GHz': 222.76},
             'rg': {'95GHz': 93.52, '150GHz': 145.92, '220GHz': 213.34},
@@ -845,7 +845,7 @@ def get_effective_frequencies(experiment, band, component):
 def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1, experiment = None):
 
     #if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
-    if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz') and experiment.find('sptpolplusultradeepplus3gplusherschel') == -1 and experiment.find('spt3g_201920_planck') == -1:
+    if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz') and experiment.find('sptpolplusultradeepplus3gplusherschel') == -1 and experiment.find('spt3g_201920_planck') == -1 and experiment.find('ccat') == -1:
         if final_comp.lower() == 'tsz' or final_comp.lower() == 'y': #20220614 - only for tSZ for now.
             freqarr_mod = []
             for freq in sorted( freqarr ):

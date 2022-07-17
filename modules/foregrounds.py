@@ -3,6 +3,7 @@ from scipy import interpolate as intrp
 from scipy import ndimage
 from scipy.optimize import curve_fit
 from pylab import *
+import ilc
 
 h, k_B, c=6.626e-34,1.38e-23, 3e8
 data_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/'
@@ -423,12 +424,14 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
     #websky_freq_dic = {90: 93, 93: 93, 95: 93, 100: 100, 143: 145, 145: 145, 150: 145, 217: 217, 220: 215, 225: 225, 278: 278, 286: 278, 345: 353, 353: 353, 545: 545, 600: 545, 857: 857}
     #websky_freq_dic = {90: 93, 93: 93, 95: 93, 100: 100, 143: 145, 145: 145, 150: 145, 217: 217, 220: 225, 225: 225, 226: 225, 278: 278, 286: 278, 345: 353, 353: 353, 545: 545, 600: 545, 857: 857}
     #20220427 - using 217 for both 220 GHz (3G) and 225 GHz (SPT4) bands
-    websky_freq_dic = {90: 93, 93: 93, 95: 93, 100: 100, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 217, 226: 225, 278: 278, 286: 278, 345: 353, 353: 353, 545: 545, 600: 545, 857: 857}
+    websky_freq_dic = {90: 93, 93: 93, 95: 93, 100: 100, 143: 145, 145: 145, 150: 145, 217: 217, 220: 217, 225: 217, 226: 225, 278: 278, 286: 278, 345: 353, 353: 353, 410: 353, 545: 545, 600: 545, 850: 857, 857: 857}
+    websky_freq_dic_to_apply_scaling = {410:353, 850:857}
     if threshold_mjy == 6.4:
         fname = '%s/websky/cl_websky_cib_masked.npy' %(data_folder)
     else:
         fname = '%s/websky/cl_websky_cib_masked%.2fmJy.npy' %(data_folder, threshold_mjy)
     null_cib = 0
+    freq1_ori, freq2_ori = freq1, freq2
     if freq1 < np.min( list(websky_freq_dic.keys()) )  or freq2 < np.min( list(websky_freq_dic.keys()) ):
         null_cib = 1
         freq1 = freq2 = min(websky_freq_dic)
@@ -448,6 +451,25 @@ def get_cl_cib_websky(freq1, freq2, units = 'uk', websky_scaling_power = 0.75**2
     if units.lower() == 'k':
         cl_cib /= 1e12
     cl_cib *= websky_scaling_power
+
+    #20220716 - apply scaling, if need be
+    #print(freq1, freq2)
+    if freq1 in websky_freq_dic_to_apply_scaling:
+        cib_dep_freq1 = ilc.get_cib_freq_dep(freq1 * 1e9)
+        cib_dep_webskyfreq1 = ilc.get_cib_freq_dep(websky_freq1 * 1e9)
+        cib_scaling_for_freq1 = cib_dep_freq1/cib_dep_webskyfreq1
+    else:
+        cib_scaling_for_freq1 = 1.
+    if freq2 in websky_freq_dic_to_apply_scaling:
+        cib_dep_freq2 = ilc.get_cib_freq_dep(freq2 * 1e9)
+        cib_dep_webskyfreq2 = ilc.get_cib_freq_dep(websky_freq2 * 1e9)
+        cib_scaling_for_freq2 = cib_dep_freq2/cib_dep_webskyfreq2
+    else:
+        cib_scaling_for_freq2 = 1
+    if cib_scaling_for_freq1!=1 or cib_scaling_for_freq2!=1.:
+        cl_cib = cl_cib * cib_scaling_for_freq1 * cib_scaling_for_freq2
+        #print(freq1_ori, freq2_ori, freq1, freq2, cib_scaling_for_freq1, cib_scaling_for_freq2)
+        #sys.exit()
 
     el_cib = np.arange( len(cl_cib) )
     if el is not None:
