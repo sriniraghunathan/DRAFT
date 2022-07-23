@@ -12,10 +12,7 @@ get_ipython().run_line_magic('autoreload', '2')
 get_ipython().run_line_magic('matplotlib', 'inline')
 '''
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = [r'\boldmath']
 import os
-rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
-
 
 # In[2]:
 
@@ -49,6 +46,10 @@ parser.add_argument('-use_545', dest='use_545', action='store', help='use_545', 
 parser.add_argument('-use_sptspire_for_hfbands', dest='use_sptspire_for_hfbands', action='store', help='use_sptspire_for_hfbands', type = int, default=0)
 parser.add_argument('-split_cross', dest='split_cross', action='store', help='split_cross', type = int, default=0)
 parser.add_argument('-remove_atm', dest='remove_atm', action='store', help='remove_atm', type = int, default=0)
+
+#20220722 - noise spectra file prefix
+parser.add_argument('-noise_spectra_folder', dest='noise_spectra_folder', action='store', help='noise_spectra_folder', type = str, default=None)
+
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -178,7 +179,7 @@ if split_cross:
     noisearr_P = np.asarray(noisearr_P) * np.sqrt(2.)
 
 print(elkneearr_T)
-
+###sys.exit()
 # In[9]:
 
 
@@ -221,8 +222,8 @@ for TP in TParr:
             nl_dic[TP][(freq1, freq2)] = nl
 print(nl_dic['T'].keys())
 
-# In[11]:
 
+# In[11]:
 
 #get beams
 bl_dic = misc.get_beam_dic(freqarr, beam_noise_dic['T'], param_dict['lmax'])
@@ -235,6 +236,54 @@ if (0):
 
 
 # In[12]:
+
+#20220722
+if noise_spectra_folder is not None:
+    nl_dic_actual = {}
+    nl_dic_actual['T'] = {}
+    nl_dic_actual['P'] = {}
+    spt3g_noise_spectra_fname_pref = '%s/cl_03may2022_expnameval_diff_freqvalGHz_mask_from_weights_apodetienne_withsources_pixwinFalse_beamNone_bin_width_1.txt' %(noise_spectra_folder)
+    for freq in freqarr:
+        spt3g_noise_spectra_fname = spt3g_noise_spectra_fname_pref.replace('expnameval', expname.replace('spt3g_','')).replace('freqval', str(freq))
+        spt3g_noise_spectra = np.loadtxt(spt3g_noise_spectra_fname, usecols = [0, 1, 2, 3], skiprows = 1)
+        tmpels, tmpnltt, tmpnlee, tmpnlbb = spt3g_noise_spectra.T
+        tmpels = np.asarray(tmpels)
+        tmpnltt = np.interp(el, tmpels, tmpnltt) * 1e6 / (bl_dic[freq]**2.)
+        tmpnlee = np.interp(el, tmpels, tmpnlee) * 1e6 / (bl_dic[freq]**2.)
+        tmpnlbb = np.interp(el, tmpels, tmpnlbb) * 1e6 / (bl_dic[freq]**2.)
+        filtered_mode_inds = np.where(tmpels<325.)[0]
+        tmpnltt[filtered_mode_inds] = 1e5
+        tmpnlee[filtered_mode_inds] = 1e5
+        tmpnlbb[filtered_mode_inds] = 1e5
+        nl_dic_actual['T'][(freq, freq)] = tmpnltt
+        nl_dic_actual['P'][(freq, freq)] = tmpnlee
+    for freq1 in freqarr:
+        for freq2 in freqarr:
+            if freq1 == freq2: continue
+            nl_dic_actual['T'][(freq1, freq2)] = np.zeros_like(el)
+            nl_dic_actual['P'][(freq1, freq2)] = np.zeros_like(el)
+    nl_dic = nl_dic_actual
+if (0):
+    colordic = {}
+    colordic[90] = 'navy'
+    colordic[150] = 'darkgreen'
+    colordic[220] = 'darkred'    
+    ax=subplot(111, yscale = 'log')
+    for freq in freqarr:
+        currnl = nl_dic['T'][(freq,freq)]
+        tmpinds = np.where( (el>=3000) & (el<=5000) )[0]
+        meannl = np.median(currnl[tmpinds])
+        noise_uk_arcmin = np.sqrt(meannl)/np.radians(1./60.)
+        plot(nl_dic['T'][(freq,freq)], label = '%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = colordic[freq])
+        #plot(nl_dic_actual['T'][(freq,freq)], lw = 2., color = colordic[freq])
+    legend(loc = 1)
+    xlim(0, 5000)
+    ylim(5e-6, 1.)
+    xlabel(r'Multipole $\ell$', fontsize = 14)
+    ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
+    expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
+    title(r'%s' %(expname_str), fontsize = 14)
+    show(); sys.exit()
 
 
 #get the CMB, noise, and foreground covriance
@@ -354,7 +403,7 @@ for which_spec in which_spec_arr:
        weights = np.asarray( [weights_arr[nc:, 0], weights_arr[:nc, 1]] )
     cl_residual[which_spec], weights_dic[which_spec] = cl_res, weights
 print(cl_residual.keys())
-
+#sys.exit()
 
 # In[17]:
 
@@ -417,7 +466,8 @@ if (0):
 #plot and results file name
 freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
 which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
-parent_folder = 'results/spt/20200708/'
+#parent_folder = 'results/spt/20200708/'
+parent_folder = 'results/spt/20220722/'
 if use_websky_cib:
     parent_folder = 'results/spt/20200708/websky_cib/'
 elif use_mdpl2_cib:
@@ -453,7 +503,7 @@ plfolder = '/'.join(plname.split('/')[:-1])
 os.system('mkdir -p %s' %(plfolder))
 print(opfname)
 print(plname)
-
+##sys.exit()
 
 # In[19]:
 
@@ -473,15 +523,19 @@ cl_camb *= 1e12
 cl_TT, cl_EE, cl_BB, cl_TE = cl_camb.T
 
 clf(); 
-fsval = 8
-lwval = 0.75
+figure(figsize=(10., 7.))
+fsval = 12
+lwval = 1. #0.75
 plot_weights = 1
 xmin, xmax = 20, 10000
-xmin, xmax = 100, 10000
-ymin, ymax = 1e-9, 100000.
+xmin, xmax = 100, 6000 #10000
+#ymin, ymax = 1e-9, 100000.
+ymin, ymax = 1e-6, 2. #100000.
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
-    subplots_adjust(wspace=0.1, hspace = 0.1)
+    #subplots_adjust(wspace=0.1, hspace = 0.1)
+    subplots_adjust(wspace=0., hspace = 0.2)
+
     #first plot weights
     rspan, cspan = 2, 1
     curr_row = 0
@@ -508,10 +562,10 @@ if plot_weights:
         setp(ax.get_xticklabels(which = 'both'), visible=False)
         if cntr == 0:
             ylabel(r'Weight $W_{\ell}$')
-            legend(loc = 3, fontsize = 5, ncol = 4, handlelength = 2., handletextpad = 0.1)
+            legend(loc = 3, fontsize = fsval-2, ncol = 4, handlelength = 2., handletextpad = 0.1)
         else:
             setp(ax.get_yticklabels(which = 'both'), visible=False)
-        ylim(-1., 2.);
+        ylim(-0.5, 1.5);
         xlim(xmin, xmax);
         for label in ax.get_xticklabels(): label.set_fontsize(fsval)
         for label in ax.get_yticklabels(): label.set_fontsize(fsval)        
@@ -526,12 +580,12 @@ for cntr, which_spec in enumerate( which_spec_arr ):
         ax = subplot2grid((tr,tc), (curr_row, cntr), rowspan = rspan, colspan = cspan, yscale = 'log')#, xscale = 'log')
     else:
         ax = subplot(1,2,cntr+1, xscale = 'log', yscale = 'log')
-    plot(el, cl_residual[which_spec], 'k', lw = 2., label = r'Residual')
+    plot(el, cl_residual[which_spec], 'k', lw = 1.5, label = r'ILC')
     if which_spec == 'TT':
         if final_comp == 'cmb':
             plot(el_camb, cl_TT, 'gray', lw = 1., label = r'TT')
         if null_comp is not None:
-            plot(el, cl_residual_comp_nulled[which_spec], 'black', lw = 2., ls = '-.', label = r'Residual: comp-nulled')
+            plot(el, cl_residual_comp_nulled[which_spec], 'black', lw = 1.5, ls = '-.', label = r'ILC: comp-nulled')
         
         '''
         cl_fg = np.zeros(len(el))
@@ -585,10 +639,10 @@ for cntr, which_spec in enumerate( which_spec_arr ):
     xlim(xmin, xmax);
     ylim(ymin, ymax); 
 
-    xlabel(r'Multipole $\ell$')
+    xlabel(r'Multipole $\ell$', fontsize = fsval)
     if cntr == 0: 
-        ylabel(r'$C_{\ell}$')
-        legend(loc = 1, fontsize = 6, ncol = 2, handlelength = 2., handletextpad = 0.1)
+        ylabel(r'$C_{\ell}$ [$\mu$K$^{2}$]', fontsize = fsval)
+        legend(loc = 1, fontsize = fsval-1, ncol = 2, handlelength = 2., handletextpad = 0.1)
     else:
         setp(ax.get_yticklabels(which = 'both'), visible=False)
     for label in ax.get_xticklabels(): label.set_fontsize(fsval)
@@ -599,7 +653,8 @@ if remove_atm:
     tit = 'Bands = %s; no 1/f' %(str(freqarr))
 else:
     tit = 'Bands = %s' %(str(freqarr))
-suptitle(r'%s: %s' %(expname.replace('_','\_').upper(), final_comp))
+expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
+suptitle(r'%s: %s' %(expname_str, final_comp), y = 0.95, fontsize = fsval + 2)
 #show(); #sys.exit()
 savefig(plname)
 
@@ -628,6 +683,10 @@ opdic['nl_dic'] = nl_dic
 opdic['beam_noise_dic'] = beam_noise_dic
 opdic['elknee_dic'] = elknee_dic
 np.save(opfname, opdic)
+if (1):
+    import pickle, gzip
+    opfname_pkl = opfname.replace('.npy', '.pkl.gz')
+    pickle.dump(opdic, gzip.open(opfname_pkl, 'wb'), protocol = 2)
 print(opfname)
 print('\n\n\n')
 
