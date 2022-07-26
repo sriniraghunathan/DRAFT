@@ -53,6 +53,6 @@ for which_spec_cntr, which_spec in enumerate( which_spec_arr ):
     #grid(True, which='minor', axis = 'x', lw = 0.5, alpha = 0.2)
     grid(True, which='minor', axis = 'y', lw = 0.5, alpha = 0.2)
 suptitle(r'Standard ILC residuals', fontsize = fsval + 4)
-plname = 'ilc_resdiuals.png'
+plname = 'ilc_residuals.png'
 savefig(plname, dpi = 200.)
 #show()
