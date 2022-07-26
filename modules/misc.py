@@ -167,7 +167,20 @@ def get_bl(beamval, el):
 
 ################################################################################################################
 
-def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1.):
+def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1., so_like = False):
+
+    if so_like:
+        total_years = 5.
+        fsky = 0.35
+        survey_time = 1.
+        obs_efficiency = 0.2
+        map_egde_factor = 0.85
+        single_year = 365.25 * 24. * 3600. * obs_efficiency * map_egde_factor
+        sky_area = 4. * np.pi * f_sky
+        year_scaling = single_year / total_years
+        Nred1 = Nred1  * sky_area / year_scaling
+        if Nred2 != -1.:
+            Nred2 = Nred2  * sky_area / year_scaling
 
     cross_band_noise = 0
     if noiseval2 is not None and beamval2 is not None:
@@ -208,7 +221,57 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
                 else:
                     nl2 = np.copy(nl2) + Nred2*(elknee2 * 1./el)**alphaknee2
 
+    if cross_band_noise and (elknee != -1. and elknee2 != -1.):
+        ###final_nl = rho * nl**0.5 * nl2**0.5
+        final_nl = rho * delta_T_radians * (elknee * 1./el)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el)**(alphaknee2/2.)
+        #N[i,j,:] = rho * (w1*np.pi/180./60. * (ell/knee1)**(gamma1/2)) * (w2*np.pi/180./60. * (ell/knee2)**(gamma2/2))
+    else:
+        final_nl = np.copy(nl)
+
+    return final_nl
+
+def get_nl_v1(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1.):
+
+    cross_band_noise = 0
+    if noiseval2 is not None and beamval2 is not None:
+        assert rho is not None
+        cross_band_noise = 1
+
+    if uk_to_K: 
+        noiseval = noiseval/1e6
+        if cross_band_noise: noiseval2 = noiseval2/1e6
+
+    if use_beam_window:
+        bl = get_bl(beamval, el)
+        if cross_band_noise: bl2 = get_bl(beamval2, el)
+
+    delta_T_radians = noiseval * np.radians(1./60.)
+    nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
+    nl = np.asarray( [nl[int(l)] for l in el] )
+    nl_white = np.copy(nl)
+
     if cross_band_noise:
+        delta_T2_radians = noiseval2 * np.radians(1./60.)
+        nl2 = np.tile(delta_T2_radians**2., int(max(el)) + 1 )
+        nl2 = np.asarray( [nl2[int(l)] for l in el] )
+        nl2_white = np.copy(nl2)
+
+    if use_beam_window: 
+        nl *= bl
+        if cross_band_noise: nl2 *= bl2
+
+    if elknee != -1.:
+        if Nred1==-1:
+            nl = np.copy(nl) * (1. + (elknee * 1./el)**alphaknee )
+        else:
+            nl = np.copy(nl) + Nred1*(elknee * 1./el)**alphaknee
+            if cross_band_noise and elknee2 != -1.:
+                if Nred2==-1:
+                    nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
+                else:
+                    nl2 = np.copy(nl2) + Nred2*(elknee2 * 1./el)**alphaknee2
+
+    if cross_band_noise and (elknee != -1. and elknee2 != -1.):
         ###final_nl = rho * nl**0.5 * nl2**0.5
         final_nl = rho * delta_T_radians * (elknee * 1./el)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el)**(alphaknee2/2.)
         #N[i,j,:] = rho * (w1*np.pi/180./60. * (ell/knee1)**(gamma1/2)) * (w2*np.pi/180./60. * (ell/knee2)**(gamma2/2))
