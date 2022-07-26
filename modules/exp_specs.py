@@ -229,12 +229,12 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
         }
 
         #uK^2 seconds.
-        Nred_dic[27] = 100.
-        Nred_dic[39] = 39.
-        Nred_dic[93] = 230.
-        Nred_dic[145] = 1500.
-        Nred_dic[225] = 17000.
-        Nred_dic[278] = 31000.
+        Nred_dic[27] = [100., -1.]
+        Nred_dic[39] = [39., -1.]
+        Nred_dic[93] = [230., -1.]
+        Nred_dic[145] = [1500., -1.]
+        Nred_dic[225] = [17000., -1.]
+        Nred_dic[278] = [31000., -1.]
 
         freqarr = sorted( specs_dic.keys() )
         nc = len( freqarr )

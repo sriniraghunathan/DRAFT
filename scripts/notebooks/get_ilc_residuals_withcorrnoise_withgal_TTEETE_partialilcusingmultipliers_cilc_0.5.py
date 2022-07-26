@@ -239,7 +239,7 @@ for TP in TParr:
 
 #get beam deconvolved noise nls
 nl_dic = {}
-for TP in TParr:
+for TPcntr, TP in enumerate( TParr ):
     nl_dic[TP]={}
     for freq1 in freqarr:
         beamval1, noiseval1 = beam_noise_dic[TP][freq1]
@@ -253,9 +253,9 @@ for TP in TParr:
 
             Nred1, Nred2 = -1., -1.
             if freq1 in Nred_dic:
-                Nred1 = Nred_dic[freq1]
+                Nred1 = Nred_dic[freq1][TPcntr]
             if freq2 in Nred_dic:
-                Nred2 = Nred_dic[freq2]
+                Nred2 = Nred_dic[freq2][TPcntr]
             
             if freq1 == freq2:
                 nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, Nred = Nred1)
