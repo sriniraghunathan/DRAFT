@@ -29,6 +29,8 @@ import argparse, sys, numpy as np, scipy as sc, warnings, os
 sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
 import flatsky, misc, exp_specs_for_spt as exp_specs
 import ilc, foregrounds as fg
+import pickle, gzip
+import healpy as H
 
 #import matplotlib.cbook
 warnings.filterwarnings('ignore',category=RuntimeWarning)
@@ -49,6 +51,7 @@ parser.add_argument('-remove_atm', dest='remove_atm', action='store', help='remo
 
 #20220722 - noise spectra file prefix
 parser.add_argument('-noise_spectra_folder', dest='noise_spectra_folder', action='store', help='noise_spectra_folder', type = str, default=None)
+parser.add_argument('-scale_noise_actual_from_twoyears_to_xxyears', dest='scale_noise_actual_from_twoyears_to_xxyears', action='store', help='scale_noise_actual_from_twoyears_to_xxyears', type = float, default=-1)
 
 
 args = parser.parse_args()
@@ -242,15 +245,36 @@ if noise_spectra_folder is not None:
     nl_dic_actual = {}
     nl_dic_actual['T'] = {}
     nl_dic_actual['P'] = {}
-    spt3g_noise_spectra_fname_pref = '%s/cl_03may2022_expnameval_diff_freqvalGHz_mask_from_weights_apodetienne_withsources_pixwinFalse_beamNone_bin_width_1.txt' %(noise_spectra_folder)
+    if noise_spectra_folder.find('summer_spectra')>-1:
+        spt3g_noise_spectra_fname_pref = '%s/cl_03may2022_expnameval_diff_freqvalGHz_mask_from_weights_apodetienne_withsources_pixwinFalse_beamNone_bin_width_1.txt' %(noise_spectra_folder)
+    elif noise_spectra_folder.find('winter_spectra')>-1:
+        spt3g_noise_spectra_fname_pref = '%s/no_signflip_bundle_sum_odd_minus_sum_even_freqvalGHz_correct_norm.txt' %(noise_spectra_folder)
     for freq in freqarr:
-        spt3g_noise_spectra_fname = spt3g_noise_spectra_fname_pref.replace('expnameval', expname.replace('spt3g_','')).replace('freqval', str(freq))
-        spt3g_noise_spectra = np.loadtxt(spt3g_noise_spectra_fname, usecols = [0, 1, 2, 3], skiprows = 1)
-        tmpels, tmpnltt, tmpnlee, tmpnlbb = spt3g_noise_spectra.T
+        if noise_spectra_folder.find('summer_spectra')>-1:
+            spt3g_noise_spectra_fname = spt3g_noise_spectra_fname_pref.replace('expnameval', expname.replace('spt3g_','')).replace('freqval', str(freq))
+            spt3g_noise_spectra = np.loadtxt(spt3g_noise_spectra_fname, usecols = [0, 1, 2, 3], skiprows = 1)
+            tmpels, tmpnltt, tmpnlee, tmpnlbb = spt3g_noise_spectra.T
+        elif noise_spectra_folder.find('winter_spectra')>-1:
+            spt3g_noise_spectra_fname = spt3g_noise_spectra_fname_pref.replace('freqval', '%03d' %(freq))
+            spt3g_noise_spectra = np.loadtxt(spt3g_noise_spectra_fname, usecols = [0, 1, 2, 3], skiprows = 1)
+            tmpels, tmpnltt, tmpnlee, tmpnlbb = spt3g_noise_spectra.T
+            units = 1. #1e-6 ##core.G3Units.uK**2 * core.G3Units.rad**2
+            pixwin = H.pixwin(8192, lmax=16384)**2
+            tmpnltt /= pixwin*units
+            tmpnlee /= pixwin*units
+            tmpnlbb /= pixwin*units
+
         tmpels = np.asarray(tmpels)
         tmpnltt = np.interp(el, tmpels, tmpnltt) * 1e6 / (bl_dic[freq]**2.)
         tmpnlee = np.interp(el, tmpels, tmpnlee) * 1e6 / (bl_dic[freq]**2.)
         tmpnlbb = np.interp(el, tmpels, tmpnlbb) * 1e6 / (bl_dic[freq]**2.)
+
+        if scale_noise_actual_from_twoyears_to_xxyears != -1:
+            scale_noise_actual_val = 2./scale_noise_actual_from_twoyears_to_xxyears
+            tmpnltt = tmpnltt * scale_noise_actual_val
+            tmpnlee = tmpnlee * scale_noise_actual_val 
+            tmpnlbb = tmpnlbb * scale_noise_actual_val
+
         filtered_mode_inds = np.where(tmpels<325.)[0]
         tmpnltt[filtered_mode_inds] = 1e5
         tmpnlee[filtered_mode_inds] = 1e5
@@ -270,15 +294,15 @@ if (0):
     colordic[220] = 'darkred'    
     ax=subplot(111, yscale = 'log')
     for freq in freqarr:
-        currnl = nl_dic['T'][(freq,freq)]
+        currnl = nl_dic['T'][(freq,freq)]*bl_dic[freq]**2.
         tmpinds = np.where( (el>=3000) & (el<=5000) )[0]
         meannl = np.median(currnl[tmpinds])
         noise_uk_arcmin = np.sqrt(meannl)/np.radians(1./60.)
-        plot(nl_dic['T'][(freq,freq)], label = '%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = colordic[freq])
+        plot(currnl, label = '%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = colordic[freq])
         #plot(nl_dic_actual['T'][(freq,freq)], lw = 2., color = colordic[freq])
     legend(loc = 1)
     xlim(0, 5000)
-    ylim(5e-6, 1.)
+    ylim(1e-6, 1.)
     xlabel(r'Multipole $\ell$', fontsize = 14)
     ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
     expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
@@ -479,6 +503,8 @@ elif use_sptspire_for_hfbands:
 if expname.find('spt4')>-1:
     parent_folder = '%s/spt4' %(parent_folder)
 opfname = '%s/%s_ilc_%s_%s_%s.npy' %(parent_folder, expname, final_comp, freqarr_str, which_spec_arr_str)
+if scale_noise_actual_from_twoyears_to_xxyears != -1:
+    opfname = opfname.replace(expname, '%s_scaledfor%syears' %(expname, scale_noise_actual_from_twoyears_to_xxyears))
 
 if remove_atm:
     opfname = opfname.replace('.npy', '_noatmnoise.npy')
@@ -684,12 +710,28 @@ opdic['beam_noise_dic'] = beam_noise_dic
 opdic['elknee_dic'] = elknee_dic
 np.save(opfname, opdic)
 if (1):
-    import pickle, gzip
     opfname_pkl = opfname.replace('.npy', '.pkl.gz')
     pickle.dump(opdic, gzip.open(opfname_pkl, 'wb'), protocol = 2)
 print(opfname)
-print('\n\n\n')
+if noise_spectra_folder is not None: #save nl file
+    if scale_noise_actual_from_twoyears_to_xxyears != -1:
+        spt3g_noise_spectra_fname_to_save = '%s/%s_scaledfor%syears_nl.npy' %(parent_folder, expname, scale_noise_actual_from_twoyears_to_xxyears)
+    else:
+        spt3g_noise_spectra_fname_to_save = '%s/%s_nl.npy' %(parent_folder, expname)
+    np.save(spt3g_noise_spectra_fname_to_save, nl_dic_actual)
+    print('\n\tNl file is: %s' %(spt3g_noise_spectra_fname_to_save))
+    spt3g_noise_spectra_fname_to_save = spt3g_noise_spectra_fname_to_save.replace('.npy', '.pkl.gz')
+    pickle.dump(nl_dic_actual, gzip.open(spt3g_noise_spectra_fname_to_save, 'wb'), protocol = 2)
+    print('\n\tNl file is: %s' %(spt3g_noise_spectra_fname_to_save))
 
+    spt3g_fg_spectra_fname_to_save = '%s/%s_fg_cl.npy' %(parent_folder, expname)
+    np.save(spt3g_fg_spectra_fname_to_save, fg_cl_dic)
+    print('\n\tFG Cl file is: %s' %(spt3g_fg_spectra_fname_to_save))
+    spt3g_fg_spectra_fname_to_save = spt3g_fg_spectra_fname_to_save.replace('.npy', '.pkl.gz')
+    pickle.dump(fg_cl_dic, gzip.open(spt3g_fg_spectra_fname_to_save, 'wb'), protocol = 2)
+    print('\n\tFG Cl file is: %s' %(spt3g_fg_spectra_fname_to_save))
+
+print('\n\n\n')
 
 # In[ ]:
 
