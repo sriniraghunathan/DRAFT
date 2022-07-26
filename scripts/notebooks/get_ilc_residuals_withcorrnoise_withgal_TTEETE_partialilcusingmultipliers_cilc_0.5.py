@@ -31,6 +31,7 @@ import argparse, sys, numpy as np, scipy as sc, warnings, os
 sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
 import flatsky, misc, exp_specs
 import ilc, foregrounds as fg
+import pickle, gzip
 
 #import matplotlib.cbook
 warnings.filterwarnings('ignore',category=RuntimeWarning)
@@ -125,14 +126,14 @@ if (0):#20220112 - CMB-S4 SP-LAT multiple noise levels, fksy, and gal cuts - mov
     expname = 's4deepv3r025'
 
 if expname == 's4deepv3r025_plus_s4wide':
-    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
-    specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide = exp_specs.get_exp_specs('s4wide')
+    specs_dic, corr_noise_bands, rho, corr_noise, Nred_dic = exp_specs.get_exp_specs('s4deepv3r025', remove_atm = remove_atm)
+    specs_dic_s4wide, corr_noise_bands_s4wide, rho_s4wide, corr_noise_s4wide, Nred_dic = exp_specs.get_exp_specs('s4wide')
 #20220225 - 2028 ASO + single-CHLAT - we will take an inverse variance combination of Nyear single CHLAT and N+1 ASO
 elif expname.find('s4wide_single_chlat_plus_2028aso')>-1: 
-    specs_dic_aso, corr_noise_bands_aso, rho_aso, corr_noise_aso = exp_specs.get_exp_specs('s4wide_scaled_aso')
-    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs('s4wide_single_chlat')
+    specs_dic_aso, corr_noise_bands_aso, rho_aso, corr_noise_aso, Nred_dic = exp_specs.get_exp_specs('s4wide_scaled_aso')
+    specs_dic, corr_noise_bands, rho, corr_noise, Nred_dic = exp_specs.get_exp_specs('s4wide_single_chlat')
 else:
-    specs_dic, corr_noise_bands, rho, corr_noise = exp_specs.get_exp_specs(expname, remove_atm = remove_atm, corr_noise_for_spt = corr_noise_for_spt)
+    specs_dic, corr_noise_bands, rho, corr_noise, Nred_dic = exp_specs.get_exp_specs(expname, remove_atm = remove_atm, corr_noise_for_spt = corr_noise_for_spt)
 
 #20220223 - include full SO-baseline, if requested
 if include_fulls4scaledsobaseline:
@@ -212,7 +213,7 @@ print('Delta T =', noisearr_T)
 print('Delta P =', noisearr_P)
 #print(beamarr)
 print('\n')
-#sys.exit()
+##sys.exit()
 
 # In[28]:
 
@@ -246,12 +247,21 @@ for TP in TParr:
         for freq2 in freqarr:        
             beamval2, noiseval2 = beam_noise_dic[TP][freq2]
             elknee2, alphaknee2 = elknee_dic[TP][freq2]
+
+            ##elknee1, elknee2 = -1, -1.
+            ##alphaknee1, alphaknee2 = -1., -1.
+
+            Nred1, Nred2 = -1., -1.
+            if freq1 in Nred_dic:
+                Nred1 = Nred_dic[freq1]
+            if freq2 in Nred_dic:
+                Nred2 = Nred_dic[freq2]
             
             if freq1 == freq2:
-                nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1)
+                nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, Nred = Nred1)
             else:
                 if freq2 in corr_noise_bands[freq1]:
-                    nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, beamval2 = beamval2, noiseval2 = noiseval2, elknee2 = elknee2, alphaknee2 = alphaknee2, rho = rho)
+                    nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, beamval2 = beamval2, noiseval2 = noiseval2, elknee2 = elknee2, alphaknee2 = alphaknee2, rho = rho, Nred = Nred1, Nred2 = Nred2)
                 else:
                     nl = np.zeros( len(el) )
             nl[el<=param_dict['lmin']] = 0.
@@ -308,6 +318,24 @@ if (0):
         plot(bl_dic[freq], label = freq)
     legend(loc = 1)
 
+if (0):
+    color_arr = ['navy', 'blue', 'darkgreen', 'goldenrod', 'orangered', 'darkred']
+    ax=subplot(111, yscale = 'log')
+    for fcntr, freq in enumerate( freqarr ):
+        currnl = nl_dic['T'][(freq,freq)]*bl_dic[freq]**2.
+        tmpinds = np.where( (el>=3000) & (el<=5000) )[0]
+        meannl = np.median(currnl[tmpinds])
+        noise_uk_arcmin = np.sqrt(meannl)/np.radians(1./60.)
+        plot(currnl, label = '%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = color_arr[fcntr])
+        #plot(nl_dic_actual['T'][(freq,freq)], lw = 2., color = colordic[freq])
+    legend(loc = 1)
+    xlim(0, 5000)
+    ylim(1e-8, 1.)
+    xlabel(r'Multipole $\ell$', fontsize = 14)
+    ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
+    expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
+    title(r'%s' %(expname_str), fontsize = 14)
+    show(); ##sys.exit()
 
 # In[31]:
 
@@ -667,6 +695,9 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
 #parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
 parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
+if (1): #20220726 - regenerate ILC curves for multiple experiments.
+    parent_folder = '%s/20220726/' %(parent_folder)
+
 if s4_so_joint_configs:
     parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
 if null_comp is not None:
@@ -711,7 +742,7 @@ if expname.find('spt')>-1:
         atm_noise_corr_str = atm_noise_corr_str.strip('-')
         opfname = opfname.replace('.npy', '_%s.npy' %(atm_noise_corr_str))
 
-#print(opfname); sys.exit()
+##print(opfname); sys.exit()
 
 if cl_multiplier_dic is not None:
     if len(cl_multiplier_dic) > 1:
@@ -756,7 +787,7 @@ if expname.lower().find('s4')>-1:#total_obs_time_default != total_obs_time:
     plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
     
 print(opfname)
-print(plname); #sys.exit()
+print(plname); ##sys.exit()
 
 
 # In[ ]:
@@ -781,15 +812,17 @@ cl_camb *= 1e12
 cl_TT, cl_EE, cl_BB, cl_TE = cl_camb.T
 
 clf(); 
-fig = figure(figsize = (6,3))
-fsval = 8
+#fig = figure(figsize = (6,3))
+#fsval = 8
+figure(figsize=(10., 7.))#5.5))
+fsval = 12
 lwval = 0.75
-plot_weights = 0
+plot_weights = 1
 xmin, xmax = 100, param_dict['lmax']
 print(xmin, xmax)
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
-    subplots_adjust(wspace=0.1, hspace = 0.1)
+    subplots_adjust(wspace=0., hspace = 0.2)
     #first plot weights
     rspan, cspan = 2, 1
     curr_row = 0
@@ -817,15 +850,15 @@ if plot_weights:
         setp(ax.get_xticklabels(which = 'both'), visible=False)
         if cntr == 0:
             ylabel(r'Weight $W_{\ell}$')
-            legend(loc = 1, fontsize = 5, ncol = 4, handlelength = 2., handletextpad = 0.1)
+            legend(loc = 3, fontsize = fsval-2, ncol = 4, handlelength = 2., handletextpad = 0.1)
         else:
             setp(ax.get_yticklabels(which = 'both'), visible=False)
-        ylim(-3., 3.);
+        ylim(-0.5, 1.5);
         xlim(xmin, xmax);
         for label in ax.get_xticklabels(): label.set_fontsize(fsval)
         for label in ax.get_yticklabels(): label.set_fontsize(fsval)        
 
-        title(r'%s' %(which_spec))#, fontsize = 10)
+        title(r'%s' %(which_spec), fontsize = fsval)
 
     curr_row = rspan
     rspan = tr - rspan
@@ -836,7 +869,8 @@ for cntr, which_spec in enumerate( which_spec_arr ):
     else:
         ax = subplot(1, len(which_spec_arr), cntr+1, yscale = 'log')#, xscale = 'log')
     plot(el, cl_residual[which_spec], 'black', lw = 2., label = r'Residual')
-    title(r'%s' %(which_spec))
+    if not plot_weights:
+        title(r'%s' %(which_spec))
     if include_gal: #show gal residuals here as well
         if which_spec == 'TT':
             plot(el, fg_res_dic[which_spec]['galdust'], 'purple', lw = 2., label = r'Residual gal dust')
@@ -845,7 +879,9 @@ for cntr, which_spec in enumerate( which_spec_arr ):
         tot = np.zeros(len(el))
         tmpcoloarr = [cm.jet(int(d)) for d in np.linspace(0, 255, len(signal_arr))]
         for scntr, s in enumerate( signal_arr ):
+            #from IPython import embed; embed()
             plot(el, fg_res_dic[which_spec][s], lw = 1., label = r'%s' %(s), color = tmpcoloarr[scntr])
+            #print(s, fg_res_dic[which_spec][s])
             tot += fg_res_dic[which_spec][s]
         plot(el, tot, lw = 1., label = r'Total', color = 'gray')
     if which_spec == 'TT':
@@ -905,10 +941,11 @@ for cntr, which_spec in enumerate( which_spec_arr ):
     ylim(1e-9,1e-1);
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
-        ylabel(r'$C_{\ell}$')
-        legend(loc = 2, fontsize = 6, ncol = 2, handlelength = 2., handletextpad = 0.1)
+        ylabel(r'$C_{\ell}$ [$\mu$K$^{2}$]', fontsize = fsval)
+        legend(loc = 1, fontsize = fsval-1, ncol = 2, handlelength = 2., handletextpad = 0.1)
     else:
-        pass#setp(ax.get_yticklabels(which = 'both'), visible=False)
+        #pass
+        setp(ax.get_yticklabels(which = 'both'), visible=False)
     for label in ax.get_xticklabels(): label.set_fontsize(fsval)
     for label in ax.get_yticklabels(): label.set_fontsize(fsval)
     
@@ -925,7 +962,7 @@ if (0):#not corr_noise:
 if cl_multiplier_dic is not None:
     if 'gal_dust' in cl_multiplier_dic:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
-suptitle(r'%s; %s year(s)' %(tit, total_obs_time), x = 0.53, y = 1., fontsize = 12)
+suptitle(r'%s: %s; %s year(s)' %(tit, expname, total_obs_time), fontsize = fsval, y = .93)#, x = 0.53, y = .93)
 savefig(plname)
 #show(); #sys.exit()
 print(plname)
@@ -995,18 +1032,19 @@ if interactive_mode:
 
 
 if (1): #save residual files
-    cl_gal_dic_dust_fname = param_dict['cl_gal_dic_dust_fname']
-    try:
-        cl_gal_folder = param_dict['cl_gal_folder']
-        cl_gal_dic_dust_fname = '%s/%s' %(cl_gal_folder, cl_gal_dic_dust_fname)
-    except:
-        pass
-    print(cl_gal_dic_dust_fname)
-    galdustsims_cl = np.load(cl_gal_dic_dust_fname, allow_pickle=1, encoding = 'latin1').item()
-    if not include_gal:
-        fsky_val = 0.68
-    else:
-        fsky_val = galdustsims_cl['fsky_arr'][param_dict['which_gal_mask']]
+    if include_gal:
+        cl_gal_dic_dust_fname = param_dict['cl_gal_dic_dust_fname']
+        try:
+            cl_gal_folder = param_dict['cl_gal_folder']
+            cl_gal_dic_dust_fname = '%s/%s' %(cl_gal_folder, cl_gal_dic_dust_fname)
+        except:
+            pass
+        print(cl_gal_dic_dust_fname)
+        galdustsims_cl = np.load(cl_gal_dic_dust_fname, allow_pickle=1, encoding = 'latin1').item()
+        if not include_gal:
+            fsky_val = 0.68
+        else:
+            fsky_val = galdustsims_cl['fsky_arr'][param_dict['which_gal_mask']]
     opdic = {}
     opdic['el'] = el
     if cl_multiplier_dic is not None:
@@ -1017,7 +1055,8 @@ if (1): #save residual files
         opdic['weights'] = weights_dic
     opdic['freqcalib_fac'] = freqcalib_fac
     opdic['param_dict'] = param_dict
-    opdic['fsky_val'] = fsky_val
+    if include_gal:
+        opdic['fsky_val'] = fsky_val
     opdic['which_gal_mask'] = which_gal_mask
     #opdic['nl_dic'] = nl_dic
     opdic['beam_noise_dic'] = beam_noise_dic
@@ -1025,6 +1064,9 @@ if (1): #save residual files
     np.save(opfname, opdic)
     print(opfname)
 
+    if (1):
+        opfname_pkl = opfname.replace('.npy', '.pkl.gz')
+        pickle.dump(opdic, gzip.open(opfname_pkl, 'wb'), protocol = 2)
 
 # In[ ]:
 

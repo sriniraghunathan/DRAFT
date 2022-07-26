@@ -36,6 +36,9 @@ if (1): #SO scalings
     #expname_arr = ['s4wide_single_chlat_plus_2028aso_plus_fulls4scaledsobaseline', 's4wide_single_chlat_plus_2028aso']
     expname_arr = ['s4deepv3r025']
 
+    if (1): #20220726 - all experiments.
+        expname_arr = ['s4wide', 's4deepv3r025', 'sobaseline', 'sogoal', 'spt3g']#, 'spt4_C4', 'ccat_prime_so']
+
     s4_so_joint_configs = 1
     include_gal = 1
     which_gal_mask = 2
@@ -54,11 +57,20 @@ if (1): #SO scalings
             total_obs_time_arr = np.arange(1., 5.1, 1.)
         else:
             total_obs_time_arr = np.arange(1., 10.1, 1.)
+
+        if (1):
+            total_obs_time_arr = [7.]
+            include_fulls4scaledsobaseline = 0
+            include_gal = 0
+            s4_so_joint_configs = 0
+            save_fg_res_and_weights = 1
+            which_gal_mask = -1
+
         for total_obs_time in total_obs_time_arr:
             cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
             print('\n###############\n%s\n' %(cmd))
             os.system(cmd)
-            #sys.exit()
+            ###sys.exit()
             total += 1
     print(total)
 sys.exit()

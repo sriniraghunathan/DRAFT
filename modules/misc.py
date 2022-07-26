@@ -167,18 +167,18 @@ def get_bl(beamval, el):
 
 ################################################################################################################
 
-def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1., so_like = False):
+def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred = -1., Nred2=-1., so_like = False):
 
-    if so_like:
+    if Nred!= -1:
         total_years = 5.
-        fsky = 0.35
+        fsky = 0.4 #0.35
         survey_time = 1.
         obs_efficiency = 0.2
-        map_egde_factor = 0.85
-        single_year = 365.25 * 24. * 3600. * obs_efficiency * map_egde_factor
-        sky_area = 4. * np.pi * f_sky
+        noisy_map_eges_ign_factor = 0.15
+        single_year = 365.25 * 24. * 3600. * obs_efficiency * (1.-noisy_map_eges_ign_factor)
+        sky_area = 4. * np.pi * fsky
         year_scaling = single_year / total_years
-        Nred1 = Nred1  * sky_area / year_scaling
+        Nred = Nred  * sky_area / year_scaling
         if Nred2 != -1.:
             Nred2 = Nred2  * sky_area / year_scaling
 
@@ -211,10 +211,10 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
         if cross_band_noise: nl2 *= bl2
 
     if elknee != -1.:
-        if Nred1==-1:
+        if Nred==-1:
             nl = np.copy(nl) * (1. + (elknee * 1./el)**alphaknee )
         else:
-            nl = np.copy(nl) + Nred1*(elknee * 1./el)**alphaknee
+            nl = np.copy(nl) + Nred*(elknee * 1./el)**alphaknee
             if cross_band_noise and elknee2 != -1.:
                 if Nred2==-1:
                     nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )

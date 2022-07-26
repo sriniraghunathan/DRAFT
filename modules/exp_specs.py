@@ -2,6 +2,7 @@ import numpy as np, copy, sys
 
 def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
 
+    Nred_dic = {}
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
         #if expname == 's4wide' or expname.find('s4wide_scaled_sobaseline')>-1 or expname.find('s4wide_scaled_aso')>-1 or expname.find('s4wide_single_chlat')>-1 or expname.find('s4wide_single_chlat_plus_aso')>-1 or expname.find('s4wide_plus')>-1:
         if expname == 's4wide' or expname.find('s4wide_scaled')>-1 or expname.find('s4wide_single')>-1:
@@ -183,6 +184,68 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
             corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
         rho = 0.9
 
+    elif expname.lower() == 'sobaseline' or expname.lower() == 'sogoal' or expname.lower() == 'ccat_prime_so':
+
+        if not remove_atm:
+            '''
+            elknee_T_27, elknee_T_39, elknee_T_90, elknee_T_150, elknee_T_225, elknee_T_278 = 415., 391., 1932., 3917., 6740., 6792.
+            alphaknee_T_27, alphaknee_T_39, alphaknee_T_90, alphaknee_T_150, alphaknee_T_225, alphaknee_T_278 = 3.5, 3.5, 3.5, 3.5, 3.5, 3.5
+            elknee_P_27, elknee_P_39, elknee_P_90, elknee_P_150, elknee_P_225, elknee_P_278 = 700., 700., 700., 700., 700., 700.
+            alphaknee_P_27, alphaknee_P_39, alphaknee_P_90, alphaknee_P_150, alphaknee_P_225, alphaknee_P_278 = 1.4, 1.4, 1.4, 1.4, 1.4, 1.4
+            '''
+            elknee_T_27, elknee_T_39, elknee_T_90, elknee_T_150, elknee_T_225, elknee_T_278 = 1000., 1000., 1000., 1000., 1000., 1000.
+            alphaknee_T_27, alphaknee_T_39, alphaknee_T_90, alphaknee_T_150, alphaknee_T_225, alphaknee_T_278 = 3.5, 3.5, 3.5, 3.5, 3.5, 3.5
+            elknee_P_27, elknee_P_39, elknee_P_90, elknee_P_150, elknee_P_225, elknee_P_278 = 700., 700., 700., 700., 700., 700.
+            alphaknee_P_27, alphaknee_P_39, alphaknee_P_90, alphaknee_P_150, alphaknee_P_225, alphaknee_P_278 = 1.4, 1.4, 1.4, 1.4, 1.4, 1.4
+            
+        else:
+            elknee_T_27, elknee_T_39, elknee_T_90, elknee_T_150, elknee_T_225, elknee_T_278 = -1., -1., -1., -1., -1., -1.
+            alphaknee_T_27, alphaknee_T_39, alphaknee_T_90, alphaknee_T_150, alphaknee_T_225, alphaknee_T_278 = 0.0, 0., 0., 0., 0., 0.
+            elknee_P_27, elknee_P_39, elknee_P_90, elknee_P_150, elknee_P_225, elknee_P_278 = -1., -1., -1., -1., -1., -1.
+            alphaknee_P_27, alphaknee_P_39, alphaknee_P_90, alphaknee_P_150, alphaknee_P_225, alphaknee_P_278 = 0.0, 0., 0., 0., 0., 0.
+
+        if expname.lower() == 'sobaseline':# or expname.lower() == 'ccat_prime_so':
+            white_noise_T_27, white_noise_T_39 = 71., 36.
+            white_noise_T_90, white_noise_T_150 = 8., 10.
+            white_noise_T_225, white_noise_T_278 = 22., 54.
+        elif expname.lower() == 'sogoal':
+            white_noise_T_27, white_noise_T_39 = 52., 27.
+            white_noise_T_90, white_noise_T_150 = 5.8, 6.3
+            white_noise_T_225, white_noise_T_278 = 15., 37.
+
+        white_noise_P_27, white_noise_P_39 = white_noise_T_27* np.sqrt(2.), white_noise_T_39 * np.sqrt(2.)
+        white_noise_P_90, white_noise_P_150 = white_noise_T_90* np.sqrt(2.), white_noise_T_150 * np.sqrt(2.)
+        white_noise_P_225, white_noise_P_278 = white_noise_T_225* np.sqrt(2.), white_noise_T_278 * np.sqrt(2.)
+
+        beam_27, beam_39, beam_90, beam_150, beam_225, beam_278 = 7.4, 5.1, 2.2, 1.4, 1.0, 0.9
+
+        specs_dic = {
+        27: [beam_27, white_noise_T_27, elknee_T_27, alphaknee_T_27, white_noise_P_27, elknee_P_27, alphaknee_P_27],
+        39: [beam_39, white_noise_T_39, elknee_T_39, alphaknee_T_39, white_noise_P_39, elknee_P_39, alphaknee_P_39],
+        93: [beam_90, white_noise_T_90, elknee_T_90, alphaknee_T_90, white_noise_P_90, elknee_P_90, alphaknee_P_90],
+        145: [beam_150, white_noise_T_150, elknee_T_150, alphaknee_T_150, white_noise_P_150, elknee_P_150, alphaknee_P_150],
+        225: [beam_225, white_noise_T_225, elknee_T_225, alphaknee_T_225, white_noise_P_225, elknee_P_225, alphaknee_P_225],
+        278: [beam_278, white_noise_T_278, elknee_T_278, alphaknee_T_278, white_noise_P_278, elknee_P_278, alphaknee_P_278],
+        }
+
+        #uK^2 seconds.
+        Nred_dic[27] = 100.
+        Nred_dic[39] = 39.
+        Nred_dic[93] = 230.
+        Nred_dic[145] = 1500.
+        Nred_dic[225] = 17000.
+        Nred_dic[278] = 31000.
+
+        freqarr = sorted( specs_dic.keys() )
+        nc = len( freqarr )
+
+        corr_noise = 1
+        if corr_noise:
+            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[145], 145:[93], 225: [278], 278: [225], 350: [350]}
+        else:
+            corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
+        rho = 0.9
+
     elif expname.find('spt')>-1:
 
         elknee_T_90, elknee_T_150, elknee_T_220 = 1200., 2200., 2300.
@@ -334,4 +397,4 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
 
         rho = 1.0
 
-    return specs_dic, corr_noise_bands, rho, corr_noise
+    return specs_dic, corr_noise_bands, rho, corr_noise, Nred_dic
