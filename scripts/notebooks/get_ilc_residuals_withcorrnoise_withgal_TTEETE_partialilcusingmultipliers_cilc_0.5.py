@@ -765,6 +765,10 @@ try:
 except:
     pass
 
+if param_dict['lmax']!=5000:
+    opfname = opfname.replace('.npy', '_lmax%s.npy' %(param_dict['lmax']))
+
+###print(opfname); sys.exit()
 '''
 #plname = opfname.replace('.npy', '.png').replace('S4_ilc', 'plot_S4_ilc')
 if s4like_mask:
