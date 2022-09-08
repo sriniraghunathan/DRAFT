@@ -14,8 +14,13 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
 
     el_, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
-    if el is None: el = np.copy(el_)
+    if el is None: el = np.copy(el_)    
     el_, cl_ksz = fg.get_foreground_power_spt('kSZ', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])
+
+    if (1): #make cmb, ksz length the same as el
+        cl_cmb = np.interp(el, np.arange(len(cl_cmb)), cl_cmb)
+        cl_ksz = np.interp(el, np.arange(len(cl_ksz)), cl_ksz)
+
     if which_spec == 'EE':
         cl_ksz = cl_ksz * pol_frac_per_cent_ksz**2.
     if which_spec == 'TE':
@@ -34,7 +39,6 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
     if 'ksz' in force_cl_dic:
         cl_ksz = np.interp(el, np.arange(len(force_cl_dic['ksz'])), force_cl_dic['ksz'])
     #20220428 - force cl if force_cl_dic is supplied
-
 
     cl_dic = {}
     cl_ori = np.zeros(len(el))
@@ -219,7 +223,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 if 'tsz_cib' in force_cl_dic:
                     cl_tsz_cib_force = force_cl_dic['tsz_cib'][(freq1, freq2)]
                 else:
-                    cl_tsz_cib_force = force_cl_dic['cib_cib'][(freq2, freq1)]
+                    cl_tsz_cib_force = force_cl_dic['cib_tsz'][(freq1, freq2)]
                 #loglog(abs(cl_tsz_cib_force)); loglog(abs(cl_tsz_cib)); show(); sys.exit()
                 cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib_force)), cl_tsz_cib_force)
             '''#20220507 - calculated tszxcib for mdpl2 and websky. so commenting these things out.       
@@ -432,7 +436,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     nl = nl_dic[freq1]
                     if freq1 != freq2: 
                         nl = np.copy(nl) * 0.
-                
+
                 if len(cl) > len(nl):
                     cl = cl[:len(nl)]
                 elif len(cl) < len(nl):
@@ -482,7 +486,8 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     fg_cl_dic['cib'][(freq1, freq2)] = fg_cl_dic['cib'][(freq2, freq1)] = cl_dust
                 if (1):#'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
                     if 'tsz_cib' not in fg_cl_dic: fg_cl_dic['tsz_cib'] = {}
-                    fg_cl_dic['tsz_cib'][(freq1, freq2)] = fg_cl_dic['tsz_cib'][(freq2, freq1)] = cl_tsz_cib
+                    ##fg_cl_dic['tsz_cib'][(freq1, freq2)] = fg_cl_dic['tsz_cib'][(freq2, freq1)] = cl_tsz_cib
+                    fg_cl_dic['tsz_cib'][(freq1, freq2)] = cl_tsz_cib
                 if (1):#'noise' not in ignore_fg and which_spec != 'TE':
                     if 'noise' not in fg_cl_dic: fg_cl_dic['noise'] = {}
                     fg_cl_dic['noise'][(freq1, freq2)] = fg_cl_dic['noise'][(freq2, freq1)] = nl
@@ -522,6 +527,9 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 #print(which_spec, freq1, freq2, cl)
                 loglog(cl, label = r'%s - %s' %(freq1, freq2));
                 legend(loc = 3, ncol = 2, fontsize = 6) 
+
+            if (0):##freq1 != freq2: 
+                print(freq1, freq2, cl.min(), cl.max(), nl.min(), nl.max()); sys.exit()
 
             cl_dic[(freq1, freq2)] = cl
             #print('\n\n\n')
