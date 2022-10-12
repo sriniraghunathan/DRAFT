@@ -104,6 +104,19 @@ def get_exp_specs(expname, remove_atm = False):
         270: [13.0, None, -1., 0., 5.97, 60., 3.],
         }
 
+    elif expname == 's4satBB_with_LATbands':
+        specs_dic = {
+        #same as s4satBB but bands are matched to s4deepv3r025. 
+        #This is only a temporary fix to get the pySM galactic residuals.
+        #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_B, elknee_B, alphaknee_B] 
+        27: [72.8, None, -1., 0., 3.53, 60., 1.7],
+        39: [72.8, None, -1., 0., 4.46, 60., 1.7], 
+        93: [22.7, None, -1., 0., 0.78, 60., 1.7],
+        145: [25.5, None, -1., 0., 1.23, 60., 3.],
+        225: [13.0, None, -1., 0., 3.48, 60., 3.],
+        278: [13.0, None, -1., 0., 5.97, 60., 3.],
+        }
+
     elif expname == 's4BB_DC06':
         specs_dic = {
         #Table 1 of http://bicep.rc.fas.harvard.edu/CMB-S4/analysis_logbook/20200208_06_sims_details/. Note that we are using noise in B maps (and not E maps) here for P.

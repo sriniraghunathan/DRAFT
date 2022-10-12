@@ -5,6 +5,7 @@ plot_all_lensing_estimators = True
 
 
 expname_arr = ['spt3g', 'sobaseline', 'sogoal', 's4wide', 's4deepv3r025']
+expname_arr = ['spt3g', 's4wide']
 expname_dic = {'sobaseline': 'SO-Baseline', 'sogoal': 'SO-Goal', 'spt3g': 'SPT-3G', 's4wide': 'S4-Wide', 's4deepv3r025': 'S4-Ultradeep'}
 color_dic = {'sobaseline': 'royalblue', 'sogoal': 'darkorange', 'spt3g': 'goldenrod', 's4wide': 'darkgreen', 's4deepv3r025': 'darkred'}
 
@@ -101,9 +102,10 @@ else:
         print(expname)
         els, cl_kk, nl_tt, nl_te, nl_tb, nl_ee, nl_eb, nl_mv, nl_mvpol = pl_dic[expname]['no_galaxy']
         xmin, xmax = 0., max(els)
+        print(els)
 
         titval = expname_dic[expname]
-        if expname.find('s4')>-1:
+        if expname.find('s4')>-1 and xmax != reqd_lmaxtt:
             titval = r'%s ($\ell_{\rm max} = 5000; \ell_{\rm max}^{\rm TT} = %s$)' %(titval, reqd_lmaxtt)
         else:
             titval = r'%s ($\ell_{\rm max} = \ell_{\rm max}^{\rm TT} = %s$)' %(titval, reqd_lmaxtt)
@@ -127,6 +129,7 @@ else:
         plot(els, cl_kk, lw = 2., color = 'gray', alpha = 0.5)
         title(r'Lensing noise curves: %s' %(titval), fontsize = fsval)
         legend(loc = 4, ncol = 4, fontsize = fsval-5)
+        xmax=5000
         ylim(ymin, ymax); xlim(xmin, xmax)
         #setp(ax.get_xticklabels(which = 'both'), visible=False)
         ylabel(r'$L(L+1)]^{2}$C$_{L}^{\phi \phi}/2\pi$', fontsize = fsval)
@@ -139,5 +142,6 @@ else:
 
         plname = 'plots_all_estimators/lensing_noise_curves_%s_allestimators_lmax%s.png' %(expname, reqd_lmaxtt)
         savefig(plname, dpi = 200.)
-        #show();  
+        #show(); 
+        close()
 sys.exit()    

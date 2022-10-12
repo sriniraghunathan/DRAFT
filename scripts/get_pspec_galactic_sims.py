@@ -267,7 +267,7 @@ if zonca_sims:
     name_dic[225] = 'HFL1'
     name_dic[278] = 'HFL2'
 
-if (1):##use_spt3g_mask:
+if use_spt3g_mask:
     nuarr = [93, 145]##, 225]
 
 if pySM_yomori:
@@ -415,6 +415,7 @@ if (1):#testing or not local:
     print(logline)
 
     map_dic = {}
+    ###print(nuarr); sys.exit()
     for nucntr, nu in enumerate( nuarr ):
         fname = '%s/%s' %(sim_folder, fname_pref)
         if zonca_sims:

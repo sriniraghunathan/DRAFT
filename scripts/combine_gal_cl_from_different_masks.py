@@ -22,12 +22,12 @@ if (0):
     lat_steps_mask = 1
     nside, lmax = 4096, 10000 ##7000
 
-if (0):
+if (1):
     #s4like_mask = 1
     #nside, lmax = 4096, 7000
-    s4like_mask_v2 = 1
+    s4like_mask_v2 = 0 ##1
     s4like_mask_v3 = 0
-    s4delensing_mask = 0
+    s4delensing_mask = 1 ##0
 
     '''
     #delensing LAT
@@ -52,7 +52,7 @@ if (0):
     s4like_mask_v3=0
     s4delensing_mask = 0
 
-if (1):
+if (0):
     spt3g_mask = 0
     t_only = 0
     min_obs_el = 30.
