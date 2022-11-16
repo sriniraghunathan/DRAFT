@@ -258,10 +258,10 @@ for TPcntr, TP in enumerate( TParr ):
                 Nred2 = Nred_dic[freq2][TPcntr]
             
             if freq1 == freq2:
-                nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, Nred = Nred1)
+                nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, Nred1 = Nred1)
             else:
                 if freq2 in corr_noise_bands[freq1]:
-                    nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, beamval2 = beamval2, noiseval2 = noiseval2, elknee2 = elknee2, alphaknee2 = alphaknee2, rho = rho, Nred = Nred1, Nred2 = Nred2)
+                    nl = misc.get_nl(noiseval1, el, beamval1, elknee = elknee1, alphaknee = alphaknee1, beamval2 = beamval2, noiseval2 = noiseval2, elknee2 = elknee2, alphaknee2 = alphaknee2, rho = rho, Nred1 = Nred1, Nred2 = Nred2)
                 else:
                     nl = np.zeros( len(el) )
             nl[el<=param_dict['lmin']] = 0.
@@ -319,6 +319,8 @@ if (0):
     legend(loc = 1)
 
 if (0):
+    use_dls = True
+    beam_decon = True
     color_arr = ['navy', 'blue', 'darkgreen', 'goldenrod', 'orangered', 'darkred']
     ax=subplot(111, yscale = 'log')
     for fcntr, freq in enumerate( freqarr ):
@@ -326,16 +328,30 @@ if (0):
         tmpinds = np.where( (el>=3000) & (el<=5000) )[0]
         meannl = np.median(currnl[tmpinds])
         noise_uk_arcmin = np.sqrt(meannl)/np.radians(1./60.)
-        plot(currnl, label = '%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = color_arr[fcntr])
+        print(noise_uk_arcmin, beam_noise_dic['T'][freq])
+
+        if beam_decon:
+            currnl = currnl / bl_dic[freq]**2.
+        
+        if use_dls:
+            dl_fac = el * (el+1)/2/np.pi
+            plot(el, dl_fac * currnl, label = '%s GHz ' %(freq), ls = '-', color = color_arr[fcntr])
+        else:
+            plot(el, currnl, label = '%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = color_arr[fcntr])
         #plot(nl_dic_actual['T'][(freq,freq)], lw = 2., color = colordic[freq])
     legend(loc = 1)
-    xlim(0, 5000)
-    ylim(1e-8, 1.)
+    if not use_dls:
+        xlim(0, 5000); ylim(1e-8, 1.)
+        ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
+    else:
+        ylabel(r'$\ell(\ell+1)/(2\pi)$ N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
+        xlim(0, 5000); ylim(.1, 1e5)
     xlabel(r'Multipole $\ell$', fontsize = 14)
-    ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
     expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
+    ##expname_str = 'S4-Wide'
     title(r'%s' %(expname_str), fontsize = 14)
-    show(); ##sys.exit()
+    ##savefig('s4_wide_nl.png', dpi= 200.); sys.exit()
+    show(); sys.exit()
 
 # In[31]:
 

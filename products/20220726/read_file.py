@@ -10,6 +10,7 @@ color_dic = {'sobaseline': 'royalblue', 'sogoal': 'darkorange', 'spt3g': 'golden
 pl_dic = {}
 for fname in flist:
     res_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()
+    ##print(res_dic['fg_res_dic']['TT'].keys()); sys.exit()
     expname = fname.split('_')[0]
     if expname not in expname_arr: continue
     print(fname, expname, res_dic.keys())
