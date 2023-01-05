@@ -274,6 +274,7 @@ def make_gaussian_realisation(mapparams, el, cl, cl2 = None, cl12 = None, bl = N
         gauss_reals_1 = np.random.standard_normal([nx,ny])
         gauss_reals_2 = np.random.standard_normal([nx,ny])
 
+        '''
         gauss_reals_1 = np.fft.fft2( gauss_reals_1 )
         gauss_reals_2 = np.fft.fft2( gauss_reals_2 )
 
@@ -283,6 +284,31 @@ def make_gaussian_realisation(mapparams, el, cl, cl2 = None, cl12 = None, bl = N
         SIM_FFT = (t1 + t2) * norm
         SIM_FFT[np.isnan(SIM_FFT)] = 0.
         SIM = np.fft.ifft2( SIM_FFT ).real
+        '''
+
+        gauss_reals_1_fft = np.fft.fft2( gauss_reals_1 )
+        gauss_reals_2_fft = np.fft.fft2( gauss_reals_2 )
+
+        #field_1
+        cltwod_tmp = np.copy( cltwod )**0.5 * norm
+        SIM_FIELD_1 = np.fft.ifft2( cltwod_tmp *  gauss_reals_1_fft ).real
+        #SIM_FIELD_1 = np.zeros( (ny, nx) )
+
+        #field 2 - has correlation with field_1
+        t1 = np.copy( gauss_reals_1_fft ) * cltwod12 / np.copy(cltwod)**0.5
+        t2 = np.copy( gauss_reals_2_fft ) * ( cltwod2 - (cltwod12**2. /np.copy(cltwod)) )**0.5
+        SIM_FIELD_2_FFT = (t1 + t2) * norm
+        SIM_FIELD_2_FFT[np.isnan(SIM_FIELD_2_FFT)] = 0.
+        SIM_FIELD_2 = np.fft.ifft2( SIM_FIELD_2_FFT ).real
+
+        #T and E generated. B will simply be zeroes.
+        SIM_FIELD_3 = np.zeros( SIM_FIELD_2.shape )
+        if qu_or_eb == 'qu': #T, Q, U: convert E/B to Q/U.
+            SIM_FIELD_2, SIM_FIELD_3 = convert_eb_qu(SIM_FIELD_2, SIM_FIELD_3, mapparams, eb_to_qu = 1)
+        else: #T, E, B: B will simply be zeroes
+            pass
+
+        SIM = np.asarray( [SIM_FIELD_1, SIM_FIELD_2, SIM_FIELD_3] )
 
     if bl is not None:
         if np.ndim(bl) != 2:
