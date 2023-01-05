@@ -64,6 +64,22 @@ def get_lxly_az_angle(lx,ly):
     return 2*np.arctan2(lx, -ly)
 
 ################################################################################################################
+def convert_eb_qu(map1, map2, flatskymapparams, eb_to_qu = 1):
+
+    lx, ly = get_lxly(flatskymapparams)
+    angle = get_lxly_az_angle(lx,ly)
+
+    map1_fft, map2_fft = np.fft.fft2(map1),np.fft.fft2(map2)
+    if eb_to_qu:
+        map1_mod = np.fft.ifft2( np.cos(angle) * map1_fft - np.sin(angle) * map2_fft ).real
+        map2_mod = np.fft.ifft2( np.sin(angle) * map1_fft + np.cos(angle) * map2_fft ).real
+    else:
+        map1_mod = np.fft.ifft2( np.cos(angle) * map1_fft + np.sin(angle) * map2_fft ).real
+        map2_mod = np.fft.ifft2( -np.sin(angle) * map1_fft + np.cos(angle) * map2_fft ).real
+
+    return map1_mod, map2_mod
+
+################################################################################################################
 def get_lpf_hpf(flatskymapparams, lmin_lmax, filter_type = 0):
     """
     filter_type = 0 - low pass filter
