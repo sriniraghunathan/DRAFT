@@ -235,7 +235,7 @@ def radial_profile(z, xy = None, bin_size = 1., minbin = 0., maxbin = 10., to_ar
 
 ################################################################################################################
 
-def make_gaussian_realisation(mapparams, el, cl, cl2 = None, cl12 = None, bl = None):
+def make_gaussian_realisation(mapparams, el, cl, cl2 = None, cl12 = None, bl = None, qu_or_eb = 'qu'):
 
     nx, ny, dx, dy = mapparams
     arcmins2radians = np.radians(1/60.)
