@@ -543,7 +543,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 ################################################################################################################
 ################################################################################################################
 
-def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
+def get_acap(freqarr, final_comp = 'cmb', spec_index_rg = -0.76, freqcalib_fac = None):
 
     nc = len(freqarr)
 
@@ -599,7 +599,7 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None):
     elif final_comp.lower() == 'radio':
         freqscale_fac = []
         for freq in sorted( freqarr ):
-            freqscale_fac.append( get_radio_freq_dep(freq) )
+            freqscale_fac.append( get_radio_freq_dep(freq, spec_index_rg = spec_index_rg) )
 
         freqscale_fac = np.asarray( freqscale_fac )
 
@@ -662,7 +662,7 @@ def get_clinv(freqarr, elcnt, cl_dic, which_spec):
 
     return clinv
 
-def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cmb', freqcalib_fac = None, lmin = 0, return_weights = 0, null_comp = None):
+def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cmb', spec_index_rg = -0.76, freqcalib_fac = None, lmin = 0, return_weights = 0, null_comp = None):
 
     try:
         lmin = param_dict['lmin']
@@ -676,14 +676,14 @@ def residual_power(param_dict, freqarr, el, cl_dic, which_spec, final_comp = 'cm
             te_len = 1
 
         freqarr_for_acap = np.tile(freqarr, te_len) #T and E, if need be
-        acap = get_acap(freqarr_for_acap, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
+        acap = get_acap(freqarr_for_acap, final_comp = final_comp, spec_index_rg = spec_index_rg, freqcalib_fac = freqcalib_fac)
 
         nc = len(freqarr)
         cl_residual = np.zeros( (len(el)) )
         weightsarr = np.zeros( (te_len * nc, len( el ) ) )
     
     if (1):
-        acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
+        acap = get_acap(freqarr, final_comp = final_comp, spec_index_rg = spec_index_rg, freqcalib_fac = freqcalib_fac)
 
         nc = len(freqarr)
         cl_residual = np.zeros( (len(el)) )
@@ -850,7 +850,7 @@ def get_effective_frequencies(experiment, band, component):
 
     return eff_frequencies[component][band]
 
-def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1, experiment = None):
+def get_acap_new(freqarr, final_comp = 'cmb', spec_index_rg = -0.76, freqcalib_fac = None, teb_len = 1, experiment = None):
 
     #if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz'):
     if experiment is not None and ( final_comp.lower() != 'cmb' and final_comp.lower() != 'ksz') and experiment.find('sptpolplusultradeepplus3gplusherschel') == -1 and experiment.find('spt3g_201920_planck') == -1 and experiment.find('ccat') == -1:
@@ -941,7 +941,7 @@ def get_acap_new(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1,
     elif final_comp.lower() == 'radio':
         freqscale_fac = []
         for freq in sorted( freqarr ):
-            freqscale_fac.append( get_radio_freq_dep(freq) )
+            freqscale_fac.append( get_radio_freq_dep(freq, spec_index_rg = spec_index_rg) )
 
         freqscale_fac = np.asarray( freqscale_fac )
 
@@ -979,7 +979,8 @@ def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.3806
 
     return value
 
-def get_radio_freq_dep(nu, nu0 = 150., spec_index_rg = -0.9, null_highfreq_radio = 1):
+#def get_radio_freq_dep(nu, nu0 = 150., spec_index_rg = -0.9, null_highfreq_radio = 1):
+def get_radio_freq_dep(nu, nu0 = 150., spec_index_rg = -0.76, null_highfreq_radio = 1):
 
     nr = fg.fn_dB_dT(nu0)
     dr = fg.fn_dB_dT(nu)
@@ -1101,22 +1102,22 @@ def get_clinv_new(freqarr, elcnt, cl_dic, return_clmat = 0):
     else:
         return clinv
 
-def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freqcalib_fac = None, lmin = 10, return_weights = 0, null_comp = None, experiment = None):
+def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', spec_index_rg = -0.76, freqcalib_fac = None, lmin = 10, return_weights = 0, null_comp = None, experiment = None):
 
     #acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
     teb_len, pspec_arr = get_teb_spec_combination(cl_dic) #20200527 - teb
-    acap = get_acap_new(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
+    acap = get_acap_new(freqarr, final_comp = final_comp, spec_index_rg = spec_index_rg, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
 
     if null_comp is not None:
         total_comp_to_null = 0
         if np.ndim(null_comp) == 0:
-            bcap = get_acap_new(freqarr, final_comp = null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
+            bcap = get_acap_new(freqarr, final_comp = null_comp, spec_index_rg = spec_index_rg, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
             total_comp_to_null += 1
         else:
             #from IPython import embed; embed()
             bcap = None
             for curr_null_comp in null_comp:
-                curr_bcap = get_acap_new(freqarr, final_comp = curr_null_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
+                curr_bcap = get_acap_new(freqarr, final_comp = curr_null_comp, spec_index_rg = spec_index_rg, freqcalib_fac = freqcalib_fac, teb_len = teb_len, experiment = experiment)
                 if bcap is None:
                     bcap = np.copy( curr_bcap )
                 else:
@@ -1125,7 +1126,7 @@ def residual_power_new(param_dict, freqarr, el, cl_dic, final_comp = 'cmb', freq
             bcap = np.mat(bcap)
             bcap_full = np.mat( np.copy( bcap ) )
             #from IPython import embed; embed()
-            #bcap = get_acap_new(freqarr, final_comp = null_comp[0], freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+            #bcap = get_acap_new(freqarr, final_comp = null_comp[0], spec_index_rg = spec_index_rg, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
 
     nc = len(freqarr)
     #cl_residual = np.zeros( (len(el)) )
@@ -1316,7 +1317,7 @@ def compton_y_to_delta_Tcmb(nu, Tcmb = 2.73, h=6.626e-34, k_B=1.38e-23):
 
 ################################################################################################################
 
-def get_ilc_map(final_comp, el, map_dic, bl_dic, nside, lmax, cl_dic = None, nl_dic = None, lmin = 10, freqcalib_fac = None, ignore_fg = [], full_sky = 0, estimate_covariance = 0, mapparams = None, apod_mask = None, weightsarr = None):
+def get_ilc_map(final_comp, el, map_dic, bl_dic, nside, lmax, cl_dic = None, spec_index_rg = -0.76, nl_dic = None, lmin = 10, freqcalib_fac = None, ignore_fg = [], full_sky = 0, estimate_covariance = 0, mapparams = None, apod_mask = None, weightsarr = None):
 
     """
     inputs:
@@ -1378,7 +1379,7 @@ def get_ilc_map(final_comp, el, map_dic, bl_dic, nside, lmax, cl_dic = None, nl_
 
     #get weights
     if weightsarr is None:
-        weightsarr = get_multipole_weightsarr(final_comp, freqarr, el, cl_dic, lmin, freqcalib_fac)#, ignore_fg)
+        weightsarr = get_multipole_weightsarr(final_comp, freqarr, el, cl_dic, lmin, freqcalib_fac, spec_index_rg = spec_index_rg)#, ignore_fg)
     weightsarr_1d = np.copy(weightsarr)
 
     #convert weights to 2D if flat-sky
@@ -1463,11 +1464,11 @@ def apply_ilc_weightsarr(maparr, weightsarr, nside, lmax, full_sky = 0, verbose 
 
 ################################################################################################################
 
-def get_multipole_weightsarr(final_comp, freqarr, el, cl_dic, lmin, freqcalib_fac):#, ignore_fg):
+def get_multipole_weightsarr(final_comp, freqarr, el, cl_dic, lmin, freqcalib_fac, spec_index_rg = -0.76):#, ignore_fg):
 
     #acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac)
     teb_len, pspec_arr = get_teb_spec_combination(cl_dic) #20200527 - teb
-    acap = get_acap(freqarr, final_comp = final_comp, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
+    acap = get_acap(freqarr, final_comp = final_comp, spec_index_rg = spec_index_rg, freqcalib_fac = freqcalib_fac, teb_len = teb_len)
 
     nc = len(freqarr)
 
