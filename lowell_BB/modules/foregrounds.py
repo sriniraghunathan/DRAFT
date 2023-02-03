@@ -340,9 +340,9 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
 
         epsilon_nu1_nu2 = nr/dr
 
-        bnu1 = fn_BnuT(freq1, temp = Tdust)
-        bnu2 = fn_BnuT(freq2, temp = Tdust)
-        bnu0 = fn_BnuT(freq0, temp = Tdust)
+        bnu1 = get_BnuT(freq1, temp = Tdust)
+        bnu2 = get_BnuT(freq2, temp = Tdust)
+        bnu0 = get_BnuT(freq0, temp = Tdust)
 
         etanu1_dust = ((1.*freq1*1e9)**spec_index_dust) * bnu1
         etanu2_dust = ((1.*freq2*1e9)**spec_index_dust) * bnu2

@@ -245,16 +245,16 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None, teb_len = 1):
 def get_cib_freq_dep(nu, Tcib = 20., Tcmb = 2.7255, h=6.62607004e-34, k_B=1.38064852e-23, beta = 1.505):
     if nu<1e4: nu *= 1e9
 
-    bnu1 = fg.fn_BnuT(nu, temp = Tcib)
-    dbdt = fg.fn_dB_dT(nu)
+    bnu1 = fg.get_BnuT(nu, temp = Tcib)
+    dbdt = fg.get_dB_dT(nu)
     value = (nu**beta) * bnu1 / dbdt
 
     return value
 
 def get_radio_freq_dep(nu, nu0 = 150., spec_index_rg = -0.9, null_highfreq_radio = 1):
 
-    nr = fg.fn_dB_dT(nu0)
-    dr = fg.fn_dB_dT(nu)
+    nr = fg.get_dB_dT(nu0)
+    dr = fg.get_dB_dT(nu)
     epsilon_nu1_nu0 = nr/dr
     scaling = (nu/nu0)**spec_index_rg
     value = epsilon_nu1_nu0 * scaling
