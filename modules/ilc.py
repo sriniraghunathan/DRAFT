@@ -381,17 +381,27 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                         cl_gal_sync = np.copy(cl_gal_sync) * cl_multiplier_dic['gal_sync']
 
             if 'cmb' not in ignore_fg:
+                if len(cl_cmb)<len(cl):
+                    cl_cmb = np.interp(el, np.arange(len(cl_cmb)), cl_cmb)
                 cl = cl + np.copy(cl_cmb[el])
             if 'ksz' not in ignore_fg:
+                if len(cl_ksz)<len(cl):
+                    cl_ksz = np.interp(el, np.arange(len(cl_ksz)), cl_ksz)
                 #print('ksz')
                 cl = cl + cl_ksz[el]
             if 'tsz' not in ignore_fg:
+                if len(cl_tsz)<len(cl):
+                    cl_tsz = np.interp(el, np.arange(len(cl_tsz)), cl_tsz)
                 #print('tsz')
                 cl = cl + cl_tsz[el]
             if 'radio' not in ignore_fg:
+                if len(cl_radio)<len(cl):
+                    cl_radio = np.interp(el, np.arange(len(cl_radio)), cl_radio)
                 #print('radio')
                 cl = cl + cl_radio[el]
             if 'dust' not in ignore_fg:
+                if len(cl_dust)<len(cl):
+                    cl_dust = np.interp(el, np.arange(len(cl_dust)), cl_dust)
                 #print('dust')
                 cl = cl + cl_dust[el]
 
@@ -401,6 +411,8 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             if 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
                 add_cl_tsz_cib = False 
             if add_cl_tsz_cib: #'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
+                if len(cl_tsz_cib)<len(cl):
+                    cl_tsz_cib = np.interp(el, np.arange(len(cl_tsz_cib)), cl_tsz_cib)
                 cl = cl + cl_tsz_cib[el]
 
             if include_gal:# and not pol: #get galactic dust and sync
