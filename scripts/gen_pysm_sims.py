@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 band=145
 nside = 2048
 dust_arr = ['d1', 'd2', 'd3', 'd4']
-op_fd = 'sims/pysm/'
+op_fd = '../data/galactic/pysm3/'
 if not os.path.exists( op_fd ): os.system('mkdir -p %s' %(op_fd))
 for dcntr, d in enumerate( dust_arr ):
     fname = '%s/%s.fits' %(op_fd, d)
