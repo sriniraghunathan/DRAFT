@@ -224,7 +224,7 @@ parser.add_argument('-verbose', dest='verbose', action='store', help='verbose', 
 parser.add_argument('-zonca_sims', dest='zonca_sims', action='store', help='zonca_sims', type=int, default=1) #S4 sims by Andrea Zonca
 parser.add_argument('-pySM_yomori', dest='pySM_yomori', action='store', help='pySM_yomori', type=int, default=0) #pySM sims by Yuuki Omori
 
-parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', help='use_planck_mask', type=int, default=0) #use Planck galactic mask
+###parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', help='use_planck_mask', type=int, default=0) #use Planck galactic mask
 parser.add_argument('-which_mask', dest='which_mask', action='store', help='which_mask', type=int, default=-1)
 
 parser.add_argument('-use_lat_step_mask', dest='use_lat_step_mask', action='store', help='use_lat_step_mask', type=int, default=0) #mask based on latitude
@@ -235,6 +235,7 @@ parser.add_argument('-use_s4like_mask_v3', dest='use_s4like_mask_v3', action='st
 parser.add_argument('-use_s4delensing_mask', dest='use_s4delensing_mask', action='store', help='use_s4delensing_mask', type=int, default=0) #no mask * delensing footprint (or hit map actually).
 parser.add_argument('-cos_el', dest='cos_el', action='store', help='cos_el', type=int, default=40) #rough S4 mask v2: split footrpint into clean and unclean region
 parser.add_argument('-use_spt3g_mask', dest='use_spt3g_mask', action='store', help='use_spt3g_mask', type=int, default=0) #SPT-3G summer/winter field
+parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', help='use_planck_mask', type=int, default=0) #use Planck galactic mask
 
 #20210111 - CMB-S4 SP-LAT - different min obs el and gal cuts
 parser.add_argument('-min_obs_el', dest='min_obs_el', action='store', help='min_obs_el', type=float, default=30.)
@@ -329,7 +330,8 @@ if zonca_sims or pySM_yomori:
         sim_folder = 'pySM/yomori/galforegrounds/'
 
     if use_planck_mask:
-        opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        ##opfname = '%s/cls_galactic_sims_%s_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/planck_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_lat_step_mask:
         opfname = '%s/lat_steps/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask:
@@ -352,7 +354,8 @@ else:
 
     if use_planck_mask:
         #opfname = '%s/cls_gal_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
-        opfname = '%s/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        ##opfname = '%s/cls_galactic_sims_%s_CUmilta_20200319_maskplanck_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        opfname = '%s/planck_mask/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_lat_step_mask:
         opfname = '%s/lat_steps/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_s4like_mask:
@@ -364,7 +367,7 @@ else:
     elif use_s4delensing_mask:
         opfname = '%s/s4delensing_mask/cls_galactic_sims_%s_CUmilta_20200319_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
 
-
+if use_planck_mask: os.system('mkdir %s/planck_mask/' %(sim_folder))
 if use_lat_step_mask: os.system('mkdir %s/lat_steps/' %(sim_folder))
 if use_s4like_mask: os.system('mkdir %s/s4like_mask/' %(sim_folder))
 if use_s4like_mask_v2: os.system('mkdir %s/s4like_mask_v2/' %(sim_folder))
@@ -463,8 +466,44 @@ if (1):#testing or not local:
 
     #now get masks
     if use_planck_mask:
-        planck_mask_fname = '%s/HFI_Mask_GalPlane-apo0_2048_R2.00.fits' %(mask_folder)
-        planck_mask = H.read_map(planck_mask_fname, verbose = verbose, field = (1,2,3))
+        use_apod_planck = False
+        if not use_apod_planck:
+            planck_mask_fname = '%s/HFI_Mask_GalPlane-apo0_2048_R2.00.fits' %(mask_folder)
+        else:
+            planck_mask_fname = '%s/HFI_Mask_GalPlane-apo2_2048_R2.00.fits' %(mask_folder)
+        ###planck_mask = H.read_map(planck_mask_fname, verbose = verbose, field = (1,2,3))
+        """
+        #20230302 - this is true for unapodised masks. Apodised ones have slightly lower fsky.
+        TTYPE1  = 'GAL020  '           / 20% sky coverage                               
+        TTYPE2  = 'GAL040  '           / 40% sky coverage                               
+        TTYPE3  = 'GAL060  '           / 60% sky coverage                               
+        TTYPE4  = 'GAL070  '           / 70% sky coverage                               
+        TTYPE5  = 'GAL080  '           / 80% sky coverage                               
+        TTYPE6  = 'GAL090  '           / 90% sky coverage                               
+        TTYPE7  = 'GAL097  '           / 97% sky coverage                               
+        TTYPE8  = 'GAL099  '           / 99% sky coverage                               
+        """
+        planck_mask = H.read_map(planck_mask_fname, verbose = verbose, field = (3, 4, 5)) #GAL070, GAL080, GAL090.
+        if (0):
+
+            import healpy as H
+            use_apod = False #True
+            if use_apod:
+                planck_mask_fname = '/Users/sraghunathan/Downloads/HFI_Mask_GalPlane-apo2_2048_R2.00.fits'
+                plname = '/Users/sraghunathan/Downloads/planck_masks_20230302.pdf'
+            else:
+                planck_mask_fname = '/Users/sraghunathan/Downloads/HFI_Mask_GalPlane-apo0_2048_R2.00.fits'
+                plname = '/Users/sraghunathan/Downloads/planck_masks_noapod_20230302.pdf'
+
+            planck_mask = H.read_map(planck_mask_fname, field = (3, 4, 5)) #
+
+            clf()
+            figure(figsize=(10., 11))
+            tit_arr = ['GAL070', 'GAL080', 'GAL090']
+            for cntr, (m, t) in enumerate(zip(planck_mask, tit_arr)):
+                H.mollview(m, sub = (3, 1, cntr+1), title = r'%s: $f_{\rm sky}$ = %.2f' %(t, np.mean(m)))
+            savefig(plname, dpi = 200.)  
+
         if H.get_nside(planck_mask) != nside:
             planck_mask = H.ud_grade(planck_mask, nside_out = nside)
 
@@ -595,8 +634,27 @@ if (1):#testing or not local:
 
         rotated = 0
         if not use_spt3g_mask:
-            mask = H.ud_grade(mask, 128)
+            if use_planck_mask:
+                mask = H.ud_grade(mask, 128)
+            else:
+                mask = H.ud_grade(mask, 256)
+
             mask = healpix_rotate_coords(mask, coord = ['G', 'C'])
+            if use_planck_mask and not use_apod_planck:
+                mask = H.smoothing(mask, fwhm = np.radians(2.))
+                mask[mask<1e-5] = 0.
+
+            if use_planck_mask:
+                import matplotlib
+                matplotlib.use('Agg')
+                from pylab import *
+                clf()
+                H.mollview(mask, title = r'%s: $f_{\rm sky}$ = %.2f' %(mask_iter, np.mean(mask)), cbar = False)
+                pl_folder = 'plots/planck_masks'
+                if not os.path.exists( pl_folder ): os.system('mkdir -p %s' %(pl_folder))
+                plname = '%s/planck_mask_%s.png' %(pl_folder, mask_iter)
+                savefig(plname); close()
+
             rotated = 1
 
         if pySM_yomori: #all masks must be in galactic coordinates for original pySM sims
