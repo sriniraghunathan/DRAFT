@@ -459,8 +459,8 @@ if (1):#testing or not local:
             #cmbs4_hit_map_fname = '%s/high_cadence_hits_el40_cosecant_modulation.fits' %(cmbs4_footprint_folder)
             cmbs4_hit_map = H.read_map(cmbs4_hit_map_fname, verbose = verbose)
             cmbs4_hit_map = cmbs4_hit_map/np.max(cmbs4_hit_map)
-            #20220325 - removing this binary mask
-            ###cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
+            ###20220325 - removing this binary mask
+            cmbs4_hit_map[cmbs4_hit_map!=0] = 1.
             if H.get_nside(cmbs4_hit_map) != nside:
                 cmbs4_hit_map = H.ud_grade(cmbs4_hit_map, nside_out = nside)
 
