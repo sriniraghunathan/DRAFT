@@ -40,6 +40,15 @@ if (1):
     nside, lmax = 2048, 5000
     t_only = 0
 
+    if (1): #planck mask
+        s4like_mask_v2 = 0 ##1
+        s4like_mask_v3 = 0
+        s4delensing_mask = 0 ##0
+        planck_mask = 1
+        nside, lmax = 2048, 5000
+        t_only = 0
+
+
 if (0):
     spt3g_mask = 1
     #nside, lmax = 2048, 6000
@@ -108,6 +117,8 @@ for which_comp in comp_arr:
                 searchstr = searchstr.replace('.npy', '_delensing.npy')
         elif spt3g_mask:
             searchstr = '%s/spt3g/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?.npy' %(data_folder, nside, lmax)
+        elif planck_mask:
+            searchstr = '%s/planck_mask/cls_galactic_sims_xxxx_nside%s_lmax%s_mask?_cos_el_40.npy' %(data_folder, nside, lmax)
         else:
             searchstr = '%s/lat_steps/cls_galactic_sims_xxxx_maskplanck_nside%s_lmax%s_TTonly_mask?.npy' %(data_folder, nside, lmax)
     else:
