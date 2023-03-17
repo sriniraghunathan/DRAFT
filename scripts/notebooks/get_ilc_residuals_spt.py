@@ -223,13 +223,14 @@ for TP in TParr:
             nl[el<=param_dict['lmin']] = 0.
             ##nl[nl == 0.] = np.min(nl[nl!=0.])/1e3
             nl_dic[TP][(freq1, freq2)] = nl
-print(nl_dic['T'].keys())
+print(nl_dic['T'].keys()); ##sys.exit()
 
 
 # In[11]:
 
 #get beams
 bl_dic = misc.get_beam_dic(freqarr, beam_noise_dic['T'], param_dict['lmax'])
+##print(bl_dic.keys()); sys.exit()
 bl_dic['effective'] = bl_dic[150]
 print(bl_dic.keys())
 if (0):
@@ -254,8 +255,10 @@ if noise_spectra_folder is not None:
             spt3g_noise_spectra_fname = spt3g_noise_spectra_fname_pref.replace('expnameval', expname.replace('spt3g_','')).replace('freqval', str(freq))
             spt3g_noise_spectra = np.loadtxt(spt3g_noise_spectra_fname, usecols = [0, 1, 2, 3], skiprows = 1)
             tmpels, tmpnltt, tmpnlee, tmpnlbb = spt3g_noise_spectra.T
+            #print(tmpnltt.shape); sys.exit()
         elif noise_spectra_folder.find('winter_spectra')>-1:
             spt3g_noise_spectra_fname = spt3g_noise_spectra_fname_pref.replace('freqval', '%03d' %(freq))
+            #print(spt3g_noise_spectra_fname); sys.exit()
             spt3g_noise_spectra = np.loadtxt(spt3g_noise_spectra_fname, usecols = [0, 1, 2, 3], skiprows = 1)
             tmpels, tmpnltt, tmpnlee, tmpnlbb = spt3g_noise_spectra.T
             units = 1. #1e-6 ##core.G3Units.uK**2 * core.G3Units.rad**2
@@ -287,14 +290,14 @@ if noise_spectra_folder is not None:
             nl_dic_actual['T'][(freq1, freq2)] = np.zeros_like(el)
             nl_dic_actual['P'][(freq1, freq2)] = np.zeros_like(el)
     nl_dic = nl_dic_actual
-if (0):
+if (1):
     colordic = {}
     colordic[90] = 'navy'
     colordic[150] = 'darkgreen'
     colordic[220] = 'darkred'    
     ax=subplot(111, yscale = 'log')
     for freq in freqarr:
-        currnl = nl_dic['T'][(freq,freq)]*bl_dic[freq]**2.
+        currnl = nl_dic['T'][(freq,freq)]#*bl_dic[freq]**2.
         tmpinds = np.where( (el>=3000) & (el<=5000) )[0]
         meannl = np.median(currnl[tmpinds])
         noise_uk_arcmin = np.sqrt(meannl)/np.radians(1./60.)
@@ -302,12 +305,12 @@ if (0):
         #plot(nl_dic_actual['T'][(freq,freq)], lw = 2., color = colordic[freq])
     legend(loc = 1)
     xlim(0, 5000)
-    ylim(1e-6, 1.)
+    ylim(5e-6, 1.)
     xlabel(r'Multipole $\ell$', fontsize = 14)
     ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
     expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
     title(r'%s' %(expname_str), fontsize = 14)
-    show(); sys.exit()
+    show(); #sys.exit()
 
 
 #get the CMB, noise, and foreground covriance
@@ -492,6 +495,7 @@ freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
 which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/spt/20200708/'
 parent_folder = 'results/spt/20220722/'
+parent_folder = '%s/recheck_20230317/' %(parent_folder) #20230317 - recheck
 if use_websky_cib:
     parent_folder = 'results/spt/20200708/websky_cib/'
 elif use_mdpl2_cib:
@@ -708,11 +712,12 @@ if null_comp is not None:
 opdic['nl_dic'] = nl_dic
 opdic['beam_noise_dic'] = beam_noise_dic
 opdic['elknee_dic'] = elknee_dic
+print(opfname)
+#sys.exit()
 np.save(opfname, opdic)
 if (1):
     opfname_pkl = opfname.replace('.npy', '.pkl.gz')
     pickle.dump(opdic, gzip.open(opfname_pkl, 'wb'), protocol = 2)
-print(opfname)
 if noise_spectra_folder is not None: #save nl file
     if scale_noise_actual_from_twoyears_to_xxyears != -1:
         spt3g_noise_spectra_fname_to_save = '%s/%s_scaledfor%syears_nl.npy' %(parent_folder, expname, scale_noise_actual_from_twoyears_to_xxyears)

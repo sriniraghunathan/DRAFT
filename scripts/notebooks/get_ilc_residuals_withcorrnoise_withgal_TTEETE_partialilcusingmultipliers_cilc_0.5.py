@@ -87,6 +87,7 @@ s4like_mask_v2 = param_dict['s4like_mask_v2']
 s4like_mask_v3 = param_dict['s4like_mask_v3']
 s4delensing_mask = param_dict['s4delensing_mask']
 splat_minobsel_galcuts_mask = param_dict['splat_minobsel_galcuts_mask']
+planck_mask = param_dict['planck_mask']
 
 #20220112 - moved to argparse
 param_dict['which_gal_mask'] = which_gal_mask
@@ -305,7 +306,7 @@ for TPcntr, TP in enumerate( TParr ):
             nl_dic[TP][(freq1, freq2)] = nl
 
 print(nl_dic['T'].keys())
-#sys.exit()
+##sys.exit()
 
 # In[30]:
 
@@ -377,7 +378,7 @@ for which_spec in which_spec_arr:
         el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
 print(cl_dic.keys(), cl_dic.keys())
 print(el)
-###sys.exit()
+##sys.exit()
 
 
 # In[32]:
@@ -712,7 +713,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
 parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
 if (1): #20220726 - regenerate ILC curves for multiple experiments.
-    parent_folder = '%s/20220726/' %(parent_folder)
+    ##parent_folder = '%s/20220726/' %(parent_folder)
+    parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
 
 if s4_so_joint_configs:
     parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
@@ -736,6 +738,8 @@ if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
     if s4like_mask_v2:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
+    if planck_mask:
+        opfname = opfname.replace(parent_folder, '%s/planck_mask/TT-EE/baseline/' %(parent_folder))
     if s4like_mask_v3:
         opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
     if s4delensing_mask:

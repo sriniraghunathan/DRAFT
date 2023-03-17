@@ -82,6 +82,7 @@ def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam = None, make_2d = 0, mappar
     bl_dic =  {}
     for freq in freqs:
         beamval, noiseval = beam_noise_dic[freq]
+        ##print(beamval, noiseval)
         #bl_dic[freq] = H.gauss_beam(np.radians(beamval/60.), lmax=lmax-1)
         bl_dic[freq] = gauss_beam(np.radians(beamval/60.), lmax=lmax-1)
 

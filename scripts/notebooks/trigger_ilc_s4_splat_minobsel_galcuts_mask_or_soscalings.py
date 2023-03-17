@@ -58,10 +58,18 @@ if (1): #SO scalings
         else:
             total_obs_time_arr = np.arange(1., 10.1, 1.)
 
-        if (1):
+        if (0):
             total_obs_time_arr = [7.]
             include_fulls4scaledsobaseline = 0
             include_gal = 0
+            s4_so_joint_configs = 0
+            save_fg_res_and_weights = 1
+            which_gal_mask = -1
+
+        if (1): #Planck masks
+            total_obs_time_arr = [7.]
+            include_fulls4scaledsobaseline = 0
+            include_gal = 1
             s4_so_joint_configs = 0
             save_fg_res_and_weights = 1
             which_gal_mask = -1
