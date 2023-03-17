@@ -987,8 +987,8 @@ if cl_multiplier_dic is not None:
     if 'gal_dust' in cl_multiplier_dic:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
 suptitle(r'%s: %s; %s year(s)' %(tit, expname, total_obs_time), fontsize = fsval, y = .93)#, x = 0.53, y = .93)
-savefig(plname)
-#show(); #sys.exit()
+#savefig(plname)
+show(); #sys.exit()
 print(plname)
 
 
