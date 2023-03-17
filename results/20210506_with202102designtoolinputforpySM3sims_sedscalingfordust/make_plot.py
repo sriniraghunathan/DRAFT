@@ -1,5 +1,4 @@
 from pylab import *
-from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');
 import os
 import argparse, sys, numpy as np, scipy as sc, warnings, os, glob
 
@@ -8,7 +7,10 @@ warnings.filterwarnings('ignore',category=RuntimeWarning)
 #warnings.filterwarnings('ignore', category=DeprecationWarning)
 #warnings.filterwarnings('ignore', category=matplotlib.cbook.mplDeprecation)
 
-foldername = 's4like_mask_v2/TT-EE/baseline/' #change this accordingly
+#foldername = 's4like_mask_v2/TT-EE/baseline/' #change this accordingly
+foldername = '20230317/s4wide/s4like_mask_v2/TT-EE/baseline/' #change this accordingly
+foldername = '20230317/s4wide/planck_mask/TT-EE/baseline/' #change this accordingly
+
 searchstr = '%s/*.npy' %(foldername)
 flist = sorted( glob.glob(searchstr) )
 
@@ -64,6 +66,6 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
     for label in ax.get_xticklabels(): label.set_fontsize(fsval-2)
     for label in ax.get_yticklabels(): label.set_fontsize(fsval-2)
-plname = 'residual_ilc_curves.png'
+plname = '%s/residual_ilc_curves.png' %(foldername)
 savefig(plname, dpi = 200.)
 show(); sys.exit()

@@ -1,5 +1,9 @@
 import numpy as np
-fname = 's4like_mask_v2/TT-EE/baseline/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask2_AZ_for7years.npy'
+#fname = 's4like_mask_v2/TT-EE/baseline/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask2_AZ_for7years.npy'
+#fname = '20230317/s4wide/s4like_mask_v2/TT-EE/baseline/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask2_AZ_for7years.npy'
+#fname = '20230317/s4wide/planck_mask/TT-EE/baseline/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask2_AZ_for7years.npy'
+fname = '20230317/s4wide/planck_mask/TT-EE/baseline/s4wide_ilc_galaxy1_27-39-93-145-225-278_TT-EE_galmask1_AZ_for7years.npy'
+
 res_dic = np.load(fname, allow_pickle = 1, encoding = 'latin1').item()
 cl_residual = res_dic['cl_residual']
 print('\nILC residuals: %s' %(cl_residual.keys()))
