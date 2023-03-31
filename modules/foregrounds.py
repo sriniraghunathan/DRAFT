@@ -1174,12 +1174,17 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
     #pick the requested spectra: TT, EE, BB, TE, EB, TB.
     spec_ind = spec_inds_dic[which_spec]
 
+    if cl_gal_dic_fname.find('spt_proposal_2023_13k_sqdeg_field_mask')>-1: #20230330
+        gal_freq_dic = {90: 93, 95: 93, 150: 145, 220: 225}
+
     freq1_to_use = gal_freq_dic[freq1]
     freq2_to_use = gal_freq_dic[freq2]
 
     cl_gal_dic = np.load(cl_gal_dic_fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][which_gal_mask]
-    if freq1_to_use >= max(list(gal_freq_dic)) or freq2_to_use >= max(list(gal_freq_dic)):
-        freq0_for_sed_scaling = 278.
+    freq0_for_sed_scaling = 278.
+    if (freq0_for_sed_scaling, freq0_for_sed_scaling) not in cl_gal_dic:
+        use_sed_scaling = False
+    if ( freq1_to_use >= max(list(gal_freq_dic)) or freq2_to_use >= max(list(gal_freq_dic)) ) and use_sed_scaling:
         cl_dust_freq0 = cl_gal_dic[ (freq0_for_sed_scaling, freq0_for_sed_scaling) ]
         if component == 'dust':
             cl_gal = scale_cl_dust_galactic(cl_dust_freq0, freq1, freq2 = freq2, freq0 = freq0_for_sed_scaling, Tdust = Tdust, beta_dust = beta_dust)

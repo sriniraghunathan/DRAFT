@@ -241,6 +241,9 @@ parser.add_argument('-use_planck_mask', dest='use_planck_mask', action='store', 
 parser.add_argument('-min_obs_el', dest='min_obs_el', action='store', help='min_obs_el', type=float, default=30.)
 parser.add_argument('-use_splat_minobsel_galcuts', dest='use_splat_minobsel_galcuts', action='store', help='use_splat_minobsel_galcuts', type=int, default=0)
 
+#20230330 - SPT proposal 2023
+parser.add_argument('-which_spt_field', dest='which_spt_field', action='store', help='which_spt_field', type=str, default='nominal')
+
 
 parser.add_argument('-testing', dest='testing', action='store', help='testing', type=int, default=0)
 
@@ -269,7 +272,8 @@ if zonca_sims:
     name_dic[278] = 'HFL2'
 
 if use_spt3g_mask:
-    nuarr = [93, 145]##, 225]
+    ##nuarr = [93, 145]##, 225]
+    nuarr = [93, 145, 225]
 
 if pySM_yomori:
     #nuarr = [90, 100, 143, 150, 217, 220, 353]
@@ -343,7 +347,10 @@ if zonca_sims or pySM_yomori:
     elif use_s4delensing_mask:
         opfname = '%s/s4delensing_mask/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
     elif use_spt3g_mask:
-        opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        if which_spt_field == 'nominal':
+            opfname = '%s/spt3g/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, dust_or_sync, nside, lmax)
+        else:
+            opfname = '%s/spt3g/%s/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, which_spt_field, dust_or_sync, nside, lmax)
     elif use_splat_minobsel_galcuts:
         opfname = '%s/s4_use_splat_minobsel%s_galcuts/cls_galactic_sims_%s_nside%s_lmax%s.npy' %(sim_folder, min_obs_el, dust_or_sync, nside, lmax)
 else:
@@ -591,12 +598,26 @@ if (1):#testing or not local:
 
     elif use_spt3g_mask: #get SPT-3G summer/winter field mask
 
-        spt_mask_winter = get_spt3g_mask('winter_field', nside_out = nside)
-        spt_mask_summer_el1c_el2c = get_spt3g_mask('summer_field_el1c_el2c', nside_out = nside)
-        spt_mask_summer_el1b_el2b = get_spt3g_mask('summer_field_el1b_el2b', nside_out = nside)
-        spt_mask_summer_el1_el5 = get_spt3g_mask('summer_field_el1_el5', nside_out = nside)
+        if which_spt_field == 'nominal':
+            spt_mask_winter = get_spt3g_mask('winter_field', nside_out = nside)
+            spt_mask_summer_el1c_el2c = get_spt3g_mask('summer_field_el1c_el2c', nside_out = nside)
+            spt_mask_summer_el1b_el2b = get_spt3g_mask('summer_field_el1b_el2b', nside_out = nside)
+            spt_mask_summer_el1_el5 = get_spt3g_mask('summer_field_el1_el5', nside_out = nside)
 
-        spt_mask_arr = [spt_mask_winter, spt_mask_summer_el1c_el2c, spt_mask_summer_el1b_el2b, spt_mask_summer_el1_el5]
+            spt_mask_arr = [spt_mask_winter, spt_mask_summer_el1c_el2c, spt_mask_summer_el1b_el2b, spt_mask_summer_el1_el5]
+
+            tot_masks = len(spt_mask_arr)
+
+        elif which_spt_field == 'spt_proposal_2023_13k_sqdeg_field_mask':
+
+            mask_fd = 'masks/spt_proposal_2023_13k_sqdeg_field/'
+            fname_arr = ['%s/spt_proposal_2023_13k_sqdeg_field_planckGAL070.fits' %(mask_fd), 
+                        '%s/spt_proposal_2023_13k_sqdeg_field_planckGAL080.fits' %(mask_fd),
+                        '%s/spt_proposal_2023_13k_sqdeg_field_planckGAL090.fits' %(mask_fd)]
+
+            spt_mask_arr = []
+            for tmpfname in fname_arr:
+                spt_mask_arr.append( H.read_map( tmpfname ) )
 
         tot_masks = len(spt_mask_arr)
 

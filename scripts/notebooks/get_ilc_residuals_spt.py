@@ -53,6 +53,11 @@ parser.add_argument('-remove_atm', dest='remove_atm', action='store', help='remo
 parser.add_argument('-noise_spectra_folder', dest='noise_spectra_folder', action='store', help='noise_spectra_folder', type = str, default=None)
 parser.add_argument('-scale_noise_actual_from_twoyears_to_xxyears', dest='scale_noise_actual_from_twoyears_to_xxyears', action='store', help='scale_noise_actual_from_twoyears_to_xxyears', type = float, default=-1)
 
+#20230330 - moved here from param file
+parser.add_argument('-include_gal', dest='include_gal', action='store', help='include_gal', type = int, default = 0)
+
+#20230330 - which_spt_field
+parser.add_argument('-spt_planck_gal_mask_name', dest='spt_planck_gal_mask_name', action='store', help='spt_planck_gal_mask_name', type = str, default = None)
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -84,14 +89,39 @@ param_dict = misc.fn_get_param_dict(paramfile)
 el = np.arange(param_dict['lmax'])
 ###param_dict['include_gal'] = 0
 
-include_gal = param_dict['include_gal'] ##1
+#include_gal = param_dict['include_gal'] ##1
+param_dict['include_gal'] = include_gal
 if not include_gal:
     param_dict['which_gal_mask'] = 3
 
-#get galaxy mask based on experiment name
-exp_sptmask_dic = {'spt3g_winter_2020': 0, 'spt3g_summer_el1c_el2c_2020': 1, 'spt3g_summer_el1b_el2b_2020': 2, 'spt3g_summer_el1_e5_2020': 3}
-if expname in exp_sptmask_dic and include_gal:
-    param_dict['which_gal_mask'] = exp_sptmask_dic[expname]
+if (1): ##20230330 - moved here from param file
+    cl_gal_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202002_foregrounds_extragalactic_cmb_tophat/4096/'
+    if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
+        cl_gal_folder = '/Volumes/data_PHD_WD_babbloo/s4/cmbs4/map_based_simulations/202102_design_tool_input/4096/'
+    if not os.path.exists( cl_gal_folder ):
+        cl_gal_folder = cl_gal_folder.replace('/Volumes/data_PHD_WD_babbloo/s4/', '/Users/sraghunathan/Research/SPTpol/analysis/git/DRAFT/scripts/')
+    param_dict['cl_gal_folder']=cl_gal_folder
+
+
+if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
+    assert spt_planck_gal_mask_name is not None    
+    exp_sptmask_dic = {'GAL070': 0, 'GAL080': 1, 'GAL090': 2}
+    exp_sptmask_fksy_dic = {'GAL070': 0.23, 'GAL080': 0.26, 'GAL090': 0.29}
+    if spt_planck_gal_mask_name in exp_sptmask_dic and include_gal:
+        param_dict['which_gal_mask'] = exp_sptmask_dic[spt_planck_gal_mask_name]
+else:
+    #get galaxy mask based on experiment name
+    exp_sptmask_dic = {'spt3g_winter_2020': 0, 'spt3g_summer_el1c_el2c_2020': 1, 'spt3g_summer_el1b_el2b_2020': 2, 'spt3g_summer_el1_e5_2020': 3}
+    if expname in exp_sptmask_dic and include_gal:
+        param_dict['which_gal_mask'] = exp_sptmask_dic[expname]
+
+if include_gal:
+    if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
+        param_dict['cl_gal_dic_dust_fname'] = 'dust/0000/spt3g/spt_proposal_2023_13k_sqdeg_field_mask/cls_galactic_sims_dust_nside2048_lmax5000.npy' #dust
+        param_dict['cl_gal_dic_sync_fname'] = 'synchrotron/0000/spt3g/spt_proposal_2023_13k_sqdeg_field_mask/cls_galactic_sims_sync_nside2048_lmax5000.npy' #sync
+    else:
+        param_dict['cl_gal_dic_dust_fname'] = 'dust/0000/spt3g/cls_galactic_sims_dust_nside2048_lmax6000.npy' #dust
+        param_dict['cl_gal_dic_sync_fname'] = 'synchrotron/0000/spt3g/cls_galactic_sims_sync_nside2048_lmax6000.npy' #sync
 
 which_gal_mask = param_dict['which_gal_mask']
 #s4like_mask = param_dict['s4like_mask']
@@ -201,6 +231,7 @@ for TP in TParr:
         beam_noise_dic[TP][freq] = [beam, noise]
         elknee_dic[TP][freq] = [elknee, alphaknee]
 
+print(beam_noise_dic)
 
 #get beam deconvolved noise nls
 nl_dic = {}
@@ -290,7 +321,8 @@ if noise_spectra_folder is not None:
             nl_dic_actual['T'][(freq1, freq2)] = np.zeros_like(el)
             nl_dic_actual['P'][(freq1, freq2)] = np.zeros_like(el)
     nl_dic = nl_dic_actual
-if (1):
+
+if (0):
     colordic = {}
     colordic[90] = 'navy'
     colordic[150] = 'darkgreen'
@@ -309,8 +341,11 @@ if (1):
     xlabel(r'Multipole $\ell$', fontsize = 14)
     ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
     expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
+    expname_str = expname_str.replace('_', '\_')
+    if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
+        expname_str = '%s (%s)' %(expname_str, spt_planck_gal_mask_name)
     title(r'%s' %(expname_str), fontsize = 14)
-    show(); #sys.exit()
+    show(); ##sys.exit()
 
 
 #get the CMB, noise, and foreground covriance
@@ -496,6 +531,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 #parent_folder = 'results/spt/20200708/'
 parent_folder = 'results/spt/20220722/'
 parent_folder = '%s/recheck_20230317/' %(parent_folder) #20230317 - recheck
+if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
+    parent_folder = '%s/%s/' %(parent_folder, expname)
 if use_websky_cib:
     parent_folder = 'results/spt/20200708/websky_cib/'
 elif use_mdpl2_cib:
@@ -558,7 +595,7 @@ fsval = 12
 lwval = 1. #0.75
 plot_weights = 1
 xmin, xmax = 20, 10000
-xmin, xmax = 100, 6000 #10000
+xmin, xmax = 100, 5000 ##6000 #10000
 #ymin, ymax = 1e-9, 100000.
 ymin, ymax = 1e-6, 2. #100000.
 if plot_weights:
@@ -684,6 +721,9 @@ if remove_atm:
 else:
     tit = 'Bands = %s' %(str(freqarr))
 expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
+expname_str = expname_str.replace('_', '\_')
+if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
+    expname_str = '%s (%s)' %(expname_str, spt_planck_gal_mask_name)
 suptitle(r'%s: %s' %(expname_str, final_comp), y = 0.95, fontsize = fsval + 2)
 #show(); #sys.exit()
 savefig(plname)
@@ -709,6 +749,8 @@ if null_comp is not None:
     opdic['null_comp'] = null_comp
     opdic['cl_residual_nulled'] = cl_residual_comp_nulled
     opdic['weights_nulled'] = weights_comp_nulled_dic
+if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
+    opdic['fsky'] = exp_sptmask_fksy_dic[spt_planck_gal_mask_name]
 opdic['nl_dic'] = nl_dic
 opdic['beam_noise_dic'] = beam_noise_dic
 opdic['elknee_dic'] = elknee_dic
