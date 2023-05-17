@@ -524,6 +524,70 @@ if (0):
 
 # In[18]:
 
+if include_gal: #residual foregrounds now
+    fg_res_dic = {}
+    '''
+    if include_gal:
+        signal_arr = ['tsz', 'cib', 'radio', 'galdust', 'galsync', 'noise']#, 'tsz-cib']
+    else:
+        signal_arr = ['tsz', 'cib', 'radio', 'noise']#, 'tsz-cib']
+    '''
+    signal_arr = ['galdust', 'galsync']
+    for which_spec in ['TT', 'EE']:
+        fg_res_dic[which_spec] = {}
+        for elcnt, currel in enumerate(el):
+            if (elcnt%2500) == 0: print(which_spec, elcnt)
+            for s in signal_arr:
+                #print(s)
+                if s == 'galdust':
+                    #curr_cl_dic = cl_gal_dust_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['galdust']
+                elif s == 'galsync':
+                    #curr_cl_dic = cl_gal_sync_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['galsync']
+                elif s == 'ksz':
+                    #curr_cl_dic = cl_ksz_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['ksz']
+                elif s == 'cmb':
+                    #curr_cl_dic = cl_cmb_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['cmb']
+                elif s == 'tsz':
+                    #curr_cl_dic = cl_tsz_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['tsz']
+                elif s == 'cib':
+                    #curr_cl_dic = cl_dust_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['cib']
+                elif s == 'radio':
+                    #curr_cl_dic = cl_radio_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['radio']
+                elif s == 'tsz-cib':
+                    #curr_cl_dic = cl_tsz_cib_dic[which_spec]
+                    curr_cl_dic = fg_cl_dic[which_spec]['tsz_cib']
+                elif s == 'noise':
+                    '''
+                    if which_spec == 'TT':
+                        curr_cl_dic = nl_dic['T']
+                    elif which_spec == 'EE':
+                        curr_cl_dic = nl_dic['P']
+                    else:
+                        curr_cl_dic = None
+                    '''
+                    curr_cl_dic = fg_cl_dic[which_spec]['noise']
+
+                ###from IPython import embed; embed()
+                #print(weights_dic)
+                clmat = np.mat( ilc.create_clmat(freqarr, elcnt, curr_cl_dic) )
+                currw_ilc = np.mat( weights_dic[which_spec][:, elcnt] )
+                
+                curr_res_ilc = np.asarray(np.dot(currw_ilc, np.dot(clmat, currw_ilc.T)))[0][0]
+                if s not in fg_res_dic[which_spec]:
+                    fg_res_dic[which_spec][s] = []
+                fg_res_dic[which_spec][s].append( curr_res_ilc )
+        
+        for s in signal_arr:
+            fg_res_dic[which_spec][s] = np.asarray(fg_res_dic[which_spec][s])
+    print(fg_res_dic.keys());##sys.exit() 
+
 
 #plot and results file name
 freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
@@ -597,7 +661,8 @@ plot_weights = 1
 xmin, xmax = 20, 10000
 xmin, xmax = 100, 5000 ##6000 #10000
 #ymin, ymax = 1e-9, 100000.
-ymin, ymax = 1e-6, 2. #100000.
+###ymin, ymax = 1e-6, 2. #100000.
+ymin, ymax = 1e-8, 2. #100000.
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
     #subplots_adjust(wspace=0.1, hspace = 0.1)
@@ -688,6 +753,10 @@ for cntr, which_spec in enumerate( which_spec_arr ):
                 el, cl_curr_fg = fg.get_cl_galactic(param_dict, 'sync', 145, 145, 'EE', bl_dic = bl_dic, el = el)
             plot(el, cl_curr_fg, lw = 0.5, ls = '--', label = r'150: %s' %(curr_fg), alpha = 0.4)
         '''
+    if include_gal: #show gal residuals here as well
+        if which_spec == 'TT' or which_spec== 'EE':
+            plot(el, fg_res_dic[which_spec]['galdust'], 'purple', lw = 2., label = r'Residual gal dust')
+            plot(el, fg_res_dic[which_spec]['galsync'], 'goldenrod', lw = 2., label = r'Residual gal sync', alpha = 0.5)
     for freq in freqarr:
         plot(el, cl_dic[which_spec][(freq,freq)], color = colordic[freq], lw = 0.5, ls = '-', label = r'%s' %(freq), alpha = 1.)        
     for freq in freqarr:
@@ -705,6 +774,7 @@ for cntr, which_spec in enumerate( which_spec_arr ):
 
     xlim(xmin, xmax);
     ylim(ymin, ymax); 
+    ylim(1e-5, .1);
 
     xlabel(r'Multipole $\ell$', fontsize = fsval)
     if cntr == 0: 
@@ -751,6 +821,8 @@ if null_comp is not None:
     opdic['weights_nulled'] = weights_comp_nulled_dic
 if expname == 'spt_proposal_2023_13k_sqdeg_field_mask':
     opdic['fsky'] = exp_sptmask_fksy_dic[spt_planck_gal_mask_name]
+    opdic['fg_cl_dic'] = fg_cl_dic
+    opdic['fg_res_dic'] = fg_res_dic
 opdic['nl_dic'] = nl_dic
 opdic['beam_noise_dic'] = beam_noise_dic
 opdic['elknee_dic'] = elknee_dic

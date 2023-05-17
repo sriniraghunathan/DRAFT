@@ -94,6 +94,7 @@ def get_exp_specs(expname, remove_atm = False):
         specs_dic = {
         #Table 2.1 of PBDR. Note that we are using noise in B maps (and not E maps) here for P.
         #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_B, elknee_B, alphaknee_B] 
+        20: [11.0, None, -1, 0, 13.16, 150, 2.7], #20230501
         30: [72.8, None, -1., 0., 3.53, 60., 1.7],
         40: [72.8, None, -1., 0., 4.46, 60., 1.7], 
         85: [25.5, None, -1., 0., 0.88, 60., 1.7],
