@@ -717,7 +717,7 @@ parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscali
 if (1): #20220726 - regenerate ILC curves for multiple experiments.
     ##parent_folder = '%s/20220726/' %(parent_folder)
     ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
-    parent_folder = '%s/202305xx/' %(parent_folder) #20230517 - updated PBDR configs.
+    parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
 
 if s4_so_joint_configs:
     parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)

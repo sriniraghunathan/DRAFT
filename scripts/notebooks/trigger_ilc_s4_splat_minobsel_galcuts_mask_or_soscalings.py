@@ -71,7 +71,8 @@ if (1): #SO scalings
 
         if (1): #Planck masks
             ##total_obs_time_arr = [7.]
-            total_obs_time_arr = np.arange(1., 7.1, 1.)
+            #total_obs_time_arr = np.arange(1., 7.1, 1.)
+            total_obs_time_arr = np.arange(8., 10.1, 1.)
             include_fulls4scaledsobaseline = 0
             include_gal = 1 ##[0, 1]
             s4_so_joint_configs = 0
