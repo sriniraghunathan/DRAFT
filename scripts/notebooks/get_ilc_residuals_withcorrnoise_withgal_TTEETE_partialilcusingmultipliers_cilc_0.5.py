@@ -96,6 +96,8 @@ if not include_gal:
         param_dict['which_gal_mask'] = 3
     elif s4like_mask_v2:
         param_dict['which_gal_mask'] = 2
+    elif planck_mask:
+        param_dict['which_gal_mask'] = 2
     elif s4like_mask_v3:
         param_dict['which_gal_mask'] = 0
     elif s4delensing_mask:
@@ -164,7 +166,7 @@ if expname.find('cmbhd')>-1:
 #cl multipler - multiply a given spectra by some amount to perform partial ILC. similar to https://arxiv.org/abs/2102.05033
 cl_multiplier_dic = {}
 ###cl_multiplier_dic['gal_dust'] = 1.
-
+###print(which_gal_mask); sys.exit()
 
 # In[27]:
 
@@ -714,7 +716,8 @@ which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
 parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
 if (1): #20220726 - regenerate ILC curves for multiple experiments.
     ##parent_folder = '%s/20220726/' %(parent_folder)
-    parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
+    ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
+    parent_folder = '%s/202305xx/' %(parent_folder) #20230517 - updated PBDR configs.
 
 if s4_so_joint_configs:
     parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)

@@ -39,6 +39,9 @@ if (1): #SO scalings
     if (1): #20220726 - all experiments.
         expname_arr = ['s4wide', 's4deepv3r025', 'sobaseline', 'sogoal', 'spt3g']#, 'spt4_C4', 'ccat_prime_so']
 
+    if (1): #20230517 - for S4 Neff paper
+        expname_arr = ['s4wide', 's4deepv3r025']
+
     s4_so_joint_configs = 1
     include_gal = 1
     which_gal_mask = 2
@@ -67,16 +70,24 @@ if (1): #SO scalings
             which_gal_mask = -1
 
         if (1): #Planck masks
-            total_obs_time_arr = [7.]
+            ##total_obs_time_arr = [7.]
+            total_obs_time_arr = np.arange(1., 7.1, 1.)
             include_fulls4scaledsobaseline = 0
-            include_gal = 1
+            include_gal = 1 ##[0, 1]
             s4_so_joint_configs = 0
             save_fg_res_and_weights = 1
-            which_gal_mask = -1
+            which_gal_mask = 2 ##-1
+            if expname == 's4wide':
+                include_gal = 1 
+                which_gal_mask = 2
+            elif expname == 's4deepv3r025':
+                include_gal = 0
+                which_gal_mask = -1
+
 
         for total_obs_time in total_obs_time_arr:
             cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
-            print('\n###############\n%s\n' %(cmd)); sys.exit()
+            print('\n###############\n%s\n' %(cmd)); ##sys.exit()
             os.system(cmd)
             ###sys.exit()
             total += 1
