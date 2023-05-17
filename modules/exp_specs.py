@@ -1,12 +1,14 @@
 import numpy as np, copy, sys
 
-def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
+def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
 
     Nred_dic = {}
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
         #if expname == 's4wide' or expname.find('s4wide_scaled_sobaseline')>-1 or expname.find('s4wide_scaled_aso')>-1 or expname.find('s4wide_single_chlat')>-1 or expname.find('s4wide_single_chlat_plus_aso')>-1 or expname.find('s4wide_plus')>-1:
         if expname == 's4wide' or expname.find('s4wide_scaled')>-1 or expname.find('s4wide_single')>-1:
 
+            #20230517 - changing this to match PBDR
+            '''
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
             27: [7.4, 21.34, 415., 3.5, 30.23, 700, 1.4],
@@ -16,7 +18,18 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
             225: [1.0, 6.90, 6740., 3.5, 9.78, 700, 1.4],
             278: [0.9, 16.88, 6792., 3.5, 23.93, 700, 1.4],
             }
+            '''
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            27: [7.4, 21.8, 415., 3.5, 30.23, 700, 1.4],
+            39: [5.1, 12.4, 391., 3.5, 16.53, 700, 1.4], 
+            93: [2.2, 2.0, 1932., 3.5, 2.68, 700, 1.4],
+            145: [1.4, 2.0, 3917., 3.5, 2.96, 700, 1.4],
+            225: [1.0, 6.9, 6740., 3.5, 9.78, 700, 1.4],
+            278: [0.9, 16.7, 6792., 3.5, 23.93, 700, 1.4],
+            }
 
+            '''
             if remove_atm:
                 specs_dic = {
                 #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
@@ -27,6 +40,7 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
                 225: [1.0, 6.90, 6740., 0., 9.78, 700, 0.],
                 278: [0.9, 16.88, 6792., 0., 23.93, 700, 0.],
                 }
+            '''
 
             '''
             #DSR specs
@@ -156,6 +170,8 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
 
         elif expname == 's4deepv3r025' or expname == 's4deepv3r025_tma':
             #https://cmb-s4.org/wiki/index.php/Delensing_sensitivity_-_updated_sensitivities,_beams,_TT_noise
+            #20230517 - changing this to match PBDR
+            '''
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
             #20: [11.0, None, None, None, None, None, None],
@@ -165,6 +181,18 @@ def get_exp_specs(expname, remove_atm = 0, corr_noise_for_spt = 1):
             145: [1.6, 0.41, 1900., 4.1, 0.59, 200, 2.2],
             225: [1.1, 1.29, 2100., 4.1, 1.83, 200, 2.2],
             278: [1.0, 3.07, 2100., 3.9, 4.34, 200, 2.2],
+            }
+            '''
+
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            20: [11.4, 9.4, 1200., 4.2, 13.16, 150., 2.7], #20230517
+            27: [8.4, 4.6, 1200., 4.2, 6.5, 150, 2.7],
+            39: [5.8, 3.0, 1200., 4.2, 4.15, 150, 2.7], 
+            93: [2.5, 0.45, 1200., 4.2, 0.63, 150, 2.6],
+            145: [1.6, 0.41, 1900., 4.1, 0.59, 200, 2.2],
+            225: [1.1, 1.3, 2100., 4.1, 1.83, 200, 2.2],
+            278: [1.0, 3.1, 2100., 3.9, 4.34, 200, 2.2],
             }
 
             if expname == 's4deepv3r025_tma':
