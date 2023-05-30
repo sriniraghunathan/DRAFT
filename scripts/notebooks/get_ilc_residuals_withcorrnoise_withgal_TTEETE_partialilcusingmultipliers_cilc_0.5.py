@@ -48,6 +48,10 @@ parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', 
 parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='s4_so_joint_configs', type=int, default=0)
 parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scaledsobaseline', action='store', help='include_fulls4scaledsobaseline', type=int, default=0)
 
+#20230530 - scale noise levels of bands
+parser.add_argument('-noise_scalings_for_bands', dest='noise_scalings_for_bands', action='store', help='noise_scalings_for_bands', nargs='+', type=float, default=None)
+
+
 args = parser.parse_args()
 args_keys = args.__dict__
 for kargs in args_keys:
@@ -174,8 +178,15 @@ cl_multiplier_dic = {}
 beamarr = []
 noisearr_T, elkneearr_T, alphakneearr_T = [], [], []
 noisearr_P, elkneearr_P, alphakneearr_P = [], [], []
-for freq in freqarr:
+for fcntr, freq in enumerate( freqarr ):
     beam_arcmins, white_noise_T, elknee_T, alphaknee_T, white_noise_P, elknee_P, alphaknee_P = specs_dic[freq]
+
+    if (1): #20230530 - noise scaling of bands
+        if noise_scalings_for_bands is not None:
+            assert len(noise_scalings_for_bands) == len(freqarr)
+            white_noise_T = white_noise_T * noise_scalings_for_bands[fcntr]
+            white_noise_P = white_noise_P * noise_scalings_for_bands[fcntr]
+
     if (1): #noise scaling based on total_obs_time
         noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
         white_noise_T = white_noise_T * noise_scaling_fac
@@ -216,7 +227,7 @@ print('Delta T =', noisearr_T)
 print('Delta P =', noisearr_P)
 #print(beamarr)
 print('\n')
-##sys.exit()
+###sys.exit()
 
 # In[28]:
 
@@ -719,6 +730,11 @@ if (1): #20220726 - regenerate ILC curves for multiple experiments.
     ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
     parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
 
+if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
+    parent_folder = '%s/noise_scalings/' %(parent_folder)
+    noise_scalings_for_bands_str = '-'.join([str(n) for n in noise_scalings_for_bands])
+    noise_scalings_for_bands_str = '_noisescalings%s' %(noise_scalings_for_bands_str)
+
 if s4_so_joint_configs:
     parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
 if null_comp is not None:
@@ -803,6 +819,11 @@ elif s4like_mask_v3:
 else:
     plname = opfname.replace('.npy', '.png').replace(parent_folder, '%s/plots/' %(parent_folder))
 '''
+
+if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
+    opfname = opfname.replace('.npy', '%s.npy' %(noise_scalings_for_bands_str))
+
+
 opfolder = '/'.join(opfname.split('/')[:-1])
 plfolder = '%s/plots/' %(opfolder)
 if not os.path.exists(opfolder): os.system('mkdir -p %s' %(opfolder))

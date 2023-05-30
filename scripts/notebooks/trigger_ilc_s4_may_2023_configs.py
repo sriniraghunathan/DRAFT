@@ -69,7 +69,7 @@ if (1): #SO scalings
             save_fg_res_and_weights = 1
             which_gal_mask = -1
 
-        if (1): #202305xx: Planck masks
+        if (0): #202305xx: Planck masks
             ##total_obs_time_arr = [7.]
             #total_obs_time_arr = np.arange(1., 7.1, 1.)
             total_obs_time_arr = np.arange(8., 10.1, 1.)
@@ -86,10 +86,30 @@ if (1): #SO scalings
                 which_gal_mask = -1
 
 
+        noise_scalings_for_bands_arr = [None]
+        if (1): #20230530 - scale noise levels of bands
+            total_obs_time_arr = [7.]
+            include_fulls4scaledsobaseline = 0
+            include_gal = 0
+            s4_so_joint_configs = 0
+            save_fg_res_and_weights = 1
+            which_gal_mask = -1
+            noise_scaling_arr = np.arange(0.85, 1.15, 0.05)
+            noise_scalings_for_bands_arr = []
+            for n3 in noise_scaling_arr:
+                for n4 in noise_scaling_arr:
+                    for n5 in noise_scaling_arr:
+                        for n6 in noise_scaling_arr:
+                            noise_scalings_for_bands_arr.append([1.0, 1.0, n3, n4, n5, n6])
+
+
+
         for total_obs_time in total_obs_time_arr:
             for noise_scalings_for_bands in noise_scalings_for_bands_arr:
-                cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
-                print('\n###############\n%s\n' %(cmd)); sys.exit()
+                noise_scalings_for_bands_str = ' '.join([str(n) for n in noise_scalings_for_bands])
+                #cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
+                cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s -noise_scalings_for_bands %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights, noise_scalings_for_bands_str)
+                print('\n###############\n%s\n' %(cmd)); ###sys.exit()
                 os.system(cmd)
                 ###sys.exit()
             total += 1
