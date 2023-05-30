@@ -1112,7 +1112,7 @@ if (1): #save residual files
     np.save(opfname, opdic)
     print(opfname)
 
-    if (1):
+    if (0):
         opfname_pkl = opfname.replace('.npy', '.pkl.gz')
         pickle.dump(opdic, gzip.open(opfname_pkl, 'wb'), protocol = 2)
 

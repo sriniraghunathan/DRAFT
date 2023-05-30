@@ -94,15 +94,13 @@ if (1): #SO scalings
             s4_so_joint_configs = 0
             save_fg_res_and_weights = 1
             which_gal_mask = -1
-            noise_scaling_arr = np.arange(0.85, 1.15, 0.05)
+            noise_scaling_arr = np.arange(0.85, 1.16, 0.05)
             noise_scalings_for_bands_arr = []
             for n3 in noise_scaling_arr:
                 for n4 in noise_scaling_arr:
                     for n5 in noise_scaling_arr:
                         for n6 in noise_scaling_arr:
-                            noise_scalings_for_bands_arr.append([1.0, 1.0, n3, n4, n5, n6])
-
-
+                            noise_scalings_for_bands_arr.append([1.0, 1.0, round(n3, 2), round(n4, 2), round(n5, 2), round(n6, 2)])
 
         for total_obs_time in total_obs_time_arr:
             for noise_scalings_for_bands in noise_scalings_for_bands_arr:
