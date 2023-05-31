@@ -11,9 +11,14 @@ websky_folder = '/Volumes/data_PHD_WD_babbloo/SPTpol/data/websky/'
 mdpl2_folder = '/Volumes/data_PHD_WD_babbloo/SPTpol/data/mdpl2/v0.3/'
 
 if not os.path.exists(data_folder):
+    '''
     data_folder = '/data48/sri/git/DRAFT/data/'
     websky_folder = '/data19/sri/websky/'
     mdpl2_folder = '/data48/sri/mdpl2/v0.3/'
+    '''
+    data_folder = '/data/spt/sri-data48/git/DRAFT/data/'
+    websky_folder = '/data/spt/sri-data19/websky/'
+    mdpl2_folder = '/data/spt/sri-data48/mdpl2/v0.3/'
 if not os.path.exists(data_folder):
     data_folder = '/u/home/s/srinirag/project-nwhiteho/git/DRAFT/data/'
     websky_folder = '/u/home/s/srinirag/project-nwhiteho/websky/'
