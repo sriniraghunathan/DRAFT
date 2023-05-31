@@ -106,14 +106,15 @@ if (1): #SO scalings
                             noise_scalings_for_bands_arr.append([1.0, 1.0, round(n3, 2), round(n4, 2), round(n5, 2), round(n6, 2)])
             print(len(noise_scalings_for_bands_arr)); ##sys.exit()
             final_comp = 'cmb'
-            final_comp = 'y'
+            final_comp = 'y' #20230531 - Compton-y
 
-        if (0):
+        if (1):
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-200:]
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-300:]
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-500:]
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[:100:]
-            noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[1000:1200]
+            s, e = int(sys.argv[1]), int(sys.argv[2])
+            noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[s:e]
 
         for total_obs_time in total_obs_time_arr:
             for noise_scalings_for_bands in noise_scalings_for_bands_arr:

@@ -1102,6 +1102,8 @@ if interactive_mode:
 
 
 if (1): #save residual files
+    if noise_scalings_for_bands is not None:
+        save_fg_res_and_weights = 0
     if include_gal:
         cl_gal_dic_dust_fname = param_dict['cl_gal_dic_dust_fname']
         try:
