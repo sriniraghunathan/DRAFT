@@ -54,6 +54,9 @@ parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scale
 #20230530 - scale noise levels of bands
 parser.add_argument('-noise_scalings_for_bands', dest='noise_scalings_for_bands', action='store', help='noise_scalings_for_bands', nargs='+', type=float, default=None)
 
+#20230531 - option to get CMB or y
+parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, default='cmb')
+
 
 args = parser.parse_args()
 args_keys = args.__dict__
@@ -153,7 +156,7 @@ if include_fulls4scaledsobaseline:
 freqarr = sorted( specs_dic.keys() )
 nc = len( freqarr )
 freqcalib_fac = None
-final_comp = 'cmb'
+###final_comp = 'cmb'
 #null_comp = ['misc_cib_tcib20.0_beta1.54']
 #null_comp = ['misc_cib_tcib20.0_beta1.3']
 #null_comp = ['misc_cib_tcib20.0_beta1.6']
@@ -193,6 +196,9 @@ if (1): #20230530
         ##parent_folder = '%s/20220726/' %(parent_folder)
         ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
         parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
+
+    if final_comp != 'cmb':
+        parent_folder = '%s/%s/' %(parent_folder, final_comp)
 
     if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
         parent_folder = '%s/noise_scalings/' %(parent_folder)

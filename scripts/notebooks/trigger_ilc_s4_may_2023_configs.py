@@ -1,6 +1,7 @@
 import numpy as np, sys, os
 
 pgmname = 'get_ilc_residuals_withcorrnoise_withgal_TTEETE_partialilcusingmultipliers_cilc_0.5.py'
+final_comp = 'cmb'
 
 if (0):
     include_gal = 1
@@ -49,7 +50,7 @@ if (1): #SO scalings
     which_gal_mask = 2
     interactive_mode = 0
     save_fg_res_and_weights = 0
-    total = 0
+    total = 0    
     for expname in expname_arr:
         if expname == 's4deepv3r025':
             include_gal = 0
@@ -104,6 +105,8 @@ if (1): #SO scalings
                         for n6 in noise_scaling_arr:
                             noise_scalings_for_bands_arr.append([1.0, 1.0, round(n3, 2), round(n4, 2), round(n5, 2), round(n6, 2)])
             print(len(noise_scalings_for_bands_arr)); ##sys.exit()
+            final_comp = 'cmb'
+            final_comp = 'y'
 
         if (0):
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-200:]
@@ -116,7 +119,7 @@ if (1): #SO scalings
             for noise_scalings_for_bands in noise_scalings_for_bands_arr:
                 noise_scalings_for_bands_str = ' '.join([str(n) for n in noise_scalings_for_bands])
                 #cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
-                cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s -noise_scalings_for_bands %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights, noise_scalings_for_bands_str)
+                cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s -noise_scalings_for_bands %s -final_comp %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights, noise_scalings_for_bands_str, final_comp)
                 print('\n###############\n%s\n' %(cmd)); ###sys.exit()
                 os.system(cmd)
                 ###sys.exit()
