@@ -41,6 +41,8 @@ if (1): #SO scalings
 
     if (1): #20230517 - for S4 Neff paper
         expname_arr = ['s4wide', 's4deepv3r025']
+        expname_arr = ['s4wide'] #20230530 - scale noise levels of bands
+
 
     s4_so_joint_configs = 1
     include_gal = 1
@@ -101,6 +103,14 @@ if (1): #SO scalings
                     for n5 in noise_scaling_arr:
                         for n6 in noise_scaling_arr:
                             noise_scalings_for_bands_arr.append([1.0, 1.0, round(n3, 2), round(n4, 2), round(n5, 2), round(n6, 2)])
+            print(len(noise_scalings_for_bands_arr)); ##sys.exit()
+
+        if (0):
+            #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-200:]
+            #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-300:]
+            #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-500:]
+            #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[:100:]
+            noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[1000:1200]
 
         for total_obs_time in total_obs_time_arr:
             for noise_scalings_for_bands in noise_scalings_for_bands_arr:

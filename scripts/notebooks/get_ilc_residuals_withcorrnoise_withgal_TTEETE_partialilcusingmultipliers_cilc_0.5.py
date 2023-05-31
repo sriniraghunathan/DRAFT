@@ -10,6 +10,9 @@ get_ipython().run_line_magic('autoreload', '2')
 #%pylab notebook
 get_ipython().run_line_magic('matplotlib', 'inline')
 '''
+if (1):
+    import matplotlib
+    matplotlib.use('Agg')
 from pylab import *
 #from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
 #import os
@@ -173,6 +176,133 @@ cl_multiplier_dic = {}
 ###print(which_gal_mask); sys.exit()
 
 # In[27]:
+
+if (1): #20230530
+    #plot and results file name
+    freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
+    which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
+    #opfname = 'results/galactic_sims/S4_ilc_20204020_galaxy%s_%s.npy' %(include_gal, freqarr_str)
+    #opfname = 'results/galactic_sims/S4_ilc_zonca_sims_20204028_galaxy%s_%s_%s.npy' %(include_gal, freqarr_str, which_spec_arr_str)
+    #parent_folder = 'results/20200610'
+    #parent_folder = 'results/20200701'
+    #parent_folder = 'results/20210322'
+    #parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
+    #parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
+    parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
+    if (1): #20220726 - regenerate ILC curves for multiple experiments.
+        ##parent_folder = '%s/20220726/' %(parent_folder)
+        ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
+        parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
+
+    if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
+        parent_folder = '%s/noise_scalings/' %(parent_folder)
+        noise_scalings_for_bands_str = '-'.join([str(n) for n in noise_scalings_for_bands])
+        noise_scalings_for_bands_str = '_noisescalings%s' %(noise_scalings_for_bands_str)
+
+    if s4_so_joint_configs:
+        parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
+    if null_comp is not None:
+        null_comp_str = 'nulled_%s' %('-'.join(null_comp))
+        parent_folder = '%s/%s/' %(parent_folder, null_comp_str)
+
+    if param_dict['lmax']>5002:
+        parent_folder = '%s/lmax_%s/' %(parent_folder, param_dict['lmax'])    
+    parent_folder = '%s/%s/' %(parent_folder, expname)
+
+    opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
+    if null_comp is not None:
+        opfname = '%s_%s.npy' %(opfname.replace('.npy', ''), null_comp_str)
+
+    if not corr_noise:
+        opfname = opfname.replace('.npy', '_nocorrnoise.npy')
+
+    if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
+        if s4like_mask:
+            opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
+        if s4like_mask_v2:
+            opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
+        if planck_mask:
+            opfname = opfname.replace(parent_folder, '%s/planck_mask/TT-EE/baseline/' %(parent_folder))
+        if s4like_mask_v3:
+            opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
+        if s4delensing_mask:
+            opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
+        if splat_minobsel_galcuts_mask:
+            opfname = opfname.replace(parent_folder, '%s/splat_minobsel%s_galcuts_mask/TT-EE/baseline/' %(parent_folder, param_dict['min_obs_el']))
+        #print(opfname); sys.exit()
+
+    if include_gal:
+        opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
+
+    if remove_atm:
+        opfname = opfname.replace('.npy', '_noatmnoise.npy')
+
+    if expname.find('spt')>-1:
+        if corr_noise_for_spt:
+            atm_noise_corr_str = 'rho%s' %(rho)
+            for freq in corr_noise_bands:
+                atm_noise_corr_str = '%s-%sx%s' %(atm_noise_corr_str, freq, corr_noise_bands[freq])
+            atm_noise_corr_str = atm_noise_corr_str.strip('-')
+            opfname = opfname.replace('.npy', '_%s.npy' %(atm_noise_corr_str))
+
+    ##print(opfname); sys.exit()
+
+    if cl_multiplier_dic is not None:
+        if len(cl_multiplier_dic) > 1:
+            cl_multiplier_str = 'pilcmultfacs'
+            for kkk in cl_multiplier_dic:
+                cl_multiplier_str = '%s-%s%s'%(cl_multiplier_str, kkk, cl_multiplier_dic[kkk])
+            cl_multiplier_str = cl_multiplier_str.strip('-')
+            opfname = opfname.replace('.npy', '_%s.npy' %(cl_multiplier_str))
+
+    if include_gal:    
+        cl_gal_folder = param_dict['cl_gal_folder']
+        if cl_gal_folder.find('CUmilta')>-1:
+            opfname = opfname.replace('.npy', '_CU.npy')
+        else:
+            opfname = opfname.replace('.npy', '_AZ.npy')
+            
+    try:
+        param_dict['cl_gal_dic_sync_fname_forced']
+        opfname = opfname.replace('.npy', '_forcingsynctoCU.npy')
+    except:
+        pass
+
+    if param_dict['lmax']!=5000:
+        opfname = opfname.replace('.npy', '_lmax%s.npy' %(param_dict['lmax']))
+
+    ###print(opfname); sys.exit()
+    '''
+    #plname = opfname.replace('.npy', '.png').replace('S4_ilc', 'plot_S4_ilc')
+    if s4like_mask:
+        plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask/' %(parent_folder), '%s/s4like_mask/plots/' %(parent_folder))
+    elif s4like_mask_v2:
+        plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask_v2/' %(parent_folder), '%s/s4like_mask_v2/plots/' %(parent_folder))
+    elif s4like_mask_v3:
+        plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask_v3/' %(parent_folder), '%s/s4like_mask_v3/plots/' %(parent_folder))
+    else:
+        plname = opfname.replace('.npy', '.png').replace(parent_folder, '%s/plots/' %(parent_folder))
+    '''
+
+    if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
+        opfname = opfname.replace('.npy', '%s.npy' %(noise_scalings_for_bands_str))
+
+
+    opfolder = '/'.join(opfname.split('/')[:-1])
+    plfolder = '%s/plots/' %(opfolder)
+    if not os.path.exists(opfolder): os.system('mkdir -p %s' %(opfolder))
+    if not os.path.exists(plfolder): os.system('mkdir -p %s' %(plfolder))
+
+    plname = opfname.replace(opfolder, plfolder).replace('.npy', '.png')
+    if expname.lower().find('s4')>-1:#total_obs_time_default != total_obs_time:
+        opfname = opfname.replace('.npy', '_for%gyears.npy' %(total_obs_time))
+        plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
+        
+    print(opfname)
+    print(plname); ##sys.exit()    
+    if os.path.exists(opfname):
+        print('\n\talready done.\n')
+        sys.exit()
 
 #beam and noise arr
 beamarr = []
@@ -713,129 +843,6 @@ print('noise',nl_dic['T'][(278, 278)][1000])
 
 # In[41]:
 
-
-#plot and results file name
-freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
-which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
-#opfname = 'results/galactic_sims/S4_ilc_20204020_galaxy%s_%s.npy' %(include_gal, freqarr_str)
-#opfname = 'results/galactic_sims/S4_ilc_zonca_sims_20204028_galaxy%s_%s_%s.npy' %(include_gal, freqarr_str, which_spec_arr_str)
-#parent_folder = 'results/20200610'
-#parent_folder = 'results/20200701'
-#parent_folder = 'results/20210322'
-#parent_folder = 'results/20210324_with202102designtoolinputforpySM3sims'
-#parent_folder = 'results/20210423_with202102designtoolinputforpySM3sims'
-parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
-if (1): #20220726 - regenerate ILC curves for multiple experiments.
-    ##parent_folder = '%s/20220726/' %(parent_folder)
-    ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
-    parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
-
-if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
-    parent_folder = '%s/noise_scalings/' %(parent_folder)
-    noise_scalings_for_bands_str = '-'.join([str(n) for n in noise_scalings_for_bands])
-    noise_scalings_for_bands_str = '_noisescalings%s' %(noise_scalings_for_bands_str)
-
-if s4_so_joint_configs:
-    parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
-if null_comp is not None:
-    null_comp_str = 'nulled_%s' %('-'.join(null_comp))
-    parent_folder = '%s/%s/' %(parent_folder, null_comp_str)
-
-if param_dict['lmax']>5002:
-    parent_folder = '%s/lmax_%s/' %(parent_folder, param_dict['lmax'])    
-parent_folder = '%s/%s/' %(parent_folder, expname)
-
-opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
-if null_comp is not None:
-    opfname = '%s_%s.npy' %(opfname.replace('.npy', ''), null_comp_str)
-
-if not corr_noise:
-    opfname = opfname.replace('.npy', '_nocorrnoise.npy')
-
-if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
-    if s4like_mask:
-        opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
-    if s4like_mask_v2:
-        opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
-    if planck_mask:
-        opfname = opfname.replace(parent_folder, '%s/planck_mask/TT-EE/baseline/' %(parent_folder))
-    if s4like_mask_v3:
-        opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
-    if s4delensing_mask:
-        opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
-    if splat_minobsel_galcuts_mask:
-        opfname = opfname.replace(parent_folder, '%s/splat_minobsel%s_galcuts_mask/TT-EE/baseline/' %(parent_folder, param_dict['min_obs_el']))
-    #print(opfname); sys.exit()
-
-if include_gal:
-    opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
-
-if remove_atm:
-    opfname = opfname.replace('.npy', '_noatmnoise.npy')
-
-if expname.find('spt')>-1:
-    if corr_noise_for_spt:
-        atm_noise_corr_str = 'rho%s' %(rho)
-        for freq in corr_noise_bands:
-            atm_noise_corr_str = '%s-%sx%s' %(atm_noise_corr_str, freq, corr_noise_bands[freq])
-        atm_noise_corr_str = atm_noise_corr_str.strip('-')
-        opfname = opfname.replace('.npy', '_%s.npy' %(atm_noise_corr_str))
-
-##print(opfname); sys.exit()
-
-if cl_multiplier_dic is not None:
-    if len(cl_multiplier_dic) > 1:
-        cl_multiplier_str = 'pilcmultfacs'
-        for kkk in cl_multiplier_dic:
-            cl_multiplier_str = '%s-%s%s'%(cl_multiplier_str, kkk, cl_multiplier_dic[kkk])
-        cl_multiplier_str = cl_multiplier_str.strip('-')
-        opfname = opfname.replace('.npy', '_%s.npy' %(cl_multiplier_str))
-
-if include_gal:    
-    cl_gal_folder = param_dict['cl_gal_folder']
-    if cl_gal_folder.find('CUmilta')>-1:
-        opfname = opfname.replace('.npy', '_CU.npy')
-    else:
-        opfname = opfname.replace('.npy', '_AZ.npy')
-        
-try:
-    param_dict['cl_gal_dic_sync_fname_forced']
-    opfname = opfname.replace('.npy', '_forcingsynctoCU.npy')
-except:
-    pass
-
-if param_dict['lmax']!=5000:
-    opfname = opfname.replace('.npy', '_lmax%s.npy' %(param_dict['lmax']))
-
-###print(opfname); sys.exit()
-'''
-#plname = opfname.replace('.npy', '.png').replace('S4_ilc', 'plot_S4_ilc')
-if s4like_mask:
-    plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask/' %(parent_folder), '%s/s4like_mask/plots/' %(parent_folder))
-elif s4like_mask_v2:
-    plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask_v2/' %(parent_folder), '%s/s4like_mask_v2/plots/' %(parent_folder))
-elif s4like_mask_v3:
-    plname = opfname.replace('.npy', '.png').replace('%s/s4like_mask_v3/' %(parent_folder), '%s/s4like_mask_v3/plots/' %(parent_folder))
-else:
-    plname = opfname.replace('.npy', '.png').replace(parent_folder, '%s/plots/' %(parent_folder))
-'''
-
-if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
-    opfname = opfname.replace('.npy', '%s.npy' %(noise_scalings_for_bands_str))
-
-
-opfolder = '/'.join(opfname.split('/')[:-1])
-plfolder = '%s/plots/' %(opfolder)
-if not os.path.exists(opfolder): os.system('mkdir -p %s' %(opfolder))
-if not os.path.exists(plfolder): os.system('mkdir -p %s' %(plfolder))
-
-plname = opfname.replace(opfolder, plfolder).replace('.npy', '.png')
-if expname.lower().find('s4')>-1:#total_obs_time_default != total_obs_time:
-    opfname = opfname.replace('.npy', '_for%gyears.npy' %(total_obs_time))
-    plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
-    
-print(opfname)
-print(plname); ##sys.exit()
 
 
 # In[ ]:
