@@ -10,21 +10,12 @@ get_ipython().run_line_magic('autoreload', '2')
 #%pylab notebook
 get_ipython().run_line_magic('matplotlib', 'inline')
 '''
-if (1):
-    import matplotlib
-    matplotlib.use('Agg')
-from pylab import *
 #from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
 #import os
 #rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
 
 
 # In[22]:
-
-
-rcParams['figure.dpi'] = 150
-rcParams['font.family'] = 'serif'
-rcParams["figure.facecolor"] = 'white'
 
 
 # In[23]:
@@ -59,6 +50,7 @@ parser.add_argument('-noise_scalings_for_bands', dest='noise_scalings_for_bands'
 
 #20230531 - option to get CMB or y
 parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, default='cmb')
+parser.add_argument('-debug', dest='debug', action='store', help='debug', type=int, default=0)
 
 
 args = parser.parse_args()
@@ -74,6 +66,15 @@ for kargs in args_keys:
 
 # In[24]:
 
+
+if not debug:
+    import matplotlib
+    matplotlib.use('Agg')
+from pylab import *
+
+rcParams['figure.dpi'] = 150
+rcParams['font.family'] = 'serif'
+rcParams["figure.facecolor"] = 'white'
 
 #some constants
 h=6.62607004e-34 #Planck constant in m2 kg / s
@@ -1032,7 +1033,8 @@ if cl_multiplier_dic is not None:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
 suptitle(r'%s: %s; %s year(s)' %(tit, expname, total_obs_time), fontsize = fsval, y = .93)#, x = 0.53, y = .93)
 savefig(plname)
-#show(); #sys.exit()
+if debug:
+    show(); sys.exit()
 print(plname)
 
 
