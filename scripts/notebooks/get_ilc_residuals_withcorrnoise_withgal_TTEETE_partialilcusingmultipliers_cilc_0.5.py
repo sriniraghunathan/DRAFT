@@ -31,7 +31,10 @@ rcParams["figure.facecolor"] = 'white'
 
 
 import argparse, sys, numpy as np, scipy as sc, warnings, os
-sys.path.append('/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/')
+draft_fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/'
+if not os.path.exists(draft_fd):
+    draft_fd = '../../modules/'
+sys.path.append(draft_fd)
 import flatsky, misc, exp_specs
 import ilc, foregrounds as fg
 import pickle, gzip
