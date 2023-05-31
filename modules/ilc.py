@@ -389,7 +389,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     cl_ksz = np.interp(el, np.arange(len(cl_ksz)), cl_ksz)
                 #print('ksz')
                 cl = cl + cl_ksz[el]
-            if 'tsz' not in ignore_fg:
+            if 'tsz' not in ignore_fg and 'y' not in ignore_fg:
                 if len(cl_tsz)<len(cl):
                     cl_tsz = np.interp(el, np.arange(len(cl_tsz)), cl_tsz)
                 #print('tsz')
@@ -408,7 +408,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             #20220503 - add tszxcib if either tsz or cib is included.
             add_cl_tsz_cib = True
             #if ('dust' in ignore_fg and 'tsz' in ignore_fg) or 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
-            if 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg:
+            if 'tsz_cib' in ignore_fg or 'cib_tsz' in ignore_fg or 'cib_y' in ignore_fg or 'y_cib' in ignore_fg:
                 add_cl_tsz_cib = False 
             if add_cl_tsz_cib: #'dust' not in ignore_fg and 'tsz' not in ignore_fg and 'tsz_cib' not in ignore_fg:
                 if len(cl_tsz_cib)<len(cl):
