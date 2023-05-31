@@ -5,7 +5,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
     #ignore_fg = foreground terms that must be ignored
     debug=False
-    possible_ignore_fg = ['cmb', 'tsz', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
+    possible_ignore_fg = ['cmb', 'tsz', 'y', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
     if len(ignore_fg)>0:
         if 'cmb' in ignore_fg: ignore_fg.append('ksz')
         if not all( [ currfg in possible_ignore_fg for currfg in ignore_fg] ):
