@@ -69,7 +69,7 @@ for kargs in args_keys:
 
 if not debug:
     import matplotlib
-    matplotlib.use('Agg')
+    ##matplotlib.use('Agg')
 from pylab import *
 
 rcParams['figure.dpi'] = 150
@@ -203,12 +203,13 @@ if (1): #20230530
     if (1): #20220726 - regenerate ILC curves for multiple experiments.
         ##parent_folder = '%s/20220726/' %(parent_folder)
         ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
-        parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
+        ##parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
+        parent_folder = '%s/202308xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs. #20230901 - increase lmax for different forecasting strategies.
 
     if final_comp != 'cmb':
         parent_folder = '%s/%s/' %(parent_folder, final_comp)
 
-    if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
+    if noise_scalings_for_bands is not None and len(np.unique(noise_scalings_for_bands))>1: #20230530 - scale noise levels of bands
         parent_folder = '%s/noise_scalings/' %(parent_folder)
         noise_scalings_for_bands_str = '-'.join([str(n) for n in noise_scalings_for_bands])
         noise_scalings_for_bands_str = '_noisescalings%s' %(noise_scalings_for_bands_str)
@@ -298,7 +299,7 @@ if (1): #20230530
         plname = opfname.replace('.npy', '.png').replace(parent_folder, '%s/plots/' %(parent_folder))
     '''
 
-    if noise_scalings_for_bands is not None: #20230530 - scale noise levels of bands
+    if noise_scalings_for_bands is not None and len(np.unique(noise_scalings_for_bands))>1: #20230530 - scale noise levels of bands
         opfname = opfname.replace('.npy', '%s.npy' %(noise_scalings_for_bands_str))
 
 
@@ -313,7 +314,7 @@ if (1): #20230530
         plname = plname.replace('.png', '_for%gyears.png' %(total_obs_time))
         
     print(opfname)
-    print(plname); ##sys.exit()    
+    print(plname); ###sys.exit()    
     if os.path.exists(opfname):
         print('\n\talready done.\n')
         sys.exit()
@@ -537,6 +538,19 @@ print(cl_dic.keys(), cl_dic.keys())
 print(el)
 ##sys.exit()
 
+if (0):
+    close('all')
+    dl_fac = el * (el+1)/2/np.pi
+    color_arr = ['navy', 'blue', 'darkgreen', 'goldenrod', 'orangered', 'darkred']
+    clf()
+    ##figure(figsize=(11., 8.))#5.5))
+    for which_spec_cntr, which_spec in enumerate(which_spec_arr):
+        curr_cl_dic = cl_dic[which_spec]
+        ax = subplot(1, 2, which_spec_cntr+1, yscale = 'log')
+        for nucntr, nuval in enumerate( freqarr ):
+            plot(el, dl_fac * cl_dic[which_spec][(nuval, nuval)], color = color_arr[nucntr])
+        xlim(0., max(el)+100); ylim(0.1, 1e5)
+    show(); sys.exit()
 
 # In[32]:
 
@@ -883,7 +897,8 @@ cl_TT, cl_EE, cl_BB, cl_TE = cl_camb.T
 clf(); 
 #fig = figure(figsize = (6,3))
 #fsval = 8
-figure(figsize=(10., 7.))#5.5))
+##figure(figsize=(10., 7.))#5.5))
+figure(figsize=(11., 8.))#5.5))
 fsval = 12
 lwval = 0.75
 plot_weights = 1
@@ -891,7 +906,7 @@ xmin, xmax = 100, param_dict['lmax']
 print(xmin, xmax)
 if plot_weights:
     tr, tc = 6, len(which_spec_arr)
-    subplots_adjust(wspace=0., hspace = 0.2)
+    subplots_adjust(wspace=0., hspace = 0.25)
     #first plot weights
     rspan, cspan = 2, 1
     curr_row = 0
@@ -915,12 +930,12 @@ if plot_weights:
                 plot(weights_dic[which_spec][frqcntr], color = colordic[freq], label = r'%s' %(freq), lw = lwval)
             plot(np.sum(weights_dic[which_spec], axis = 0), 'k--', label = r'Sum', lw = lwval)
         axhline(lw=0.3);
-        #xlabel(r'Multipole $\ell$');
-        setp(ax.get_xticklabels(which = 'both'), visible=False)
+        xlabel(r'Multipole $\ell$');
+        ##setp(ax.get_xticklabels(which = 'both'), visible=False)
         if cntr == 0:
             ylabel(r'Weight $W_{\ell}$')
-            legend(loc = 3, fontsize = fsval-2, ncol = 4, handlelength = 2., handletextpad = 0.1)
         else:
+            legend(loc = 3, fontsize = fsval-3, ncol = 5, handlelength = 2., handletextpad = 0.1)
             setp(ax.get_yticklabels(which = 'both'), visible=False)
         ylim(-0.5, 1.5);
         xlim(xmin, xmax);
@@ -1011,8 +1026,8 @@ for cntr, which_spec in enumerate( which_spec_arr ):
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
         ylabel(r'$C_{\ell}$ [$\mu$K$^{2}$]', fontsize = fsval)
-        legend(loc = 1, fontsize = fsval-1, ncol = 2, handlelength = 2., handletextpad = 0.1)
     else:
+        legend(loc = 1, fontsize = fsval-2, ncol = 2, handlelength = 2., handletextpad = 0.1)
         #pass
         setp(ax.get_yticklabels(which = 'both'), visible=False)
     for label in ax.get_xticklabels(): label.set_fontsize(fsval)
@@ -1032,6 +1047,7 @@ if cl_multiplier_dic is not None:
     if 'gal_dust' in cl_multiplier_dic:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
 suptitle(r'%s: %s; %s year(s)' %(tit, expname, total_obs_time), fontsize = fsval, y = .93)#, x = 0.53, y = .93)
+##show(); sys.exit()
 savefig(plname)
 if debug:
     show(); sys.exit()

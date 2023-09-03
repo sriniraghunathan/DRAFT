@@ -61,6 +61,8 @@ if (1):
         use_s4like_mask_v3 = 0
         use_planck_mask = 1
         s,e = 0, 3
+        lmax = 10000
+        nside = 4096
 
 
 if (0): ### 20210512

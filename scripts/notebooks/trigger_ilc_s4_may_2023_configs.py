@@ -88,25 +88,28 @@ if (1): #SO scalings
                 include_gal = 0
                 which_gal_mask = -1
 
-
-        noise_scalings_for_bands_arr = [None]
+        which_gal_mask_arr = [which_gal_mask]
+        noise_scalings_for_bands_arr = [np.tile(1., 6)]
         if (1): #20230530 - scale noise levels of bands
             total_obs_time_arr = [7.]
             include_fulls4scaledsobaseline = 0
-            include_gal = 0
             s4_so_joint_configs = 0
             save_fg_res_and_weights = 1
-            which_gal_mask = -1
-            noise_scaling_arr = np.arange(0.85, 1.16, 0.05)
-            noise_scalings_for_bands_arr = []
-            for n3 in noise_scaling_arr:
-                for n4 in noise_scaling_arr:
-                    for n5 in noise_scaling_arr:
-                        for n6 in noise_scaling_arr:
-                            noise_scalings_for_bands_arr.append([1.0, 1.0, round(n3, 2), round(n4, 2), round(n5, 2), round(n6, 2)])
+            which_gal_mask_arr = [0, 1, 2]
+            ###total_obs_time_arr = np.arange(1., 10.1, 1.)
+            if (0):
+                include_gal = 0
+                which_gal_mask_arr = [-1]
+                noise_scaling_arr = np.arange(0.85, 1.16, 0.05)
+                noise_scalings_for_bands_arr = []
+                for n3 in noise_scaling_arr:
+                    for n4 in noise_scaling_arr:
+                        for n5 in noise_scaling_arr:
+                            for n6 in noise_scaling_arr:
+                                noise_scalings_for_bands_arr.append([1.0, 1.0, round(n3, 2), round(n4, 2), round(n5, 2), round(n6, 2)])
             print(len(noise_scalings_for_bands_arr)); ##sys.exit()
             final_comp = 'cmb'
-            final_comp = 'y' #20230531 - Compton-y
+            ##final_comp = 'y' #20230531 - Compton-y
 
         if (1):
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-200:]
@@ -117,14 +120,15 @@ if (1): #SO scalings
             noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[s:e]
 
         for total_obs_time in total_obs_time_arr:
-            for noise_scalings_for_bands in noise_scalings_for_bands_arr:
-                noise_scalings_for_bands_str = ' '.join([str(n) for n in noise_scalings_for_bands])
-                #cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
-                cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s -noise_scalings_for_bands %s -final_comp %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights, noise_scalings_for_bands_str, final_comp)
-                print('\n###############\n%s\n' %(cmd)); ###sys.exit()
-                os.system(cmd)
-                ###sys.exit()
-            total += 1
+            for which_gal_mask in which_gal_mask_arr:
+                for noise_scalings_for_bands in noise_scalings_for_bands_arr:
+                    noise_scalings_for_bands_str = ' '.join([str(n) for n in noise_scalings_for_bands])
+                    #cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
+                    cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s -noise_scalings_for_bands %s -final_comp %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights, noise_scalings_for_bands_str, final_comp)
+                    print('\n###############\n%s\n' %(cmd)); ##sys.exit()
+                    os.system(cmd)
+                    ###sys.exit()
+                    total += 1
     print(total)
 sys.exit()
 
