@@ -1026,8 +1026,8 @@ for cntr, which_spec in enumerate( which_spec_arr ):
     xlabel(r'Multipole $\ell$')
     if cntr == 0: 
         ylabel(r'$C_{\ell}$ [$\mu$K$^{2}$]', fontsize = fsval)
+        legend(loc = 3, fontsize = fsval-4, ncol = 2, handlelength = 2., handletextpad = 0.1)
     else:
-        legend(loc = 1, fontsize = fsval-2, ncol = 2, handlelength = 2., handletextpad = 0.1)
         #pass
         setp(ax.get_yticklabels(which = 'both'), visible=False)
     for label in ax.get_xticklabels(): label.set_fontsize(fsval)
