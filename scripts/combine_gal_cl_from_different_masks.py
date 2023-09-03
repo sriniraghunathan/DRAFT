@@ -45,7 +45,8 @@ if (1):
         s4like_mask_v3 = 0
         s4delensing_mask = 0 ##0
         planck_mask = 1
-        nside, lmax = 2048, 5000
+        ##nside, lmax = 2048, 5000
+        nside, lmax = 4096, 10000 #202300901
         t_only = 0
 
 

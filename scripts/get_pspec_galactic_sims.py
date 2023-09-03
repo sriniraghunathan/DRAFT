@@ -665,6 +665,7 @@ if (1):#testing or not local:
                 mask = H.smoothing(mask, fwhm = np.radians(2.))
                 mask[mask<1e-5] = 0.
 
+            '''
             if use_planck_mask:
                 import matplotlib
                 matplotlib.use('Agg')
@@ -675,6 +676,7 @@ if (1):#testing or not local:
                 if not os.path.exists( pl_folder ): os.system('mkdir -p %s' %(pl_folder))
                 plname = '%s/planck_mask_%s.png' %(pl_folder, mask_iter)
                 savefig(plname); close()
+            '''
 
             rotated = 1
 
