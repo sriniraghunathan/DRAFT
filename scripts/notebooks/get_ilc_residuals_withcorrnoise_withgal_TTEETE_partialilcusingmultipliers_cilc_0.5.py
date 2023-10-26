@@ -204,7 +204,8 @@ if (1): #20230530
         ##parent_folder = '%s/20220726/' %(parent_folder)
         ##parent_folder = '%s/20230317/' %(parent_folder) #20230317 - redoing things
         ##parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
-        parent_folder = '%s/202308xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs. #20230901 - increase lmax for different forecasting strategies.
+        ##parent_folder = '%s/202308xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs. #20230901 - increase lmax for different forecasting strategies.
+        parent_folder = '%s/202310xx_modified_PBDR_config_for_Neff_paper/' %(parent_folder) #20231025 - modified PBDR config: https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
 
     if final_comp != 'cmb':
         parent_folder = '%s/%s/' %(parent_folder, final_comp)
@@ -506,7 +507,7 @@ if (0):
         ylabel(r'$\ell(\ell+1)/(2\pi)$ N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
         xlim(0, 5000); ylim(.1, 1e5)
     xlabel(r'Multipole $\ell$', fontsize = 14)
-    expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer')
+    expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer').replace('_', '\_')
     ##expname_str = 'S4-Wide'
     title(r'%s' %(expname_str), fontsize = 14)
     ##savefig('s4_wide_nl.png', dpi= 200.); sys.exit()
@@ -1046,7 +1047,8 @@ if (0):#not corr_noise:
 if cl_multiplier_dic is not None:
     if 'gal_dust' in cl_multiplier_dic:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
-suptitle(r'%s: %s; %s year(s)' %(tit, expname, total_obs_time), fontsize = fsval, y = .93)#, x = 0.53, y = .93)
+expname_str = expname.replace('_', '\_')
+suptitle(r'%s: %s; %s year(s)' %(tit, expname_str, total_obs_time), fontsize = fsval, y = .93)#, x = 0.53, y = .93)
 ##show(); sys.exit()
 savefig(plname)
 if debug:

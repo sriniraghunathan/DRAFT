@@ -44,6 +44,10 @@ if (1): #SO scalings
         expname_arr = ['s4wide', 's4deepv3r025']
         expname_arr = ['s4wide'] #20230530 - scale noise levels of bands
 
+        ##New PBDR (Oct 2023) from https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
+        ##expname_arr = ['s4wide_202310xx_pbdr_config']#, 's4deepv3r025_202310xx_pbdr_config']
+        ##expname_arr = ['s4deepv3r025_202310xx_pbdr_config']
+
 
     s4_so_joint_configs = 1
     include_gal = 1
@@ -52,7 +56,7 @@ if (1): #SO scalings
     save_fg_res_and_weights = 0
     total = 0    
     for expname in expname_arr:
-        if expname == 's4deepv3r025':
+        if expname.find('s4deepv3r025')>-1:
             include_gal = 0
             which_gal_mask = -1
         if expname.find('plus_fulls4scaledsobaseline')>-1:
@@ -90,6 +94,8 @@ if (1): #SO scalings
 
         which_gal_mask_arr = [which_gal_mask]
         noise_scalings_for_bands_arr = [np.tile(1., 6)]
+        if expname.find('s4deepv3r025')>-1:
+            noise_scalings_for_bands_arr = [np.tile(1., 7)]
         if (1): #20230530 - scale noise levels of bands
             total_obs_time_arr = [7.]
             include_fulls4scaledsobaseline = 0
@@ -117,7 +123,7 @@ if (1): #SO scalings
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[-500:]
             #noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[:100:]
             s, e = int(sys.argv[1]), int(sys.argv[2])
-            noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[s:e]
+            noise_scalings_for_bands_arr = noise_scalings_for_bands_arr[s:e]            
 
         for total_obs_time in total_obs_time_arr:
             for which_gal_mask in which_gal_mask_arr:

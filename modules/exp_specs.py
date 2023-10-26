@@ -104,6 +104,33 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                     specs_dic[nu][4] *= scaling_factors[nucntr]                
             #20220222 - modify S4 noise levels based on S4/SO detector scalings
 
+        elif expname == 's4wide_202310xx_pbdr_config': #20231025
+
+            ##New PBDR (Oct 2023) from https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            27: [7.8, 27.1, 415., 3.5, 30.23 * (27.1/21.8), 700, 1.4],
+            39: [5.3, 11.6, 391., 3.5, 16.53 * (11.6/12.4), 700, 1.4], 
+            93: [2.2, 2.0, 1932., 3.5, 2.68, 700, 1.4],
+            145: [1.4, 2.0, 3917., 3.5, 2.96, 700, 1.4],
+            225: [1.0, 6.9, 6740., 3.5, 9.78, 700, 1.4],
+            278: [0.9, 16.7, 6792., 3.5, 23.93, 700, 1.4],
+            }
+
+        elif expname == 's4deepv3r025_202310xx_pbdr_config': #20231025 
+
+            ##New PBDR (Oct 2023) from https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            20: [11.4, 11.9, 1200., 4.2, 13.16 * (11.9/9.4), 150., 2.7], #20230517
+            27: [9.1, 6.5, 1200., 4.2, 6.5 * (6.5/4.6), 150, 2.7],
+            39: [6.2, 3.0, 1200., 4.2, 4.15, 150, 2.7], 
+            93: [2.5, 0.45, 1200., 4.2, 0.63, 150, 2.6],
+            145: [1.6, 0.41, 1900., 4.1, 0.59, 200, 2.2],
+            225: [1.1, 1.3, 2100., 4.1, 1.83, 200, 2.2],
+            278: [1.0, 3.1, 2100., 3.9, 4.34, 200, 2.2],
+            }
+
         elif expname == 's4wide_chlat_el40':
             #https://cmb-s4.atlassian.net/wiki/spaces/XC/pages/680853505/Neff+forecasts+for+CHLAT+for+different+observing+elevations
             specs_dic = {
