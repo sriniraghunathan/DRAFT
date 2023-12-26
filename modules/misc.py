@@ -184,7 +184,9 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
             Nred2 = Nred2  * sky_area / year_scaling
 
     cross_band_noise = 0
-    if noiseval2 is not None and beamval2 is not None:
+    if noiseval2 is not None:
+        if use_beam_window:
+            assert beamval2 is not None
         assert rho is not None
         cross_band_noise = 1
 
