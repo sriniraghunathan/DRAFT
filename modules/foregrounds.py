@@ -175,12 +175,30 @@ def compton_y_to_delta_Tcmb(freq1, freq2 = None, Tcmb = 2.73):
 
     return Tcmb * np.mean(g_nu)
 
-def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., reduce_cib_power = None):
+def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., reduce_cib_power = None):    
 #def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505, spec_index_dg_clus = 2.51, Tcib = 20.):
     if fg_model == 'george15':
         el, cl_dg_po_freq0 = get_foreground_power_spt('DG-Po', freq1 = freq0, freq2 = freq0)
         el, cl_dg_clus_freq0 = get_foreground_power_spt('DG-Cl', freq1 = freq0, freq2 = freq0)
         el_norm = 3000
+
+    if (0):##reduce_cib_power>1:
+        import pickle, gzip
+        dummy_fname = '/Users/sraghunathan/Research/SPTpol/analysis/2019_08/tSZ_counts_confusion/data/foreground/cmb_hd_stuff/Cls_150_DG-Po_4e-05.pkl.gz'        
+        dummy = pickle.load( gzip.open( dummy_fname, 'rb'), encoding = 'latin1' )
+        el_, cl_ = dummy['els'], dummy['cls']*1e12
+        if (1):
+            cl_dg_po_freq0_v2 = np.interp(el, el_, cl_)
+            dl_fac = el * (el+1)/2/np.pi
+            clf()
+            ax = subplot(111, yscale='log')
+            plot(el, dl_fac * cl_dg_po_freq0, color = 'black', lw = 3., ls = '--')
+            plot(el, dl_fac * cl_dg_po_freq0/reduce_cib_power, color = 'black', lw = 3.)
+            plot(el, dl_fac * cl_dg_po_freq0_v2, color = 'red')
+            xlim(100., 1e4); ylim(0.1, 100.)
+            show(); sys.exit()
+        cl_dg_po_freq0 = np.interp(el, el_, cl_)
+
 
     #conert to Dls
     dl_fac = el * (el+1)/2/np.pi

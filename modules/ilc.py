@@ -3,7 +3,7 @@ from pylab import *
 ################################################################################################################
 def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, use_websky_cib = 0, scale_spt_using_sptspire = 0, use_sptspire_for_hfbands = 0, minval_for_hfbands=500, use_mdpl2_cib = 0, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, cib_flux_threshold = 1.5, mdpl2_cib_version = 'v0p3', use_mdpl2_tsz = 0, cl_multiplier_dic = None, return_fg_spectra = True, force_cl_dic = None):
 
-    ##print(include_gal); sys.exit()
+    ##print(ignore_fg); sys.exit()
     #ignore_fg = foreground terms that must be ignored
     debug=False
     possible_ignore_fg = ['cmb', 'tsz', 'y', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
@@ -12,6 +12,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
         if not all( [ currfg in possible_ignore_fg for currfg in ignore_fg] ):
             print( '\n\t Alert: Elements of ignore_fg should be one of the following: %s\n\n' %(np.array2string(np.asarray(possible_ignore_fg))) )
             sys.exit()
+        ignore_fg = np.unique(ignore_fg)
 
 
     el_, cl_cmb = fg.get_foreground_power_spt('CMB', freq1 = param_dict['freq0'], freq2 = param_dict['freq0'])

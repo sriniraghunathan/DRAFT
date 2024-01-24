@@ -131,7 +131,7 @@ if (1): #SO scalings
                     noise_scalings_for_bands_str = ' '.join([str(n) for n in noise_scalings_for_bands])
                     #cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights)
                     cmd = 'python3 %s -expname %s -include_gal %s -which_gal_mask %s -total_obs_time %s -s4_so_joint_configs %s -include_fulls4scaledsobaseline %s -interactive_mode %s -save_fg_res_and_weights %s -noise_scalings_for_bands %s -final_comp %s' %(pgmname, expname, include_gal, which_gal_mask, total_obs_time, s4_so_joint_configs, include_fulls4scaledsobaseline, interactive_mode, save_fg_res_and_weights, noise_scalings_for_bands_str, final_comp)
-                    print('\n###############\n%s\n' %(cmd)); ##sys.exit()
+                    print('\n###############\n%s\n' %(cmd)); sys.exit()
                     os.system(cmd)
                     ###sys.exit()
                     total += 1

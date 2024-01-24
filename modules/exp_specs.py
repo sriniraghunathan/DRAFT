@@ -104,6 +104,19 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                     specs_dic[nu][4] *= scaling_factors[nucntr]                
             #20220222 - modify S4 noise levels based on S4/SO detector scalings
 
+        elif expname == 's4wide_acheived_performance_pbdr_202312xx': #20231213
+
+            ##PBDR achieved performance. PBDR A.1.3.3
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            27: [7.4, 15.8, 415., 3.5, 22.3, 700, 1.4],
+            39: [5.1, 8.5, 391., 3.5, 12., 700, 1.4], 
+            93: [2.2, 1.4, 1932., 3.5, 2., 700, 1.4],
+            145: [1.4, 1.3, 3917., 3.5, 1.9, 700, 1.4],
+            225: [1.0, 4.7, 6740., 3.5, 6.6, 700, 1.4],
+            278: [0.9, 13.7, 6792., 3.5, 19.4, 700, 1.4],
+            }
+
         elif expname == 's4wide_202310xx_pbdr_config': #20231025
 
             ##New PBDR (Oct 2023) from https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
@@ -238,6 +251,41 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
         else:
             corr_noise_bands = {20: [20], 27:[39], 39:[27], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
         rho = 0.9
+
+    elif expname.find('atlast')>-1:
+
+        if expname == 'atlast_dummy': #cmb-hd
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            42: [1.05, 3.4, 391., 3.5, 4.8, 700, 1.4], 
+            92: [0.45, 0.73, 1932., 3.5, 1.03, 700, 1.4],
+            151: [0.25, 0.79, 3917., 3.5, 1.12, 700, 1.4],
+            217: [0.2, 2.0, 6740., 3.5, 2.828, 700, 1.4],
+            288: [0.15, 4.6, 6792., 3.5, 6.5, 700, 1.4],
+            350: [0.12, 4.6, 6792., 3.5, 6.5, 700, 1.4],
+            }
+        elif expname == 'atlast':
+            specs_dic = {
+            #freq: [beam_arcsecs, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            42: [35.34, 2.32, 391., 3.5, 4.8, 700, 1.4], 
+            92: [16.22, 1.09, 1932., 3.5, 1.03, 700, 1.4],
+            151: [9.83, 1.1, 3917., 3.5, 1.12, 700, 1.4],
+            217: [6.82, 1.72, 6740., 3.5, 2.828, 700, 1.4],
+            288: [5.14, 3.61, 6792., 3.5, 6.5, 700, 1.4],
+            350: [4.24, 10.3, 6792., 3.5, 6.5, 700, 1.4],
+            403: [3.68, 29.37, 6792., 3.5, 6.5, 700, 1.4],
+            654: [2.27, 1397.27, 6792., 3.5, 6.5, 700, 1.4],
+            845: [1.76, 29852.36, 6792., 3.5, 6.5, 700, 1.4],
+            }
+
+            for nu in specs_dic:
+                specs_dic[nu][0] = specs_dic[nu][0] / 60. #arcsecs to arcmins
+
+        rho = 0.9
+        corr_noise = 0
+        corr_noise_bands = {}
+        for nu in specs_dic:
+            corr_noise_bands[nu] = [nu]
 
     elif expname.lower() == 'sobaseline' or expname.lower() == 'sogoal' or expname.lower() == 'ccat_prime_so':
 
