@@ -21,8 +21,10 @@
   * References: Huterer & Takada 2004, arXiv: [0412142](https://arxiv.org/abs/astro-ph/0412142); Loverde, Hui, & Gaztanaga 2006, arXiv: [0611539](https://arxiv.org/abs/astro-ph/0611539); Amara & Réfrégier 2007, arXiv: [0710.5171](https://arxiv.org/abs/0710.5171).
 
 ### CMB-S4 instrument/noise specs:
-* [Chilean LAT](data/s4_wide_specs_pbdr.png)
-* [Delensing SouthPole LAT](data/s4_ultradeep_specs_pbdr.png)
+<p align="left">
+  <img src="data/s4_wide_specs_pbdr.png" width="750" title="Chilean LAT">
+  <img src="data/s4_ultradeep_specs_pbdr.png" width="750" title="Delensing SouthPole LAT">
+</p>
 
 ### Foreground modelling:
 * **Extragalactic foregrounds**: Radio, CIB, tSZ and  kSZ power spectra from SPT measurements (George et al. 2015, arXiv: [1408.3161](https://arxiv.org/abs/1408.3161) and Reichardt et al. 2020, arXiv: [2002.06197](https://arxiv.org/abs/2002.06197)).
