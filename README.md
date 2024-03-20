@@ -17,6 +17,10 @@
      *  File name:
         * Without galactic foregrounds: [expname]_galaxy0_[bands]_TT-EE_lmax6500_for7years.npy
         * With galactic foregrounds: [expname]_galaxy0_[bands]_TT-EE_galmask[0_or_1_or_2]_lmax6500_for7years.npy
+           * Galactic foregrounds masks can be found here: [planck_gal_fg_mask_with_cmbs4_footprint](https://github.com/sriniraghunathan/DRAFT/blob/master/data/planck_gal_fg_masks_with_cmbs4_footprint.png) <img src="data/planck_gal_fg_masks_with_cmbs4_footprint.png" width="750" title="Chilean LAT">
+           * 0 - GAL070 + CMB-S4 footprint.
+           * 1 - GAL080 + CMB-S4 footprint.
+           * 2 - GAL090 + CMB-S4 footprint.
      *  [S4-Wide (Chilean LAT)](https://github.com/sriniraghunathan/DRAFT/tree/master/products/202310xx_PBDR_config/s4wide_202310xx_pbdr_config): This is for the latest noise specs from PBDR (as of Oct 2023).
      *  [S4-Ultra deep (South Pole LAT](https://github.com/sriniraghunathan/DRAFT/tree/master/products/202310xx_PBDR_config/s4deepv3r025_202310xx_pbdr_config): This is for the latest noise specs from PBDR (as of Oct 2023).
      *  [S4-Wide (Chilean LAT) achevied performance](https://github.com/sriniraghunathan/DRAFT/tree/master/products/202310xx_PBDR_config/s4wide_acheived_performance_pbdr_202312xx): This is best performance that can be acheived.
