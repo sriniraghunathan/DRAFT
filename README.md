@@ -1,7 +1,7 @@
 # CMB-S4: Dark Radiation Anisotropy Flowdown Team (DRAFT) tool
 
 ## Articles to cite: 
-* If you use results from this repository, please cite the following articles.
+If you use results from this repository, please cite the following articles.
 * ILC residuals:
   *  Raghunathan and Omori, 2023, arXiv:[2304.09166](https://arxiv.org/abs/2304.09166).
 * Fisherlens:
