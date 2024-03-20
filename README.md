@@ -11,6 +11,19 @@
   * Extragalacitc foreground modelling: Reichardt et al. 2021, arXiv: [2002.06197](https://arxiv.org/abs/2002.06197).
   * Galactic foreground modelling: https://pysm3.readthedocs.io/en/latest/
 
+### Results:
+* **ILC curves**:
+  * Look into this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/products/). 
+     * Look into *read_file.py* script to read ILC curves. 
+     * Standard ILC curves for S4-Wide (PBDR configuration) will be under this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust/s4like_mask_v2/TT-EE/baseline). 
+     * Constrained ILC curves (for galactc dust) are also in the above folder.
+    
+### CMB-S4 instrument/noise specs:
+<p align="left">
+  <img src="data/s4_wide_specs_pbdr.png" width="750" title="Chilean LAT">
+  <img src="data/s4_ultradeep_specs_pbdr.png" width="750" title="Delensing SouthPole LAT">
+</p>
+
 ### Overview:
 * Optimally combines data from different bands using noise + foreground signals in different bands.
   * Supports standard / constrained / partial internal linear combinations.
@@ -20,23 +33,19 @@
 * Estimates biases in cosmological parameters due to residual foregrounds also using Fisher formalism.
   * References: Huterer & Takada 2004, arXiv: [0412142](https://arxiv.org/abs/astro-ph/0412142); Loverde, Hui, & Gaztanaga 2006, arXiv: [0611539](https://arxiv.org/abs/astro-ph/0611539); Amara & Réfrégier 2007, arXiv: [0710.5171](https://arxiv.org/abs/0710.5171).
 
-### CMB-S4 instrument/noise specs:
-<p align="left">
-  <img src="data/s4_wide_specs_pbdr.png" width="750" title="Chilean LAT">
-  <img src="data/s4_ultradeep_specs_pbdr.png" width="750" title="Delensing SouthPole LAT">
-</p>
 
 ### Foreground modelling:
 * **Extragalactic foregrounds**: Radio, CIB, tSZ and  kSZ power spectra from SPT measurements (George et al. 2015, arXiv: [1408.3161](https://arxiv.org/abs/1408.3161) and Reichardt et al. 2020, arXiv: [2002.06197](https://arxiv.org/abs/2002.06197)).
   * Assumed polarisation fractions: CIB = 2%; Radio = 3%; tSZ/kSZ = 0. But these are configurable. Look into [params.ini](https://github.com/sriniraghunathan/DRAFT/blob/master/scripts/notebooks/params.ini).
 * **Galactic foregrounds**: Dust and Synchrotron power spectra obtained from [pySM3](https://github.com/CMB-S4/s4mapbasedsims/tree/master/202002_foregrounds_extragalactic_cmb_tophat) simulations.
 
-### Results:
+<!--### Results:
 * **ILC curves**:
   * Look into this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust/). 
      * Look into *read_file.py* script to read ILC curves. 
      * Standard ILC curves for S4-Wide (PBDR configuration) will be under this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust/s4like_mask_v2/TT-EE/baseline). 
      * Constrained ILC curves (for galactc dust) are also in the above folder. 
+ -->
 
 ## Contributors: 
 [_Joel_ **Meyers**](https://joelmeyers.github.io/), [_Cynthia_ **Trendafilova**](https://github.com/ctrendafilova), and [_Benjamin_ **Wallisch**](https://www.ias.edu/scholars/benjamin-wallisch).
