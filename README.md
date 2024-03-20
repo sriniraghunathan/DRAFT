@@ -33,6 +33,9 @@ If you use results from this repository, please cite the following articles.
   <img src="data/s4_ultradeep_specs_pbdr.png" width="750" title="Delensing SouthPole LAT">
 </p>
 
+## Executing the script:
+* Please look into (this README)(https://github.com/sriniraghunathan/DRAFT/blob/master/scripts/README.md)
+
 ### Overview:
 * Optimally combines data from different bands using noise + foreground signals in different bands.
   * Supports standard / constrained / partial internal linear combinations.
