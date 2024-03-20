@@ -619,6 +619,25 @@ if (1):#testing or not local:
             for tmpfname in fname_arr:
                 spt_mask_arr.append( H.read_map( tmpfname ) )
 
+        elif which_spt_field == 'spt_proposal_2023':
+
+            mask_fd = 'masks/spt_proposal_2023_13k_sqdeg_field/'
+            fname_arr = ['%s/spt_proposal_2023_13k_sqdeg_field_planckGAL070.fits' %(mask_fd), 
+                        '%s/spt_proposal_2023_13k_sqdeg_field_planckGAL080.fits' %(mask_fd),
+                        '%s/spt_proposal_2023_13k_sqdeg_field_planckGAL090.fits' %(mask_fd)]
+
+            spt_mask_arr = []
+            for tmpfname in fname_arr:
+                spt_mask_arr.append( H.read_map( tmpfname ) )
+
+            mask_gal80_gal70 = spt_mask_arr[1] - spt_mask_arr[0]
+            mask_gal90_gal70 = spt_mask_arr[2] - spt_mask_arr[0]
+            mask_gal90_gal80 = spt_mask_arr[2] - spt_mask_arr[1]
+
+            spt_mask_arr.append( mask_gal80_gal70 )
+            spt_mask_arr.append( mask_gal90_gal70 )
+            spt_mask_arr.append( mask_gal90_gal80 )
+
         tot_masks = len(spt_mask_arr)
 
     logline = '\tget masks now\n'

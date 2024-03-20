@@ -45,8 +45,9 @@ if (1): #SO scalings
         expname_arr = ['s4wide'] #20230530 - scale noise levels of bands
 
         ##New PBDR (Oct 2023) from https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
-        ##expname_arr = ['s4wide_202310xx_pbdr_config']#, 's4deepv3r025_202310xx_pbdr_config']
+        expname_arr = ['s4wide_202310xx_pbdr_config']##, 's4deepv3r025_202310xx_pbdr_config']
         ##expname_arr = ['s4deepv3r025_202310xx_pbdr_config']
+        ##expname_arr = ['s4wide_acheived_performance_pbdr_202312xx']
 
 
     s4_so_joint_configs = 1

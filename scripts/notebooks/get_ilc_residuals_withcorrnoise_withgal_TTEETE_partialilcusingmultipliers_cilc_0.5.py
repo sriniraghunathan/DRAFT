@@ -316,7 +316,7 @@ if (1): #20230530
         
     print(opfname)
     print(plname); ###sys.exit()    
-    if os.path.exists(opfname):
+    if (0):##os.path.exists(opfname):
         print('\n\talready done.\n')
         sys.exit()
 
@@ -1154,7 +1154,7 @@ if (1): #save residual files
     np.save(opfname, opdic)
     print(opfname)
 
-    if (0):
+    if (1):
         opfname_pkl = opfname.replace('.npy', '.pkl.gz')
         pickle.dump(opdic, gzip.open(opfname_pkl, 'wb'), protocol = 2)
 

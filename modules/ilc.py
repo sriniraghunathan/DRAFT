@@ -475,8 +475,8 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             else:
                 nl = np.zeros(len(cl))
                 #20191116 - fix this: there must be noise correlation in case of atmospheric noise
-                print('\n\n\t\tfix me: there must be noise correlation in case of atmospheric noise')
-                sys.exit()
+                ##print('\n\n\t\tfix me: there must be noise correlation in case of atmospheric noise')
+                ##sys.exit()
 
             if cl_multiplier_dic is not None:
                 if 'noise' in cl_multiplier_dic:
