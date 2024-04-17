@@ -6,7 +6,7 @@ If you use results from this repository, please cite the following articles.
   *  Raghunathan and Omori, 2023, arXiv:[2304.09166](https://arxiv.org/abs/2304.09166).
 * Fisherlens:
   * Green, Meyers, van Engelen 2016, arXiv: [1609.08143](https://arxiv.org/abs/1609.08143).
-  * Hotinlini, et al. 2023, arXiv: [2111.15036](https://arxiv.org/abs/2111.15036).
+  * Hotinli, et al. 2023, arXiv: [2111.15036](https://arxiv.org/abs/2111.15036).
 * This tool also uses results from the following:
   * Extragalacitc foreground modelling: Reichardt et al. 2021, arXiv: [2002.06197](https://arxiv.org/abs/2002.06197).
   * Galactic foreground modelling: https://pysm3.readthedocs.io/en/latest/
