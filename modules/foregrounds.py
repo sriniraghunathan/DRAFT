@@ -78,7 +78,7 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax 
     #fix me: file / folder path
     from scipy.io import readsav
     try:
-        filename = 'george_plot_bestfit_line.sav'
+        filename = 'data/george_plot_bestfit_line.sav'
         data = readsav(filename)
     except:
         filename = '%s/george_plot_bestfit_line.sav' %(data_folder)
@@ -1203,6 +1203,8 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
     freq1_to_use = gal_freq_dic[freq1]
     freq2_to_use = gal_freq_dic[freq2]
 
+    ##print(cl_gal_dic_fname); ##sys.exit()
+
     cl_gal_dic = np.load(cl_gal_dic_fname, allow_pickle = 1, encoding = 'latin1').item()['cl_dic'][which_gal_mask]
     freq0_for_sed_scaling = 278.
     if (freq0_for_sed_scaling, freq0_for_sed_scaling) not in cl_gal_dic:
@@ -1224,7 +1226,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
         if np.ndim(cl_gal) == 1: #TT-only. Pol will fail.
             cl_gal = np.asarray( [cl_gal] )
 
-    #print(component, cl_gal, cl_gal.shape)#; sys.exit()
+    ##print(component, cl_gal.shape)#, cl_gal)##; sys.exit()
     ############################################################################################################
     ############################################################################################################
     ############################################################################################################
