@@ -3,7 +3,11 @@ import pickle, gzip, numpy as np, glob, sys, os
 #fd = 's4wide/'
 #fd = 's4deepv3r025_202310xx_pbdr_config/'
 #fd = 's4wide_202310xx_pbdr_config/'
-fd = 's4wide_acheived_performance_pbdr_202312xx/'
+#fd = 's4wide_acheived_performance_pbdr_202312xx/'
+
+#fd = 'lmax_12000/s4wide/'
+fd = 'lmax_12000/s4wide_202310xx_pbdr_config/'
+#fd = 'lmax_12000/s4wide_acheived_performance_pbdr_202312xx/'
 
 flist = glob.glob( '%s/*.npy' %(fd) )
 for fname in flist:
