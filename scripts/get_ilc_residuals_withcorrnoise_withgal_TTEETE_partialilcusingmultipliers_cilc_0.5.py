@@ -178,6 +178,8 @@ which_spec_arr = ['TT', 'EE']
 reduce_cib_power = None
 ####total_obs_time = 10. #years
 total_obs_time_default = 7. ###10. #years
+if expname.find('s4_all_chile_config_lat_')>-1: #20250504
+    total_obs_time_default = 10.
 if expname.find('cmbhd')>-1:
     reduce_cib_power = 17. #150 GHz power reduction after removing sources above 0.04 mJy
 
@@ -206,6 +208,9 @@ if (1): #20230530
         ##parent_folder = '%s/202305xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs.
         ##parent_folder = '%s/202308xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs. #20230901 - increase lmax for different forecasting strategies.
         parent_folder = '%s/202310xx_modified_PBDR_config_for_Neff_paper/' %(parent_folder) #20231025 - modified PBDR config: https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
+
+    if expname.find('s4_all_chile_config_lat_')>-1:
+        parent_folder = 'results/s4_all_chile_config'
 
     if final_comp != 'cmb':
         parent_folder = '%s/%s/' %(parent_folder, final_comp)
@@ -337,6 +342,7 @@ for fcntr, freq in enumerate( freqarr ):
         noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
         white_noise_T = white_noise_T * noise_scaling_fac
         white_noise_P = white_noise_P * noise_scaling_fac
+
     #add N+1 year aso via inverse variance combination now
     if expname.find('s4wide_single_chlat_plus_2028aso')>-1:
         #the above noise numbers for N year single CHLAT

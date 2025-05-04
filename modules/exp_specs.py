@@ -104,6 +104,37 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                     specs_dic[nu][4] *= scaling_factors[nucntr]                
             #20220222 - modify S4 noise levels based on S4/SO detector scalings
 
+        elif expname.find('s4_all_chile_config_lat')>-1: #20250504
+
+            #https://github.com/sriniraghunathan/cmb_s4_all_chile_optimisation_2025_05/blob/main/get_patches_for_cmbs4.ipynb
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            27: [7.4, 15.8, 415., 3.5, 22.3, 700, 1.4],
+            39: [5.1, 8.5, 391., 3.5, 12., 700, 1.4], 
+            93: [2.2, 1.4, 1932., 3.5, 2., 700, 1.4],
+            145: [1.4, 1.3, 3917., 3.5, 1.9, 700, 1.4],
+            225: [1.0, 4.7, 6740., 3.5, 6.6, 700, 1.4],
+            278: [0.9, 13.7, 6792., 3.5, 19.4, 700, 1.4],
+            }
+
+            s4_all_chile_config_noise_val_dic_fname = '../data/cmbs4_chile_opt_survey_patch_noise_levels.npy'
+            s4_all_chile_config_noise_val_dic = np.load(s4_all_chile_config_noise_val_dic_fname, allow_pickle=True).item()
+            ##print(s4_all_chile_config_noise_val_dic.keys())
+
+            tmp_expname = expname.replace('s4_all_chile_config_', '')
+            #print(tmp_expname)
+            s4_all_chile_config_survey_keyname, s4_all_chile_config_survey_patchno = tmp_expname.split('---')
+            s4_all_chile_config_survey_patchno = int( s4_all_chile_config_survey_patchno.replace('patch', '') )
+            s4_all_chile_config_noise_val_dic_curr_survey_noise_dic = s4_all_chile_config_noise_val_dic[s4_all_chile_config_survey_keyname][s4_all_chile_config_survey_patchno]
+            mod_nu_dic = {27: 30, 39: 40, 93: 90, 145: 150, 225: 220, 278: 280}
+            
+            for nu in specs_dic:
+                mod_nu = mod_nu_dic[nu]
+                noiseval_t = s4_all_chile_config_noise_val_dic_curr_survey_noise_dic[mod_nu]
+                noiseval_p = noiseval_t * np.sqrt( 2. )
+                specs_dic[nu][1] = noiseval_t
+                specs_dic[nu][4] = noiseval_t
+
         elif expname == 's4wide_acheived_performance_pbdr_202312xx': #20231213
 
             ##PBDR achieved performance. PBDR A.1.3.3
