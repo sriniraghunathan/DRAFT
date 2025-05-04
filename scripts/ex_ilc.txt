@@ -1,0 +1,26 @@
+#--------------------------------
+#20250504
+#All Chile configuration
+
+#Wide
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_wide---patch0 -include_gal 1 -which_gal_mask 2 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_wide---patch1 -include_gal 1 -which_gal_mask 2 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_wide---patch2 -include_gal 1 -which_gal_mask 2 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_wide---patch3 -include_gal 1 -which_gal_mask 2 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+
+#Delensing LAT
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_roman---patch0 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_roman---patch1 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_roman---patch2 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_roman---patch3 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+
+#Roman
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_delensing---patch0 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_delensing---patch1 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_delensing---patch2 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_delensing---patch3 -include_gal 1 -which_gal_mask 0 -total_obs_time 10.0 -save_fg_res_and_weights 1 -final_comp cmb
+
+
+
+#--------------------------------
+python3 get_ilc_residuals.py -expname s4wide_202310xx_pbdr_config -include_gal 1 -which_gal_mask 0 -total_obs_time 7.0 -save_fg_res_and_weights 1 -final_comp cmb
