@@ -341,6 +341,13 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
             specs_dic[nu][1] = noise_arr_t[nucntr]
             specs_dic[nu][4] = noise_arr_p[nucntr]
 
+        corr_noise = 0
+        if corr_noise:
+            corr_noise_bands = {27:[39], 39:[27], 93:[145], 145:[93], 225: [278], 278: [225], 350: [350]}
+        else:
+            corr_noise_bands = {27:[27], 39:[39], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
+        rho = 0.9
+
     elif expname.lower() == 'sobaseline' or expname.lower() == 'sogoal' or expname.lower() == 'ccat_prime_so':
 
         if not remove_atm:
