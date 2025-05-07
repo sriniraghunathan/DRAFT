@@ -209,7 +209,7 @@ if (1): #20230530
         ##parent_folder = '%s/202308xx_PBDR_for_Neff_paper/' %(parent_folder) #20230517 - updated PBDR configs. #20230901 - increase lmax for different forecasting strategies.
         parent_folder = '%s/202310xx_modified_PBDR_config_for_Neff_paper/' %(parent_folder) #20231025 - modified PBDR config: https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
 
-    if expname.find('s4_all_chile_config_lat_')>-1:
+    if expname.find('s4_all_chile_config_lat_')>-1 or expname.find('advanced_so')>-1:
         parent_folder = 'results/s4_all_chile_config'
 
     if final_comp != 'cmb':
