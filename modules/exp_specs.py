@@ -104,6 +104,30 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                     specs_dic[nu][4] *= scaling_factors[nucntr]                
             #20220222 - modify S4 noise levels based on S4/SO detector scalings
 
+        elif expname.find('advanced_so')>-1: #20250504
+
+            #https://arxiv.org/pdf/2503.00636
+            #Page 44 for 1/f definitions.
+            specs_dic = {
+            #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+            27: [7.4, 61., 500., 3.5, None, 700, 1.4],
+            39: [5.1, 30., 500., 3.5, None, 700, 1.4], 
+            93: [2.2, 5.3, 2100., 3.5, None, 700, 1.4],
+            145: [1.4, 6.6, 3000., 3.5, None, 700, 1.4],
+            225: [1.0, 15., 3800., 3.5, None, 700, 1.4],
+            278: [0.9, 35., 3800., 3.5, None, 700, 1.4],
+            }
+
+            if expname == 'advanced_so_baseline':
+                noise_arr_t = np.asarray( [61., 30., 5.3, 6.6, 15., 35.])
+            elif expname == 'advanced_so_goal':
+                noise_arr_t = np.asarray( [44., 23., 3.8, 4.1, 10., 25.])
+            noise_arr_p = noise_arr_t * np.sqrt(2.)
+            for nucntr, nu in enumerate( specs_dic ):
+                specs_dic[nu][1] = noise_arr_t[nucntr]
+                specs_dic[nu][4] = noise_arr_p[nucntr]
+
+
         elif expname.find('s4_all_chile_config_lat')>-1: #20250504
 
             #https://github.com/sriniraghunathan/cmb_s4_all_chile_optimisation_2025_05/blob/main/get_patches_for_cmbs4.ipynb
