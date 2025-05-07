@@ -10,13 +10,12 @@ survey_arr = ['lat_wide_phase2', 'lat_wide_dc0']
 galval = 0
 galmaskval = 0
 
-if (1): #with galaxy
+if (0): #with galaxy
     #survey_arr = ['lat_wide']
     survey_arr = ['lat_wide_phase2', 'lat_wide_dc0']
     galval = 1
     galmaskval = 2
 
-"""
 for survey in survey_arr:
     if survey in ['lat_wide', 'lat_delensing', 'lat_roman']:
         patch_arr = [1, 2, 3, 4]
@@ -32,8 +31,8 @@ for survey in survey_arr:
             curr_cmd = cmd.replace('exppatchval', exppatchval).replace('galval', str(galval)).replace('galmaskval', str(galmaskval)).replace('totalyearval', str(total_year))
             print('\n', curr_cmd)
             os.system(curr_cmd)
-"""
 
+"""
 if (1): #Advanced-SO
     expname_arr = ['advanced_so_baseline', 'advanced_so_goal']
     galval = 0
@@ -44,3 +43,5 @@ if (1): #Advanced-SO
         curr_cmd = cmd.replace('exppatchval', expname).replace('galval', str(galval)).replace('galmaskval', str(galmaskval)).replace(' -total_obs_time totalyearval', '')
         print('\n', curr_cmd)
         os.system(curr_cmd)
+"""
+
