@@ -38,10 +38,9 @@ if (1): #Advanced-SO
     expname_arr = ['advanced_so_baseline', 'advanced_so_goal']
     galval = 0
     galmaskval = 0
-    totalyearval = -1
 
     for expname in expname_arr:
 
-        curr_cmd = cmd.replace('exppatchval', expname).replace('galval', str(galval)).replace('galmaskval', str(galmaskval)).replace('totalyearval', str(total_year))
+        curr_cmd = cmd.replace('exppatchval', expname).replace('galval', str(galval)).replace('galmaskval', str(galmaskval)).replace(' -total_obs_time totalyearval', '')
         print('\n', curr_cmd)
         os.system(curr_cmd)
