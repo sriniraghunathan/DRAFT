@@ -12,8 +12,7 @@ galval = 0
 galmaskval = 0
 combined_with_advanced_so_arr = [None]
 
-"""
-if (1): #with galaxy
+if (0): #with galaxy
     #survey_arr = ['lat_wide']
     #survey_arr = ['lat_wide_phase2', 'lat_wide_dc0']
     survey_arr = ['lat_wide', 'lat_wide_dc0']
@@ -46,7 +45,7 @@ for survey in survey_arr:
                 total += 1
 
 print('\nTotal = %s.\n' %(total))
-"""
+
 """
 if (1): #Advanced-SO
     expname_arr = ['advanced_so_baseline', 'advanced_so_goal']
@@ -60,6 +59,7 @@ if (1): #Advanced-SO
         os.system(curr_cmd)
 """
 
+"""
 if (1): #SPT-3G+
     expname_arr = ['spt3g_plus_spt3g+_WG2']
     galval = 0
@@ -70,4 +70,5 @@ if (1): #SPT-3G+
         curr_cmd = cmd.replace('exppatchval', expname).replace('galval', str(galval)).replace('galmaskval', str(galmaskval)).replace(' -total_obs_time totalyearval', '')
         print('\n', curr_cmd)
         os.system(curr_cmd)
+"""
 
