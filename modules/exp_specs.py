@@ -121,8 +121,7 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
             s4_all_chile_config_noise_val_dic = np.load(s4_all_chile_config_noise_val_dic_fname, allow_pickle=True).item()
             ##print(s4_all_chile_config_noise_val_dic.keys())
 
-            tmp_expname = expname.replace('s4_all_chile_config_', '')
-            #print(tmp_expname)
+            tmp_expname = expname.split('+')[0].replace('s4_all_chile_config_', '')
             s4_all_chile_config_survey_keyname, s4_all_chile_config_survey_patchno = tmp_expname.split('---')
             s4_all_chile_config_survey_patchno = int( s4_all_chile_config_survey_patchno.replace('patch', '') )
             s4_all_chile_config_noise_val_dic_curr_survey_noise_dic = s4_all_chile_config_noise_val_dic[s4_all_chile_config_survey_keyname][s4_all_chile_config_survey_patchno]
@@ -134,6 +133,59 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                 noiseval_p = noiseval_t * np.sqrt( 2. )
                 specs_dic[nu][1] = noiseval_t
                 specs_dic[nu][4] = noiseval_t
+
+
+            ##print(specs_dic)
+            #combine with ASO if desired
+            if expname.find('+advanced_so')>-1: #20250504
+
+                #https://arxiv.org/pdf/2503.00636
+                #Page 44 for 1/f definitions.
+                aso_specs_dic = {
+                #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P] 
+                27: [7.4, 61., 500., 3.5, None, 700, 1.4],
+                39: [5.1, 30., 500., 3.5, None, 700, 1.4], 
+                93: [2.2, 5.3, 2100., 3.5, None, 700, 1.4],
+                145: [1.4, 6.6, 3000., 3.5, None, 700, 1.4],
+                225: [1.0, 15., 3800., 3.5, None, 700, 1.4],
+                278: [0.9, 35., 3800., 3.5, None, 700, 1.4],
+                }
+
+                if expname.find('+advanced_so_baseline')>-1:
+                    noise_arr_t = np.asarray( [61., 30., 5.3, 6.6, 15., 35.])
+                elif expname.find('+advanced_so_goal')>-1:
+                    noise_arr_t = np.asarray( [44., 23., 3.8, 4.1, 10., 25.])
+                noise_arr_p = noise_arr_t * np.sqrt(2.)
+                for nucntr, nu in enumerate( specs_dic ):
+                    aso_specs_dic[nu][1] = noise_arr_t[nucntr]
+                    aso_specs_dic[nu][4] = noise_arr_p[nucntr]
+
+
+                #combine S4 and ASO now
+                for nucntr, nu in enumerate( specs_dic ):
+                    noise_t_1, noise_t_2 = specs_dic[nu][1], aso_specs_dic[nu][1]
+                    final_t_noise_level = ( 1/noise_t_1**2 + 1/noise_t_2**2. )**-0.5
+
+                    noise_p_1, noise_p_2 = specs_dic[nu][4], aso_specs_dic[nu][4]
+                    final_p_noise_level = ( 1/noise_p_1**2 + 1/noise_p_2**2. )**-0.5
+
+                    specs_dic[nu][1] = final_t_noise_level
+                    specs_dic[nu][4] = final_p_noise_level
+
+                    ##print( noise_t_1, noise_t_2, final_t_noise_level )
+                    ##print( noise_p_1, noise_p_2, final_p_noise_level )
+                    ##sys.exit()
+
+
+                corr_noise = 0
+                if corr_noise:
+                    corr_noise_bands = {27:[39], 39:[27], 93:[145], 145:[93], 225: [278], 278: [225], 350: [350]}
+                else:
+                    corr_noise_bands = {27:[27], 39:[39], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
+                rho = 0.9
+
+                ###print(specs_dic); sys.exit()
+
 
         elif expname == 's4wide_acheived_performance_pbdr_202312xx': #20231213
 
