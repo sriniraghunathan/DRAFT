@@ -2,6 +2,7 @@ import numpy as np, copy, sys
 
 def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
 
+    
     Nred_dic = {}
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1 or expname.find('cmb-hd')>-1:
         #if expname == 's4wide' or expname.find('s4wide_scaled_sobaseline')>-1 or expname.find('s4wide_scaled_aso')>-1 or expname.find('s4wide_single_chlat')>-1 or expname.find('s4wide_single_chlat_plus_aso')>-1 or expname.find('s4wide_plus')>-1:
@@ -464,6 +465,7 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
 
     elif expname.find('spt')>-1:
 
+
         elknee_T_90, elknee_T_150, elknee_T_220 = 1200., 2200., 2300.
         alphaknee_T_90, alphaknee_T_150, alphaknee_T_220 = 3., 4., 4.
         elknee_P_90, elknee_P_150, elknee_P_220 = 300., 300., 300.
@@ -598,6 +600,48 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
             white_noise_P_90 = 11.26
             white_noise_P_150 = 8.950
             white_noise_P_220 = 33.08
+
+        elif expname == 'spt3g_WG2': #202505xx WG2 of CMB-S4
+
+            white_noise_P_90 = 3.5
+            white_noise_P_150 = 3.
+            white_noise_P_220 = 10.75
+
+            white_noise_T_90 = white_noise_P_90 / np.sqrt(2.)
+            white_noise_T_150 = white_noise_P_150 / np.sqrt(2.)
+            white_noise_T_220 = white_noise_P_220 / np.sqrt(2.)
+
+
+        elif expname == 'spt3g_plus_spt3g+_WG2': #202505xx WG2 of CMB-S4
+
+            white_noise_P_90 = 3.5
+            white_noise_P_150 = 3.
+            white_noise_P_220 = 10.75
+
+            white_noise_T_90 = white_noise_P_90 / np.sqrt(2.)
+            white_noise_T_150 = white_noise_P_150 / np.sqrt(2.)
+            white_noise_T_220 = white_noise_P_220 / np.sqrt(2.)
+
+            ##print( white_noise_T_90, white_noise_T_150, white_noise_T_220)
+            ##print( white_noise_P_90, white_noise_P_150, white_noise_P_220)
+
+            #add spt3g+ to this
+            white_noise_P_90_spt3gplus = 1.22
+            white_noise_P_150_spt3gplus = 1.07
+
+            white_noise_T_90_spt3gplus = white_noise_P_90_spt3gplus / np.sqrt(2.)
+            white_noise_T_150_spt3gplus = white_noise_P_150_spt3gplus / np.sqrt(2.)
+
+            white_noise_T_90 = (1./white_noise_T_90**2. + 1./white_noise_T_90_spt3gplus**2.)**-0.5
+            white_noise_T_150 = (1./white_noise_T_150**2. + 1./white_noise_T_150_spt3gplus**2.)**-0.5
+
+            white_noise_P_90 = (1./white_noise_P_90**2. + 1./white_noise_P_90_spt3gplus**2.)**-0.5
+            white_noise_P_150 = (1./white_noise_P_150**2. + 1./white_noise_P_150_spt3gplus**2.)**-0.5
+
+            ##print( white_noise_T_90, white_noise_T_150, white_noise_T_220)
+            ##print( white_noise_P_90, white_noise_P_150, white_noise_P_220)
+            ##sys.exit()
+
 
         specs_dic = {
         90: [beam_90, white_noise_T_90, elknee_T_90, alphaknee_T_90, white_noise_P_90, elknee_P_90, alphaknee_P_90],
