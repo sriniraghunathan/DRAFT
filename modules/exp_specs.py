@@ -118,13 +118,23 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
             278: [0.9, 13.7, 6792., 3.5, 19.4, 700, 1.4],
             }
 
+            total_obs_time_default_for_s4_all_chile_config = 10.
+            total_obs_time_default_for_advanced_so = 9.
+
             s4_all_chile_config_noise_val_dic_fname = '../data/cmbs4_chile_opt_survey_patch_noise_levels.npy'
             s4_all_chile_config_noise_val_dic = np.load(s4_all_chile_config_noise_val_dic_fname, allow_pickle=True).item()
             ##print(s4_all_chile_config_noise_val_dic.keys())
 
             tmp_expname = expname.split('+')[0].replace('s4_all_chile_config_', '')
-            s4_all_chile_config_survey_keyname, s4_all_chile_config_survey_patchno = tmp_expname.split('---')
+            tmpsplit = tmp_expname.split('---')
+            if len(tmpsplit) == 2:
+                s4_all_chile_config_survey_keyname, s4_all_chile_config_survey_patchno = tmpsplit
+                s4_all_chile_config_survey_yearval = 'year%s' %(total_obs_time_default_for_s4_all_chile_config)
+            elif len(tmpsplit) == 3:
+                s4_all_chile_config_survey_keyname, s4_all_chile_config_survey_patchno, s4_all_chile_config_survey_yearval = tmpsplit
             s4_all_chile_config_survey_patchno = int( s4_all_chile_config_survey_patchno.replace('patch', '') )
+            if s4_all_chile_config_survey_yearval is not None:
+                s4_all_chile_config_survey_yearval = float( s4_all_chile_config_survey_yearval.replace('year', '') )
             s4_all_chile_config_noise_val_dic_curr_survey_noise_dic = s4_all_chile_config_noise_val_dic[s4_all_chile_config_survey_keyname][s4_all_chile_config_survey_patchno]
             mod_nu_dic = {27: 30, 39: 40, 93: 90, 145: 150, 225: 220, 278: 280}
             
@@ -132,8 +142,12 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                 mod_nu = mod_nu_dic[nu]
                 noiseval_t = s4_all_chile_config_noise_val_dic_curr_survey_noise_dic[mod_nu]
                 noiseval_p = noiseval_t * np.sqrt( 2. )
-                specs_dic[nu][1] = noiseval_t
-                specs_dic[nu][4] = noiseval_t
+
+                #yearscaling
+                year_scaling = np.sqrt( total_obs_time_default_for_s4_all_chile_config / s4_all_chile_config_survey_yearval )
+
+                specs_dic[nu][1] = noiseval_t * year_scaling
+                specs_dic[nu][4] = noiseval_p * year_scaling
 
 
             ##print(specs_dic)
@@ -157,10 +171,27 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                 elif expname.find('+advanced_so_goal')>-1:
                     noise_arr_t = np.asarray( [44., 23., 3.8, 4.1, 10., 25.])
                 noise_arr_p = noise_arr_t * np.sqrt(2.)
-                for nucntr, nu in enumerate( specs_dic ):
-                    aso_specs_dic[nu][1] = noise_arr_t[nucntr]
-                    aso_specs_dic[nu][4] = noise_arr_p[nucntr]
+                
+                tmp_expname = expname.split('+')[1] #aso stuff
+                tmpsplit = tmp_expname.split('---')
+                if len(tmpsplit) == 1:
+                    aso_yearval = total_obs_time_default_for_advanced_so
+                elif len(tmpsplit) == 2:
+                    aso_yearval = float( tmpsplit[1].replace('year', '') )
 
+
+
+                for nucntr, nu in enumerate( specs_dic ):
+
+                    noiseval_t, noiseval_p = noise_arr_t[nucntr], noise_arr_p[nucntr]
+                    
+                    #yearscaling
+                    aso_year_scaling = np.sqrt( total_obs_time_default_for_advanced_so / aso_yearval )
+                    ##print( s4_all_chile_config_survey_yearval, year_scaling, aso_yearval, aso_year_scaling)
+                    ##sys.exit()
+
+                    aso_specs_dic[nu][1] = noiseval_t * aso_year_scaling
+                    aso_specs_dic[nu][4] = noiseval_p * aso_year_scaling
 
                 #combine S4 and ASO now
                 for nucntr, nu in enumerate( specs_dic ):
@@ -385,14 +416,28 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
         278: [0.9, 35., 3800., 3.5, None, 700, 1.4],
         }
 
-        if expname == 'advanced_so_baseline':
+        total_obs_time_default_for_advanced_so = 9.
+        tmpsplit = expname.split('---')
+        if len(tmpsplit) == 1:
+            aso_yearval = total_obs_time_default_for_advanced_so
+        elif len(tmpsplit) == 2:
+            aso_yearval = float( tmpsplit[1].replace('year', '') )
+
+        if expname.find('advanced_so_baseline')>-1:
             noise_arr_t = np.asarray( [61., 30., 5.3, 6.6, 15., 35.])
-        elif expname == 'advanced_so_goal':
+        elif expname.find('advanced_so_goal')>-1:
             noise_arr_t = np.asarray( [44., 23., 3.8, 4.1, 10., 25.])
         noise_arr_p = noise_arr_t * np.sqrt(2.)
         for nucntr, nu in enumerate( specs_dic ):
-            specs_dic[nu][1] = noise_arr_t[nucntr]
-            specs_dic[nu][4] = noise_arr_p[nucntr]
+
+            noiseval_t, noiseval_p = noise_arr_t[nucntr], noise_arr_p[nucntr]
+            
+            #yearscaling
+            aso_year_scaling = np.sqrt( total_obs_time_default_for_advanced_so / aso_yearval )
+            ##print( aso_yearval, aso_year_scaling); sys.exit()
+
+            specs_dic[nu][1] = noiseval_t * aso_year_scaling
+            specs_dic[nu][4] = noiseval_p * aso_year_scaling
 
         corr_noise = 0
         if corr_noise:
