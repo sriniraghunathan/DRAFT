@@ -165,6 +165,16 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                 225: [1.0, 15., 3800., 3.5, None, 700, 1.4],
                 278: [0.9, 35., 3800., 3.5, None, 700, 1.4],
                 }
+                
+                aso_specs_dic = { #same as S4 for 1/f
+                27: [7.4, None, 415., 3.5, None, 700, 1.4],
+                39: [5.1, None, 391., 3.5, None, 700, 1.4], 
+                93: [2.2, None, 1932., 3.5, None, 700, 1.4],
+                145: [1.4, None, 3917., 3.5, None, 700, 1.4],
+                225: [1.0, None, 6740., 3.5, None, 700, 1.4],
+                278: [0.9, None, 6792., 3.5, None, 700, 1.4],
+                }
+
 
                 if expname.find('+advanced_so_baseline')>-1:
                     noise_arr_t = np.asarray( [61., 30., 5.3, 6.6, 15., 35.])
@@ -180,7 +190,6 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                     aso_yearval = float( tmpsplit[1].replace('year', '') )
 
 
-
                 for nucntr, nu in enumerate( specs_dic ):
 
                     noiseval_t, noiseval_p = noise_arr_t[nucntr], noise_arr_p[nucntr]
@@ -192,6 +201,8 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
 
                     aso_specs_dic[nu][1] = noiseval_t * aso_year_scaling
                     aso_specs_dic[nu][4] = noiseval_p * aso_year_scaling
+
+                ##print(aso_specs_dic); ##sys.exit()
 
                 #combine S4 and ASO now
                 for nucntr, nu in enumerate( specs_dic ):
@@ -216,7 +227,8 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                     corr_noise_bands = {27:[27], 39:[39], 93:[93], 145:[145], 225: [225], 278: [278], 350: [350]}
                 rho = 0.9
 
-                ###print(specs_dic); sys.exit()
+            
+                ##print(specs_dic); ##sys.exit()
 
 
         elif expname == 's4wide_acheived_performance_pbdr_202312xx': #20231213
@@ -416,6 +428,15 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
         278: [0.9, 35., 3800., 3.5, None, 700, 1.4],
         }
 
+        specs_dic = { #same as S4 for 1/f
+        27: [7.4, None, 415., 3.5, None, 700, 1.4],
+        39: [5.1, None, 391., 3.5, None, 700, 1.4], 
+        93: [2.2, None, 1932., 3.5, None, 700, 1.4],
+        145: [1.4, None, 3917., 3.5, None, 700, 1.4],
+        225: [1.0, None, 6740., 3.5, None, 700, 1.4],
+        278: [0.9, None, 6792., 3.5, None, 700, 1.4],
+        }
+
         total_obs_time_default_for_advanced_so = 9.
         tmpsplit = expname.split('---')
         if len(tmpsplit) == 1:
@@ -434,10 +455,12 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
             
             #yearscaling
             aso_year_scaling = np.sqrt( total_obs_time_default_for_advanced_so / aso_yearval )
-            ##print( aso_yearval, aso_year_scaling); sys.exit()
+            ##print( nu, aso_yearval, aso_year_scaling); ##sys.exit()
 
             specs_dic[nu][1] = noiseval_t * aso_year_scaling
             specs_dic[nu][4] = noiseval_p * aso_year_scaling
+
+        ##print(specs_dic); ##sys.exit()
 
         corr_noise = 0
         if corr_noise:

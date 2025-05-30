@@ -5,9 +5,11 @@ import numpy as np, os, sys
 
 
 #cmd = 'python3 get_ilc_residuals.py -expname exppatchval -include_gal galval -which_gal_mask galmaskval -total_obs_time totalyearval -save_fg_res_and_weights 0 -final_comp cmb -interactive_mode 0'
-cmd = 'python3 get_ilc_residuals.py -expname exppatchval -include_gal galval -which_gal_mask galmaskval -save_fg_res_and_weights 0 -final_comp cmb -interactive_mode 0'
+cmd = 'python3 get_ilc_residuals.py -expname exppatchval -include_gal galval -which_gal_mask galmaskval -total_obs_time 10 -save_fg_res_and_weights 0 -final_comp cmb -interactive_mode 0'
 total_year_arr = np.arange(1, 10.1, 1)
-survey_arr = ['lat_wide', 'lat_delensing', 'advanced_so_goal']
+#survey_arr = ['lat_wide', 'lat_delensing', 'advanced_so_goal']
+#survey_arr = ['advanced_so_goal']
+survey_arr = ['lat_wide']
 
 aso_s4_start_year_diff = (2033 - 2028)
 total = 0
@@ -15,12 +17,14 @@ for survey in survey_arr:
     if survey in ['lat_wide']:
         patch_arr = [2]
         galval, galmaskval = 1, 2
+        #galval, galmaskval = 0, 0
     elif survey in ['lat_delensing']:
         patch_arr = [1]
         galval, galmaskval = 0, 0
     elif survey in ['advanced_so_goal']:
         patch_arr = [-1]
-        galval, galmaskval = 0, 0
+        #galval, galmaskval = 0, 0
+        galval, galmaskval = 1, 2
 
     for patch in patch_arr:
         for total_year in total_year_arr:
@@ -33,8 +37,8 @@ for survey in survey_arr:
                 exppatchval = '%s---year%s' %(survey, total_year)
 
             curr_cmd = cmd.replace('exppatchval', exppatchval).replace('galval', str(galval)).replace('galmaskval', str(galmaskval))#.replace('totalyearval', str(total_year))
-            print('\n', curr_cmd); ##sys.exit()
-            ##os.system(curr_cmd)
+            print('\n', curr_cmd); sys.exit()
+            os.system(curr_cmd)
             total += 1
 
 print('\nTotal = %s.\n' %(total))    

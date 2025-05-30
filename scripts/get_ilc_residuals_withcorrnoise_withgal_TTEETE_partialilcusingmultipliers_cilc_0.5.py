@@ -340,7 +340,9 @@ for fcntr, freq in enumerate( freqarr ):
             white_noise_P = white_noise_P * noise_scalings_for_bands[fcntr]
 
     if (1): #noise scaling based on total_obs_time
+        ###print(total_obs_time, total_obs_time_default)
         noise_scaling_fac = (total_obs_time_default / total_obs_time)**0.5
+        ###print(noise_scaling_fac); sys.exit()
         white_noise_T = white_noise_T * noise_scaling_fac
         white_noise_P = white_noise_P * noise_scaling_fac
 
@@ -485,13 +487,14 @@ if (0):
         plot(bl_dic[freq], label = freq)
     legend(loc = 1)
 
-if (0):
+if (1):
     use_dls = True
     beam_decon = True
     color_arr = ['navy', 'blue', 'darkgreen', 'goldenrod', 'orangered', 'darkred']
     ax=subplot(111, yscale = 'log')
     for fcntr, freq in enumerate( freqarr ):
         currnl = nl_dic['T'][(freq,freq)]*bl_dic[freq]**2.
+        #currnl = nl_dic['P'][(freq,freq)]*bl_dic[freq]**2.
         tmpinds = np.where( (el>=3000) & (el<=5000) )[0]
         meannl = np.median(currnl[tmpinds])
         noise_uk_arcmin = np.sqrt(meannl)/np.radians(1./60.)
@@ -1055,7 +1058,7 @@ if cl_multiplier_dic is not None:
     if 'gal_dust' in cl_multiplier_dic:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
 expname_str = expname.replace('_', '\_')
-suptitle(r'%s: %s; %s year(s)' %(tit, expname_str, total_obs_time), fontsize = fsval, y = .93)#, x = 0.53, y = .93)
+suptitle(r'%s: %s; %s year(s)' %(tit, expname_str, total_obs_time), fontsize = fsval-3, y = .93)#, x = 0.53, y = .93)
 ##show(); sys.exit()
 savefig(plname)
 if debug:
