@@ -487,7 +487,7 @@ if (0):
         plot(bl_dic[freq], label = freq)
     legend(loc = 1)
 
-if (1):
+if (0):
     use_dls = True
     beam_decon = True
     color_arr = ['navy', 'blue', 'darkgreen', 'goldenrod', 'orangered', 'darkred']
@@ -1059,7 +1059,7 @@ if cl_multiplier_dic is not None:
         tit = r'%s (C$_{\ell}^{\rm gal, dust} \times %s$)' %(tit, cl_multiplier_dic['gal_dust'])
 expname_str = expname.replace('_', '\_')
 suptitle(r'%s: %s; %s year(s)' %(tit, expname_str, total_obs_time), fontsize = fsval-3, y = .93)#, x = 0.53, y = .93)
-##show(); sys.exit()
+###show(); sys.exit()
 savefig(plname)
 if debug:
     show(); sys.exit()

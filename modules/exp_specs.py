@@ -228,7 +228,7 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
                 rho = 0.9
 
             
-                ##print(specs_dic); ##sys.exit()
+                ##print(specs_dic); sys.exit()
 
 
         elif expname == 's4wide_acheived_performance_pbdr_202312xx': #20231213
@@ -460,7 +460,7 @@ def get_exp_specs(expname, corr_noise_for_spt = 1, remove_atm = 0):
             specs_dic[nu][1] = noiseval_t * aso_year_scaling
             specs_dic[nu][4] = noiseval_p * aso_year_scaling
 
-        ##print(specs_dic); ##sys.exit()
+        ##print(specs_dic); sys.exit()
 
         corr_noise = 0
         if corr_noise:
