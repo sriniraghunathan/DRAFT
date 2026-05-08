@@ -5,7 +5,8 @@ from scipy.optimize import curve_fit
 from pylab import *
 import ilc
 
-h, k_B, c=6.626e-34,1.38e-23, 3e8
+#h, k_B, c=6.626e-34,1.38e-23, 3e8
+h, k_B, c=6.62607004e-34, 1.38064852e-23, 2.99792458e8
 data_folder = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/data/'
 websky_folder = '/Volumes/data_PHD_WD_babbloo/SPTpol/data/websky/'
 mdpl2_folder = '/Volumes/data_PHD_WD_babbloo/SPTpol/data/mdpl2/v0.3/'

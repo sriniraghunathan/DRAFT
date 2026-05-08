@@ -39,11 +39,16 @@ def get_pixel_pixel_covariance(mapparams, el, cl_signal, cl_noise = None, bl = N
     
     return rad_prf_bins, sim_cov
 
-def inject_source_at_centre(mapparams, source_pol_flux_in_uk, bl = None):
+def inject_source_at_centre(mapparams, source_pol_flux_in_uk, bl = None, howmanypixels = 1):
     nx, ny, dx = mapparams
     source_sim_map = np.zeros( (ny, nx) )
-    s = int(nx/2)
-    e = s + 1
+    if howmanypixels == 1:
+        s = int(nx/2)
+        e = s + howmanypixels
+    else:
+        s = int( nx/2 - howmanypixels/2 )
+        e = int( s + howmanypixels/2 )
+
     source_sim_map[s:e, s:e] = source_pol_flux_in_uk
 
     if bl is not None:

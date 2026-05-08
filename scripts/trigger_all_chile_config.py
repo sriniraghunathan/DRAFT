@@ -8,8 +8,10 @@ cmd = 'python3 get_ilc_residuals.py -expname exppatchval -include_gal galval -wh
 #cmd = 'python3 get_ilc_residuals.py -expname exppatchval -include_gal galval -which_gal_mask galmaskval -total_obs_time 10 -save_fg_res_and_weights 0 -final_comp cmb -interactive_mode 0'
 total_year_arr = np.arange(1, 10.1, 1)
 survey_arr = ['lat_wide', 'lat_delensing', 'advanced_so_goal']
-#survey_arr = ['advanced_so_goal']
 #survey_arr = ['lat_wide']
+
+survey_arr = ['advanced_so_goal']
+total_year_arr = np.arange(11, 15.1, 1)
 
 aso_s4_start_year_diff = (2033 - 2028)
 total = 0
@@ -40,7 +42,7 @@ for survey in survey_arr:
                 exppatchval = '%s---year%s' %(survey, total_year)
 
             curr_cmd = cmd.replace('exppatchval', exppatchval).replace('galval', str(galval)).replace('galmaskval', str(galmaskval)).replace('totalyearval', str(total_obs_time))
-            print('\n', curr_cmd); sys.exit()
+            print('\n', curr_cmd); ###sys.exit()
             os.system(curr_cmd)
             total += 1
 

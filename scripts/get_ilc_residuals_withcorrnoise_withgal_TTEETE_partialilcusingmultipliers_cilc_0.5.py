@@ -547,7 +547,8 @@ for which_spec in which_spec_arr:
         el, cl_dic[which_spec], fg_cl_dic[which_spec] = ilc.get_analytic_covariance(param_dict, freqarr, el = el, nl_dic = nl_dic['P'], ignore_fg = ignore_fg, which_spec = which_spec,                     pol_frac_per_cent_dust = param_dict['pol_frac_per_cent_dust'],                     pol_frac_per_cent_radio = param_dict['pol_frac_per_cent_radio'],                     pol_frac_per_cent_tsz = param_dict['pol_frac_per_cent_tsz'],                     pol_frac_per_cent_ksz = param_dict['pol_frac_per_cent_ksz'],                     include_gal = include_gal, bl_dic = bl_dic, reduce_cib_power = reduce_cib_power)
 print(cl_dic.keys(), cl_dic.keys())
 print(el)
-##sys.exit()
+###sys.exit()
+###np.save('../data/cmbs4_fg_cl_dict.npy', fg_cl_dic); sys.exit()
 
 if (0):
     close('all')
