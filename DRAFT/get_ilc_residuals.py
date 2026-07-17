@@ -1,45 +1,17 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[21]:
-
-'''
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-
-#%pylab notebook
-get_ipython().run_line_magic('matplotlib', 'inline')
-'''
-#from matplotlib import rc;rc('text', usetex=True);rc('font', weight='bold');matplotlib.rcParams['text.latex.preamble'] = r'\boldmath'
-#import os
-#rc('text.latex',preamble=r'\usepackage{/Users/sraghunathan/.configs/apjfonts}')
-
-
-# In[22]:
-
-
-# In[23]:
-
-
 import argparse, sys, numpy as np, scipy as sc, warnings, os
-draft_fd = '/Users/sraghunathan/Research/SPTPol/analysis/git/DRAFT/modules/'
-if not os.path.exists(draft_fd):
-    draft_fd = '../../modules/'
-sys.path.append(draft_fd)
-import flatsky, misc, exp_specs
+sys.path.append('modules')
+import misc, exp_specs
 import ilc, foregrounds as fg
 import pickle, gzip
 
 #import matplotlib.cbook
 warnings.filterwarnings('ignore',category=RuntimeWarning)
-#warnings.filterwarnings('ignore', category=DeprecationWarning)
-#warnings.filterwarnings('ignore', category=matplotlib.cbook.mplDeprecation)
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-expname', dest='expname', action='store', help='expname', type=str, required=True)
 parser.add_argument('-total_obs_time', dest='total_obs_time', action='store', help='total_obs_time in years', type=float, default=7.0)
 parser.add_argument('-include_gal', dest='include_gal', action='store', help='include_gal', type=int, default=0)
-parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='which_gal_mask', type=int, default=-1)
+parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='which_gal_mask', type=int, default=2)
 parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='interactive_mode', type=int, default=1)
 parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='save_fg_res_and_weights', type=int, default=1)
 parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='s4_so_joint_configs', type=int, default=0)
@@ -99,28 +71,9 @@ el = np.arange(param_dict['lmax'])
 #20220112 - moved to argparse
 ###include_gal = param_dict['include_gal'] ##1  
 param_dict['include_gal'] = include_gal
-
-s4like_mask = param_dict['s4like_mask']
-s4like_mask_v2 = param_dict['s4like_mask_v2']
-s4like_mask_v3 = param_dict['s4like_mask_v3']
-s4delensing_mask = param_dict['s4delensing_mask']
-splat_minobsel_galcuts_mask = param_dict['splat_minobsel_galcuts_mask']
-planck_mask = param_dict['planck_mask']
-
-#20220112 - moved to argparse
-param_dict['which_gal_mask'] = which_gal_mask
 if not include_gal:
-    if s4like_mask:
-        param_dict['which_gal_mask'] = 3
-    elif s4like_mask_v2:
-        param_dict['which_gal_mask'] = 2
-    elif planck_mask:
-        param_dict['which_gal_mask'] = 2
-    elif s4like_mask_v3:
-        param_dict['which_gal_mask'] = 0
-    elif s4delensing_mask:
-        param_dict['which_gal_mask'] = 0
-which_gal_mask = param_dict['which_gal_mask']
+    which_gal_mask = -1
+param_dict['which_gal_mask'] = which_gal_mask
 
 try:
     remove_atm = param_dict['remove_atm']
@@ -197,19 +150,7 @@ if (1): #20230530
         opfname = opfname.replace('.npy', '_nocorrnoise.npy')
 
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
-        if s4like_mask:
-            opfname = opfname.replace(parent_folder, '%s/s4like_mask/TT-EE/baseline/' %(parent_folder))
-        if s4like_mask_v2:
-            opfname = opfname.replace(parent_folder, '%s/s4like_mask_v2/TT-EE/baseline/' %(parent_folder))
-        if planck_mask:
-            opfname = opfname.replace(parent_folder, '%s/planck_mask/TT-EE/baseline/' %(parent_folder))
-        if s4like_mask_v3:
-            opfname = opfname.replace(parent_folder, '%s/s4like_mask_v3/TT-EE/baseline/' %(parent_folder))
-        if s4delensing_mask:
-            opfname = opfname.replace(parent_folder, '%s/s4delensing_mask/TT-EE/baseline/' %(parent_folder))
-        if splat_minobsel_galcuts_mask:
-            opfname = opfname.replace(parent_folder, '%s/splat_minobsel%s_galcuts_mask/TT-EE/baseline/' %(parent_folder, param_dict['min_obs_el']))
-        #print(opfname); sys.exit()
+        opfname = opfname.replace(parent_folder, '%s/planck_mask/TT-EE/baseline/' %(parent_folder))
 
     if include_gal:
         opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
