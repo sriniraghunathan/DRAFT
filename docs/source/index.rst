@@ -35,7 +35,7 @@ Foreground modelling
    :maxdepth: 2
    :caption: API Reference
 
-   api/modules
+   modules
 
 .. toctree::
    :maxdepth: 1

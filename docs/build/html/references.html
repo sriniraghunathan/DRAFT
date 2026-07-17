@@ -57,13 +57,57 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/draft.html">DRAFT package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/flatsky.html">flatsky module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/foregrounds.html">foregrounds module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/ilc.html">ilc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/misc.html">misc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exp_specs.html">exp_specs module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="foregrounds.html">foregrounds module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.compton_y_to_delta_Tcmb"><code class="docutils literal notranslate"><span class="pre">compton_y_to_delta_Tcmb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_cl_dust"><code class="docutils literal notranslate"><span class="pre">get_cl_dust()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.scale_cl_dust"><code class="docutils literal notranslate"><span class="pre">scale_cl_dust()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_cl_tsz"><code class="docutils literal notranslate"><span class="pre">get_cl_tsz()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_cl_tsz_cib"><code class="docutils literal notranslate"><span class="pre">get_cl_tsz_cib()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_cl_radio"><code class="docutils literal notranslate"><span class="pre">get_cl_radio()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.smooth_cib_spectra"><code class="docutils literal notranslate"><span class="pre">smooth_cib_spectra()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.power_law"><code class="docutils literal notranslate"><span class="pre">power_law()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.perform_power_law_fit"><code class="docutils literal notranslate"><span class="pre">perform_power_law_fit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_cl_galactic"><code class="docutils literal notranslate"><span class="pre">get_cl_galactic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.scale_cl_dust_galactic"><code class="docutils literal notranslate"><span class="pre">scale_cl_dust_galactic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_cl_dust_galactic"><code class="docutils literal notranslate"><span class="pre">get_cl_dust_galactic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_foreground_power_spt"><code class="docutils literal notranslate"><span class="pre">get_foreground_power_spt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_dB_dT"><code class="docutils literal notranslate"><span class="pre">get_dB_dT()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.get_BnuT"><code class="docutils literal notranslate"><span class="pre">get_BnuT()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="foregrounds.html#foregrounds.coth"><code class="docutils literal notranslate"><span class="pre">coth()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ilc.html">ilc module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.get_analytic_covariance"><code class="docutils literal notranslate"><span class="pre">get_analytic_covariance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.get_acap"><code class="docutils literal notranslate"><span class="pre">get_acap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.get_cib_freq_dep"><code class="docutils literal notranslate"><span class="pre">get_cib_freq_dep()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.get_radio_freq_dep"><code class="docutils literal notranslate"><span class="pre">get_radio_freq_dep()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.get_teb_spec_combination"><code class="docutils literal notranslate"><span class="pre">get_teb_spec_combination()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.corr_from_cov"><code class="docutils literal notranslate"><span class="pre">corr_from_cov()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.create_clmat"><code class="docutils literal notranslate"><span class="pre">create_clmat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.get_clinv"><code class="docutils literal notranslate"><span class="pre">get_clinv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.residual_power"><code class="docutils literal notranslate"><span class="pre">residual_power()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.coth"><code class="docutils literal notranslate"><span class="pre">coth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ilc.html#ilc.compton_y_to_delta_Tcmb"><code class="docutils literal notranslate"><span class="pre">compton_y_to_delta_Tcmb()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="misc.html">misc module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.fn_get_param_dict"><code class="docutils literal notranslate"><span class="pre">fn_get_param_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.gauss_beam"><code class="docutils literal notranslate"><span class="pre">gauss_beam()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.get_beam_dic"><code class="docutils literal notranslate"><span class="pre">get_beam_dic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.rebeam"><code class="docutils literal notranslate"><span class="pre">rebeam()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.healpix_rotate_coords"><code class="docutils literal notranslate"><span class="pre">healpix_rotate_coords()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.get_bl"><code class="docutils literal notranslate"><span class="pre">get_bl()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.get_nl"><code class="docutils literal notranslate"><span class="pre">get_nl()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.get_nl_v1"><code class="docutils literal notranslate"><span class="pre">get_nl_v1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.get_delta_cl"><code class="docutils literal notranslate"><span class="pre">get_delta_cl()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc.html#misc.get_apod_mask"><code class="docutils literal notranslate"><span class="pre">get_apod_mask()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="exp_specs.html">exp_specs module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs"><code class="docutils literal notranslate"><span class="pre">get_exp_specs()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
