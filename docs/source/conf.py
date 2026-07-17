@@ -11,8 +11,7 @@ import sys
 # Both the repo root and the modules folder are added so autodoc can import
 # the code whether or not __init__.py files are present.
 sys.path.insert(0, os.path.abspath('../..'))
-sys.path.insert(0, os.path.abspath('../../DRAFT'))
-sys.path.insert(0, os.path.abspath('../../DRAFT/modules'))
+sys.path.insert(0, os.path.abspath('../../modules'))
 
 # -- Project information -----------------------------------------------------
 project = 'DRAFT'
