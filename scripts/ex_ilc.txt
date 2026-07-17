@@ -29,3 +29,5 @@ python3 get_ilc_residuals.py -expname s4_all_chile_config_lat_delensing---patch4
 
 #--------------------------------
 python3 get_ilc_residuals.py -expname s4wide_202310xx_pbdr_config -include_gal 1 -which_gal_mask 0 -total_obs_time 7.0 -save_fg_res_and_weights 1 -final_comp cmb
+python3 get_ilc_residuals.py -expname s4deepv3r025_202310xx_pbdr_config -include_gal 0 -total_obs_time 7.0 -save_fg_res_and_weights 1 -final_comp cmb
+

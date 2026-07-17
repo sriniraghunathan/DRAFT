@@ -180,7 +180,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             if which_spec == 'EE' or which_spec == 'TE':
                 cl_tsz_cib = cl_tsz_cib * 0.
             cl_tsz_cib = np.interp(el, el_, cl_tsz_cib)
-
+            
             if (0):
                 freq_combs = [ (90, 90), (90,150), (90, 220), (150, 150), (150, 220), (220, 220)]
                 colorarr = ['navy', 'blue', 'royalblue', 'green', 'lime', 'darkred']

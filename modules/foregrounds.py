@@ -1280,8 +1280,8 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
 
 
     if (0):##component == 'dust':
-        color_dic = {93: 'b', 145: 'green', 225: 'orangered', 278: 'darkred'} 
-        ls_dic = {93: ':', 145: '--', 225: '-.', 278: '-'}
+        color_dic = {27: 'navy', 93: 'b', 145: 'green', 225: 'orangered', 278: 'darkred'} 
+        ls_dic = {27: '-', 93: ':', 145: '--', 225: '-.', 278: '-'}
         if which_spec == 'TT':
             ax = subplot(1,3,1, yscale = 'log')
             legend(loc = 3, fontsize = 4, ncol = 3)
@@ -1295,6 +1295,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
             ax = subplot(1,3,3, yscale = 'log')
             plot(cl_gal, color = color_dic[freq1], ls = ls_dic[freq2], label = r'%s,%s' %(freq1, freq2))
             xlim(0., 7000.); ylim(1e-8, 1e7)
+        show(); sys.exit()
 
     el_gal = np.arange( len(cl_gal) )
 
@@ -1327,6 +1328,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
 
         cl_gal = perform_fit(el_gal, cl_gal, ell_norm = ell_norm)
 
+    ##print(bl_dic, beam_deconvolved); sys.exit()
     if bl_dic is not None and beam_deconvolved is False:
         bl1 = bl_dic[freq1]
         bl2 = bl_dic[freq2]
