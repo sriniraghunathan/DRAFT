@@ -21,59 +21,25 @@ release = '1.0'
 version = '1.0'
 
 # -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',      # numpy/google style docstrings
-    'sphinx.ext.viewcode',      # link to highlighted source
-    'sphinx.ext.mathjax',       # LaTeX math in docstrings
-    'sphinx.ext.intersphinx',
+    'sphinx.ext.autodoc',        # To generate autodocs
+    'sphinx.ext.mathjax',           # autodoc with maths
+    'sphinx.ext.napoleon'           # For auto-doc configuration
 ]
+
+napoleon_google_docstring = False   # Turn off googledoc strings
+napoleon_numpy_docstring = True     # Turn on numpydoc strings
+napoleon_use_ivar = True         # For maths symbology
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-# Generate autosummary stub pages automatically
-autosummary_generate = True
 
-# Autodoc settings
-autodoc_member_order = 'bysource'
-autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'show-inheritance': True,
-}
-
-# Heavy scientific dependencies are mocked so ReadTheDocs can build the
-# docs without installing them. Add/remove entries to match your imports.
-autodoc_mock_imports = [
-    'numpy',
-    'scipy',
-    'matplotlib',
-    'pylab',
-    'healpy',
-    'camb',
-    'pysm3',
-    'astropy',
-    'h5py',
-    'tqdm',
-    'pandas',
-    'sklearn',
-    'colossus',
-    'numba',
-]
-
-# Intersphinx mapping to external docs
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'numpy': ('https://numpy.org/doc/stable/', None),
-    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
-}
 
 # -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
-html_theme_options = {
-    'collapse_navigation': False,
-    'navigation_depth': 3,
-}

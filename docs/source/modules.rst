@@ -13,7 +13,6 @@ API Reference
 .. toctree::
    :maxdepth: 2
 
-   foregrounds
    ilc
    misc
    exp_specs
