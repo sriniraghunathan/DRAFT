@@ -291,8 +291,8 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None, nspecs = 1):
         'cibclus' for clustered component of the CIB.
         'misc_cib_tcibxx_betayy' for misc CIB with T_d=xx and beta=yy.
         'misc_radio_alphaxx' for misc radio with spectral index=xx.
-            In the above case, the code will get the freq dep of radio as
-            get_radio_freq_dep(...., alpha = xxx)
+        In the above case, the code will get the freq dep of radio as
+        get_radio_freq_dep(...., alpha = xxx)
 
     freqcalib_fac: array
         array containing calibration factors / mis-matches between different bands.
@@ -711,7 +711,7 @@ def coth(x):
     Parameters
     ----------
     x: float
-        x = \frac{h \nu}{k_{B} T_{CMB}}
+        x = h*nu/(k_B * T_CMB)
 
     Returns
     -------
