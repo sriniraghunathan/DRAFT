@@ -16,7 +16,6 @@
       <script src="_static/documentation_options.js?v=f2a433a1"></script>
       <script src="_static/doctools.js?v=9a2dae69"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -168,19 +167,16 @@ power in the ILC maps.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>freqarr</strong> (<em>array</em>) – array of frequency bands for which we need the covariance.</p></li>
-<li><p><strong>final_comp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – <p>It can be
+<li><p><strong>final_comp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – It can be
 ‘cmb’ for CMB spectra
 ‘tsz’ or ‘y’ for thermal SZ
 ‘radio’ for radio galaxies (see get_radio_freq_dep() function)
 ‘cib’ or ‘cibpo’ for Poisson component of the CIB.
 ‘cibclus’ for clustered component of the CIB.
 ‘misc_cib_tcibxx_betayy’ for misc CIB with T_d=xx and beta=yy.
-‘misc_radio_alphaxx’ for misc radio with spectral index=xx.</p>
-<blockquote>
-<div><p>In the above case, the code will get the freq dep of radio as
-get_radio_freq_dep(…., alpha = xxx)</p>
-</div></blockquote>
-</p></li>
+‘misc_radio_alphaxx’ for misc radio with spectral index=xx.
+In the above case, the code will get the freq dep of radio as
+get_radio_freq_dep(…., alpha = xxx)</p></li>
 <li><p><strong>freqcalib_fac</strong> (<em>array</em>) – array containing calibration factors / mis-matches between different bands.
 default is None which is equivalent to [1, 1, 1, … 1] in all bands.</p></li>
 <li><p><strong>nspecs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – tells if we are performing ILC for T alone or T/E/B together.
@@ -336,22 +332,18 @@ Only returned if return_weights is set to True.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.coth">
 <span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">coth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ilc.html#coth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ilc.coth" title="Link to this definition"></a></dt>
-<dd><blockquote>
-<div><p>Coth function for tSZ frequency response</p>
-<dl>
-<dt>x: float</dt><dd><div class="math notranslate nohighlight">
-\[x =\]</div>
+<dd><p>Coth function for tSZ frequency response</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – x = h*nu/(k_B * T_{CMB})</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>coth_x</strong> – Hyperbolic cotanget of x.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
 </dd>
 </dl>
-</div></blockquote>
-<p>rac{h
-u}{k_{B} T_{CMB}}</p>
-<blockquote>
-<div><dl class="simple">
-<dt>coth_x: float</dt><dd><p>Hyperbolic cotanget of x.</p>
-</dd>
-</dl>
-</div></blockquote>
 </dd></dl>
 
 <dl class="py function">

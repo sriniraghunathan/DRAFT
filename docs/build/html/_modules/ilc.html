@@ -443,8 +443,8 @@
 <span class="sd">        &#39;cibclus&#39; for clustered component of the CIB.</span>
 <span class="sd">        &#39;misc_cib_tcibxx_betayy&#39; for misc CIB with T_d=xx and beta=yy.</span>
 <span class="sd">        &#39;misc_radio_alphaxx&#39; for misc radio with spectral index=xx.</span>
-<span class="sd">            In the above case, the code will get the freq dep of radio as</span>
-<span class="sd">            get_radio_freq_dep(...., alpha = xxx)</span>
+<span class="sd">        In the above case, the code will get the freq dep of radio as</span>
+<span class="sd">        get_radio_freq_dep(...., alpha = xxx)</span>
 
 <span class="sd">    freqcalib_fac: array</span>
 <span class="sd">        array containing calibration factors / mis-matches between different bands.</span>
@@ -887,8 +887,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    x: float</span>
-<span class="sd">        .. math::</span>
-<span class="sd">            x = \frac{h \nu}{k_{B} T_{CMB}}</span>
+<span class="sd">        x = h*nu/(k_B * T_{CMB})</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
