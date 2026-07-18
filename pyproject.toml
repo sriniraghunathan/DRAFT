@@ -3,9 +3,9 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "FlatSkyLab"
+name = "CMB-S4 DRAFT tool"
 version = "0.1.0"
-description = "Flat-sky CMB simulations, correlated map/TOD realisations, and power spectrum estimation"
+description = "CMB-S4 DRAFT tool package"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.9"
@@ -16,11 +16,12 @@ dependencies = [
     "matplotlib",
     "pyparsing>=2.0.2",
     "camb>=1.5",
+    "FlatskyLab",
 ]
 
 [project.urls]
-Homepage = "https://github.com/sriniraghunathan/FlatSkyLab"
+Homepage = "https://github.com/sriniraghunathan/DRAFT"
 Documentation = "https://flatskylab.readthedocs.io"
 
 [tool.setuptools.packages.find]
-include = ["FlatSkyLab*"]
+include = ["DRAFT*"]

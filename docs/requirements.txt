@@ -1,0 +1,7 @@
+sphinx-rtd-theme
+myst-parser
+scipy==1.13.1
+numpy==1.26.4
+pandas==2.0.3
+matplotlib==3.7.2
+healpy==1.15.0
