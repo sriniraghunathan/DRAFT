@@ -34,7 +34,7 @@ If you use results from this repository, please cite the following articles.
 </p>
 
 ## Executing the script:
-* Please look into (this README)(https://github.com/sriniraghunathan/DRAFT/blob/master/scripts/README.md)
+* `python3 get_ilc_residuals.py -expname s4wide_202310xx_pbdr_config -include_gal 1 -which_gal_mask 2 -final_comp cmb`
 
 ### Overview:
 * Optimally combines data from different bands using noise + foreground signals in different bands.
@@ -48,7 +48,7 @@ If you use results from this repository, please cite the following articles.
 
 ### Foreground modelling:
 * **Extragalactic foregrounds**: Radio, CIB, tSZ and  kSZ power spectra from SPT measurements (George et al. 2015, arXiv: [1408.3161](https://arxiv.org/abs/1408.3161) and Reichardt et al. 2020, arXiv: [2002.06197](https://arxiv.org/abs/2002.06197)).
-  * Assumed polarisation fractions: CIB = 2%; Radio = 3%; tSZ/kSZ = 0. But these are configurable. Look into [params.ini](https://github.com/sriniraghunathan/DRAFT/blob/master/scripts/notebooks/params.ini).
+  * Assumed polarisation fractions: CIB = 2%; Radio = 3%; tSZ/kSZ = 0. But these are configurable. Look into [params.ini](https://github.com/sriniraghunathan/DRAFT/blob/master/notebooks/params.ini).
 * **Galactic foregrounds**: Dust and Synchrotron power spectra obtained from [pySM3](https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run) simulations.
 
 <!--### Results:
