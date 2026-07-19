@@ -1,7 +1,104 @@
 import numpy as np, sys, os, scipy as sc, foregrounds as fg, misc, re
 
 ################################################################################################################
-def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_dic = None, ignore_fg = [], which_spec = 'TT', pol_frac_per_cent_dust = 0.02, pol_frac_per_cent_radio = 0.03, pol_frac_per_cent_tsz = 0., pol_frac_per_cent_ksz = 0., include_gal = 0, max_nl_value = 5000., beam_tol_for_ilc = 1000., cib_corr_coeffs = None, null_highfreq_radio = 1, reduce_radio_power_150 = None, reduce_tsz_power = None, reduce_cib_power = None, remove_cib_decorr = 0, cl_multiplier_dic = None, return_fg_spectra = True, force_cl_dic = None):
+def get_analytic_covariance(param_dict, 
+    freqarr, 
+    el = None, 
+    nl_dic = None, 
+    bl_dic = None, 
+    ignore_fg = [], 
+    which_spec = 'TT', 
+    pol_frac_per_cent_dust = 0.02, 
+    pol_frac_per_cent_radio = 0.03, 
+    pol_frac_per_cent_tsz = 0., 
+    pol_frac_per_cent_ksz = 0., 
+    include_gal = 0, 
+    cib_corr_coeffs = None, 
+    null_highfreq_radio = 1, 
+    reduce_radio_power_150 = None, 
+    reduce_tsz_power = None, 
+    reduce_cib_power = None, 
+    remove_cib_decorr = 0, 
+    cl_multiplier_dic = None, 
+    return_fg_spectra = True, 
+    force_cl_dic = None,
+    ):
+
+    """
+    Get signal + noise covariance for ILC.
+    Supports MV-ILC, cILC, partial ILC, etc..
+
+    Parameters
+    ----------
+    param_dict: dict
+        Dictionary containing the params
+    freqarr : array
+        array of frequency bands for which we need the covariance.
+    el : array
+        Multipoles over which the covariance must be defined.
+        Default is None in which case el = np.arange( len(cl_cmb) ) derived below.
+    nl_dic : dict
+        Dictionary containing the noise covariance in the bands.
+        Default is None.
+    bl_dic : dict
+        Dictionary containing the beams. Only used for galactic foreground file since cl_gal have S4 beams.
+        Default is None.
+    ignore_fg : list
+        List of signals that must be excluded from the covariance. 
+    which_spec : str
+        spectra name TT/EE/TE.
+    pol_frac_per_cent_dust : float
+        Pol fraction for CIB.
+        Default is 0.02.
+    pol_frac_per_cent_radio : float
+        Pol fraction for Radio galaxies.
+        Default is 0.03.
+    pol_frac_per_cent_tsz : float
+        Pol fraction for tSZ. Default is zero.
+    pol_frac_per_cent_ksz : float
+        Pol fraction for kSZ. Default is zero.
+    include_gal : bool
+        Include galactic foregrounds.
+        Default is None.
+    cib_corr_coeffs : dict
+        Cross-correlation coefficients across bands for CIB.
+        Default is None.
+    null_highfreq_radio : bool
+        Null radio beyond 230 GHz.
+        Deault is True.
+    reduce_radio_power_150 : float
+        Reduce radio power by some number.
+        Default is None.
+    reduce_tsz_power : float
+        Reduce tSZ power by some number.
+        Default is None.
+    reduce_cib_power : float
+        Reduce CIB power by some number.
+        Default is None.
+    remove_cib_decorr : bool
+        Remove CIB decorrelations.
+        Default is False.
+    cl_multiplier_dic : dict 
+        Dictionary containing factors by which a certain signal must be suppressed in the covariance.
+        For partial ILC.
+        Default is None.
+    return_fg_spectra : bool
+        Return the spectra for each foreground signal along with the total covariance.
+        Default is True.
+    force_cl_dic : dict
+        Supply own foreground Cl dict.
+        Default is None.
+
+    Returns
+    -------
+    el : array
+        Multipoles over which the covariance is defined.
+    cl_dic : dict
+        Total covariance in each band as a dictionary.        
+    fg_cl_dic: dict
+        Spectra for each foreground signal in each band as a dictionary.
+        Only returned when return_fg_spectra is True.
+    """
 
     #ignore_fg = foreground terms that must be ignored
     debug=False
@@ -204,14 +301,15 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                 elif len(cl) < len(nl):
                     nl = nl[:len(cl)]
 
-                if (1): #20201121: remove very large numbers because of beam deconvolution                
-                    ini_nl = np.median(nl[:100])
-                    end_nl = np.median(nl[-100:])
-                    if end_nl>ini_nl: #this implies beam deconvolution has made end nl pretty large
-                        #having end_nl pretty large introduces covariance inversion issues                        
-                        badinds = np.where(nl>=max_nl_value)[0]
-                        nl[badinds] = max_nl_value
-                        #print(ini_nl, end_nl)
+                #remove very large numbers because of beam deconvolution                
+                ini_nl = np.median(nl[:100])
+                end_nl = np.median(nl[-100:])
+                if end_nl>ini_nl: #this implies beam deconvolution has made end nl pretty large
+                    max_nl_value = 5e4 #some large number
+                    #having end_nl pretty large introduces covariance inversion issues                        
+                    badinds = np.where(nl>=max_nl_value)[0]
+                    nl[badinds] = max_nl_value
+                    #print(ini_nl, end_nl)
 
                 el = np.arange(len(cl))
 
@@ -223,8 +321,7 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
                     nl = np.copy(nl) * cl_multiplier_dic['noise']
 
             if 'noise' not in ignore_fg:
-                if which_spec != 'TE':
-                    cl = cl + np.copy(nl)
+                if which_spec != 'TE': cl = cl + np.copy(nl)
 
             if return_fg_spectra:
                 if 'cmb' not in fg_cl_dic: fg_cl_dic['cmb'] = {}
@@ -253,8 +350,9 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
 
             ##########################################################################################
             #20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
-            adjust_for_large_beams = 0                   
+            adjust_for_large_beams = False                 
             if adjust_for_large_beams:
+                beam_tol_for_ilc = 1000. #some large number
                 bl = bl_dic[freq1]
                 if 'effective' in bl_dic:
                     bl_eff = bl_dic['effective']
@@ -266,7 +364,6 @@ def get_analytic_covariance(param_dict, freqarr, el = None, nl_dic = None, bl_di
             ##########################################################################################
 
             cl_dic[(freq1, freq2)] = cl
-            #print('\n\n\n')
     if return_fg_spectra:
         return el, cl_dic, fg_cl_dic
     else:
