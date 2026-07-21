@@ -420,7 +420,7 @@ print(el)
 op_dic_for_fg_noise = {}
 op_dic_for_fg_noise['fg_cl_dic'] = fg_cl_dic
 op_dic_for_fg_noise['nl_dic'] = nl_dic
-##np.save('../data/cmbs4_nl_and_fgcl_dict.npy', op_dic_for_fg_noise); ##sys.exit()
+##np.save('data/cmbs4_nl_and_fgcl_dict.npy', op_dic_for_fg_noise); ##sys.exit()
 
 #get the residual power now
 #null_comp = None
@@ -537,8 +537,8 @@ opdic['which_gal_mask'] = which_gal_mask
 #opdic['nl_dic'] = nl_dic
 opdic['beam_noise_dic'] = beam_noise_dic
 opdic['elknee_dic'] = elknee_dic
-##np.save(opfname, opdic)
-##print(opfname)
+np.save(opfname, opdic)
+print(opfname)
 
 print('\nDone.\n')
 
