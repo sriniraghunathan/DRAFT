@@ -215,8 +215,62 @@ for example: CMB will be  [1., 1., …., 1.] in all bands.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.get_analytic_covariance">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_analytic_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'TT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_dust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_tsz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_ksz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nl_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_tol_for_ilc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cib_corr_coeffs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_highfreq_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_radio_power_150</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_tsz_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_cib_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_cib_decorr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_multiplier_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_fg_spectra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_cl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_analytic_covariance" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_analytic_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'TT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_dust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_tsz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_ksz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cib_corr_coeffs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_highfreq_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_radio_power_150</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_tsz_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_cib_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_cib_decorr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_multiplier_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_fg_spectra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_cl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_analytic_covariance" title="Link to this definition"></a></dt>
+<dd><p>Get signal + noise covariance for ILC.
+Supports MV-ILC, cILC, partial ILC, etc..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Dictionary containing the params</p></li>
+<li><p><strong>freqarr</strong> (<em>array</em>) – array of frequency bands for which we need the covariance.</p></li>
+<li><p><strong>el</strong> (<em>array</em>) – Multipoles over which the covariance must be defined.
+Default is None in which case el = np.arange( len(cl_cmb) ) derived below.</p></li>
+<li><p><strong>nl_dic</strong> (<em>dict</em>) – Dictionary containing the noise covariance in the bands.
+Default is None.</p></li>
+<li><p><strong>bl_dic</strong> (<em>dict</em>) – Dictionary containing the beams. Only used for galactic foreground file since cl_gal have S4 beams.
+Default is None.</p></li>
+<li><p><strong>ignore_fg</strong> (<em>list</em>) – List of signals that must be excluded from the covariance.</p></li>
+<li><p><strong>which_spec</strong> (<em>str</em>) – spectra name TT/EE/TE.</p></li>
+<li><p><strong>pol_frac_per_cent_dust</strong> (<em>float</em>) – Pol fraction for CIB.
+Default is 0.02.</p></li>
+<li><p><strong>pol_frac_per_cent_radio</strong> (<em>float</em>) – Pol fraction for Radio galaxies.
+Default is 0.03.</p></li>
+<li><p><strong>pol_frac_per_cent_tsz</strong> (<em>float</em>) – Pol fraction for tSZ. Default is zero.</p></li>
+<li><p><strong>pol_frac_per_cent_ksz</strong> (<em>float</em>) – Pol fraction for kSZ. Default is zero.</p></li>
+<li><p><strong>include_gal</strong> (<em>bool</em>) – Include galactic foregrounds.
+Default is None.</p></li>
+<li><p><strong>cib_corr_coeffs</strong> (<em>dict</em>) – Cross-correlation coefficients across bands for CIB.
+Default is None.</p></li>
+<li><p><strong>null_highfreq_radio</strong> (<em>bool</em>) – Null radio beyond 230 GHz.
+Deault is True.</p></li>
+<li><p><strong>reduce_radio_power_150</strong> (<em>float</em>) – Reduce radio power by some number.
+Default is None.</p></li>
+<li><p><strong>reduce_tsz_power</strong> (<em>float</em>) – Reduce tSZ power by some number.
+Default is None.</p></li>
+<li><p><strong>reduce_cib_power</strong> (<em>float</em>) – Reduce CIB power by some number.
+Default is None.</p></li>
+<li><p><strong>remove_cib_decorr</strong> (<em>bool</em>) – Remove CIB decorrelations.
+Default is False.</p></li>
+<li><p><strong>cl_multiplier_dic</strong> (<em>dict</em>) – Dictionary containing factors by which a certain signal must be suppressed in the covariance.
+For partial ILC.
+Default is None.</p></li>
+<li><p><strong>return_fg_spectra</strong> (<em>bool</em>) – Return the spectra for each foreground signal along with the total covariance.
+Default is True.</p></li>
+<li><p><strong>force_cl_dic</strong> (<em>dict</em>) – Supply own foreground Cl dict.
+Default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>array</em>) – Multipoles over which the covariance is defined.</p></li>
+<li><p><strong>cl_dic</strong> (<em>dict</em>) – Total covariance in each band as a dictionary.</p></li>
+<li><p><strong>fg_cl_dic</strong> (<em>dict</em>) – Spectra for each foreground signal in each band as a dictionary.
+Only returned when return_fg_spectra is True.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.get_cib_freq_dep">
