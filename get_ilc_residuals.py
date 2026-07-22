@@ -61,7 +61,7 @@ Tcmb = 2.73 #Kelvin
 paramfile = 'params.ini'
 
 # read and store param dict
-param_dict = misc.fn_get_param_dict(paramfile)
+param_dict = misc.get_param_dict(paramfile)
 
 if not os.path.exists(param_dict['data_folder']):
     param_dict['data_folder'] = '/data/spt/sri-data48/git/DRAFT/data/'
