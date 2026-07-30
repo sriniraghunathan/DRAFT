@@ -5,7 +5,7 @@ import ilc, foregrounds as fg
 import pickle, gzip
 
 #import matplotlib.cbook
-warnings.filterwarnings('ignore',category=RuntimeWarning)
+#warnings.filterwarnings('ignore',category=RuntimeWarning)
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-expname', dest='expname', action='store', help='expname', type=str, required=True)
@@ -375,7 +375,7 @@ if (0):
             dl_fac = el * (el+1)/2/np.pi
             plot(el, dl_fac * currnl, label = '%s GHz ' %(freq), ls = '-', color = color_arr[fcntr])
         else:
-            plot(el, currnl, label = '%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = color_arr[fcntr])
+            plot(el, currnl, label = r'%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = color_arr[fcntr])
         #plot(nl_dic_actual['T'][(freq,freq)], lw = 2., color = colordic[freq])
     legend(loc = 1)
     if not use_dls:
@@ -385,7 +385,7 @@ if (0):
         ylabel(r'$\ell(\ell+1)/(2\pi)$ N$_{\ell}$ [$\mu$K$^{2}$]', fontsize = 14)
         xlim(0, 5000); ylim(.1, 1e5)
     xlabel(r'Multipole $\ell$', fontsize = 14)
-    expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer').replace('_', '\_')
+    expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer').replace('_', r'\_')
     ##expname_str = 'S4-Wide'
     title(r'%s' %(expname_str), fontsize = 14)
     ##savefig('s4_wide_nl.png', dpi= 200.); sys.exit()
@@ -491,8 +491,8 @@ for which_spec in ['TT', 'EE']:
                 curr_cl_dic = fg_cl_dic[which_spec]['noise']
 
             tmp_cl_dic = {which_spec: curr_cl_dic}
-            clmat = np.mat( ilc.create_clmat(freqarr, elcnt, tmp_cl_dic) )
-            currw_ilc = np.mat( weights_dic[which_spec][:, elcnt] )
+            clmat = np.asmatrix( ilc.create_clmat(freqarr, elcnt, tmp_cl_dic) )
+            currw_ilc = np.asmatrix( weights_dic[which_spec][:, elcnt] )
             
             curr_res_ilc = np.asarray(np.dot(currw_ilc, np.dot(clmat, currw_ilc.T)))[0][0]
             if s not in fg_res_dic[which_spec]:

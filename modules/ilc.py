@@ -443,12 +443,12 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None, nspecs = 1):
         #default values
         misc_tcib = 20.
         misc_beta = 1.505
-        tcib_tmp =  re.findall('tcib\d*\.?\d+', final_comp.lower())
+        tcib_tmp =  re.findall(r'tcib\d*\.?\d+', final_comp.lower())
         if len(tcib_tmp)>0:
             tcib_tmp = tcib_tmp[0]
             misc_tcib = float(tcib_tmp.replace('tcib', ''))
 
-        beta_tmp =  re.findall('beta\d*\.?\d+', final_comp.lower())
+        beta_tmp =  re.findall(r'beta\d*\.?\d+', final_comp.lower())
         if len(beta_tmp)>0:
             beta_tmp = beta_tmp[0]
             misc_beta = float(beta_tmp.replace('beta', ''))
@@ -478,10 +478,10 @@ def get_acap(freqarr, final_comp = 'cmb', freqcalib_fac = None, nspecs = 1):
         else: #polarisation weights are zero for other foregrounds
             acap_full[1,len(acap):] = 0.
 
-        acap_full = np.mat(acap_full).T #should be nspecs*nc x nspecs
+        acap_full = np.asmatrix(acap_full).T #should be nspecs*nc x nspecs
         acap = acap_full
     else:
-        acap = np.mat(acap).T #should be nspecs*nc x nspecs
+        acap = np.asmatrix(acap).T #should be nspecs*nc x nspecs
     
     return acap
 
@@ -524,7 +524,7 @@ def get_teb_spec_combination(cl_dic):
     Parameters
     ----------
     cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all \ell.
+        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
         Keys must be TT, EE, TE, etc.
 
     Returns
@@ -581,22 +581,22 @@ def corr_from_cov(covmat):
 
 def create_clmat(freqarr, elcnt, cl_dic):
     """
-    Get the inverse covariance matrix at a specific multipole moment \ell.
+    Get the inverse covariance matrix at a specific multipole moment ell.
     
     Parameters
     ----------
     freqarr: list
         Frequency array
     elcnt: int
-        \ell index.
+        ell index.
     cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all \ell.
+        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
         Keys must be TT, EE, TE, etc.
 
     Returns
     -------
     clmat: array
-        Covariance matrix at the \ell index.
+        Covariance matrix at the ell index.
     """
     nc = len(freqarr)
     nspecs, pspec_arr = get_teb_spec_combination(cl_dic)
@@ -636,16 +636,16 @@ def get_clinv(freqarr,
     ):
     
     """
-    Get the inverse covariance matrix at a specific multipole moment \ell.
+    Get the inverse covariance matrix at a specific multipole moment ell.
     
     Parameters
     ----------
     freqarr: list
         Frequency array
     elcnt: int
-        \ell index.
+        ell index.
     cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all \ell.
+        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
         Keys must be TT, EE, TE, etc.
     return_clmat: bool
         If True, return covariance at a specific ell. (For debugging pruposes)
@@ -654,13 +654,13 @@ def get_clinv(freqarr,
     Returns
     -------
     clinv: array
-        Inverse covariance matrix at the given \ell index.
+        Inverse covariance matrix at the given ell index.
     clmat: array
-        Covariance matrix at the \ell index.
+        Covariance matrix at the ell index.
         Only returned if return_clmat is set to True.
     """
 
-    clmat = np.mat( create_clmat(freqarr, elcnt, cl_dic) )
+    clmat = np.asmatrix( create_clmat(freqarr, elcnt, cl_dic) )
     clinv = np.linalg.pinv(clmat)
 
     if return_clmat:
@@ -688,9 +688,9 @@ def residual_power(param_dict,
     freqarr: list
         Frequency array
     el: int
-        \Multipole moment ell.
+        Multipole moment ell.
     cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all \ell.
+        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
         Keys must be TT, EE, TE, etc.
     final_comp: str
         Name of the signal that is being minimised.
@@ -743,7 +743,7 @@ def residual_power(param_dict,
                 else:
                     bcap = np.column_stack( (bcap, curr_bcap) )
                 total_comp_to_null += 1
-            bcap = np.mat(bcap)
+            bcap = np.asmatrix(bcap)
 
     nc = len(freqarr)
     weightsarr = np.zeros( (nspecs * nc, nspecs, len( el ) ) )
@@ -764,12 +764,12 @@ def residual_power(param_dict,
         else:
 
             G = np.column_stack( (acap, bcap) )
-            G = np.mat(G)
+            G = np.asmatrix(G)
 
             total_comps = G.shape[1]
             ncap = np.zeros( total_comps )#total_comp_to_null + 1 )
             ncap[0] = 1.
-            ncap = np.mat( ncap ).T
+            ncap = np.asmatrix( ncap ).T
 
             nr = np.dot(clinv, G)
             dr = np.dot( G.T, np.dot(clinv, G) )

@@ -1,5 +1,4 @@
-import numpy as np, os, sys#, healpy as H
-import pandas as pd
+import numpy as np
 import flatsky
 
 #################################################################################
@@ -32,10 +31,12 @@ def get_param_dict(paramfile):
 
 def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam = None, make_2d = 0, mapparams = None):
     bl_dic =  {}
+    el = np.arange(lmax)
     for freq in freqs:
         beamval, noiseval = beam_noise_dic[freq]
         ##print(beamval, noiseval)
-        bl_dic[freq] = H.gauss_beam(np.radians(beamval/60.), lmax=lmax-1)
+        #get_bl() returns the inverse squared beam 1/bl^2
+        bl_dic[freq] = get_bl(beamval, el)**-0.5
         
         if make_2d:
             assert mapparams is not None
@@ -43,7 +44,7 @@ def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam = None, make_2d = 0, mappar
             bl_dic[freq] = flatsky.cl_to_cl2d(el, bl_dic[freq], mapparams) 
 
     if opbeam is not None:
-        bl_dic['effective'] = H.gauss_beam(np.radians(opbeam/60.), lmax=lmax-1)
+        bl_dic['effective'] = get_bl(opbeam, el)**-0.5
 
         if make_2d:
             assert mapparams is not None
@@ -77,6 +78,11 @@ def healpix_rotate_coords(hmap, coord):
     coord = ['C', 'G'] to convert a map in RADEC to Gal.    
     """
 
+    try:
+        import healpy as H
+    except ImportError:
+        raise ImportError('healpix_rotate_coords requires healpy')
+
     #get map pixel
     pixel = np.arange(len(hmap))
 
@@ -103,7 +109,7 @@ def healpix_rotate_coords(hmap, coord):
 def get_bl(beamval, el):
 
     """
-    this funciton returns bl**2
+    This function returns the inverse squared beam, 1/bl**2 = exp(+l(l+1) sigma^2)
     """
 
     fwhm_radians = np.radians(beamval/60.)
@@ -142,13 +148,17 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
         noiseval = noiseval/1e6
         if cross_band_noise: noiseval2 = noiseval2/1e6
 
+    el = np.asarray(el, dtype = float)
+    el_safe = np.where(el > 0., el, np.inf)
+
     if use_beam_window:
         bl = get_bl(beamval, el)
         if cross_band_noise: bl2 = get_bl(beamval2, el)
 
     delta_T_radians = noiseval * np.radians(1./60.)
-    nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
-    nl = np.asarray( [nl[int(l)] for l in el] )
+    #nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
+    #nl = np.asarray( [nl[int(l)] for l in el] )
+    nl = np.full(len(el), delta_T_radians**2.)
     nl_white = np.copy(nl)
 
     if cross_band_noise:
@@ -163,9 +173,9 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
 
     if elknee != -1.:
         if Nred1==-1:
-            nl = np.copy(nl) * (1. + (elknee * 1./el)**alphaknee )
+            nl = np.copy(nl) * (1. + (elknee * 1./el_safe)**alphaknee )
         else:
-            nl = np.copy(nl) + Nred1*(elknee * 1./el)**alphaknee
+            nl = np.copy(nl) + Nred1*(elknee * 1./el_safe)**alphaknee
             if cross_band_noise and elknee2 != -1.:
                 if Nred2==-1:
                     nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
@@ -174,7 +184,7 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
 
     if cross_band_noise and (elknee != -1. and elknee2 != -1.):
         ###final_nl = rho * nl**0.5 * nl2**0.5
-        final_nl = rho * delta_T_radians * (elknee * 1./el)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el)**(alphaknee2/2.)
+        final_nl = rho * delta_T_radians * (elknee * 1./el_safe)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el_safe)**(alphaknee2/2.)
         #N[i,j,:] = rho * (w1*np.pi/180./60. * (ell/knee1)**(gamma1/2)) * (w2*np.pi/180./60. * (ell/knee2)**(gamma2/2))
     else:
         final_nl = np.copy(nl)
@@ -241,7 +251,6 @@ def get_delta_cl(el, cl, nl, fsky = 1., delta_l = 1.):
 
 def get_apod_mask(ra_grid, dec_grid, mask_radius = 2., taper_radius = 6., in_arcmins = 1):
 
-    import scipy as sc
     import scipy.ndimage as ndimage
 
     if not in_arcmins:

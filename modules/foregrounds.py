@@ -24,6 +24,17 @@ def compton_y_to_delta_Tcmb(freq1, freq2 = None, Tcmb = 2.73):
 
     return Tcmb * np.mean(g_nu)
 
+def dl_to_cl(dl, dl_fac):
+
+    """
+    Convert Dls -> Cls. dl_fac = l(l+1)/2pi vanishes at l = 0, so divide only where it is non-zero
+    """
+
+    cl = np.zeros_like( np.asarray(dl, dtype = float) )
+    np.divide(dl, dl_fac, out = cl, where = (dl_fac != 0.))
+
+    return cl
+
 def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_po = 1.505 - 0.077, spec_index_dg_clus = 2.51-0.2, Tcib = 20., reduce_cib_power = None):    
     
     assert fg_model in ['george15', 'reichardt21']
@@ -31,7 +42,7 @@ def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_
     el, cl_dg_clus_freq0 = get_foreground_power_spt('DG-Cl', freq1 = freq0, freq2 = freq0)
     el_norm = 3000
 
-    #conert to Dls
+    #convert to Dls
     dl_fac = el * (el+1)/2/np.pi
     dl_dg_po = dl_fac * cl_dg_po_freq0
     dl_dg_clus = dl_fac * cl_dg_clus_freq0
@@ -60,17 +71,19 @@ def get_cl_dust(freq1, freq2, fg_model = 'george15', freq0 = 150, spec_index_dg_
     dl_dg_po = dl_dg_po[el == el_norm][0] * epsilon_nu1_nu2 * (1.*etanu1_dg_po * etanu2_dg_po/etanu0_dg_po/etanu0_dg_po) * (el*1./el_norm)**2
     dl_dg_clus = dl_dg_clus[el == el_norm][0] * epsilon_nu1_nu2 * (1.*etanu1_dg_clus * etanu2_dg_clus/etanu0_dg_clus/etanu0_dg_clus) * (el*1./el_norm)**0.8
 
-    cl_dg_po = dl_dg_po / dl_fac
-    cl_dg_clus = dl_dg_clus / dl_fac
+    cl_dg_po = dl_to_cl(dl_dg_po, dl_fac)
+    cl_dg_clus = dl_to_cl(dl_dg_clus, dl_fac)
 
     cl_dg_po[np.isnan(cl_dg_po)] = 0.
+    cl_dg_po[np.isinf(cl_dg_po)] = 0.
+    cl_dg_clus[np.isnan(cl_dg_clus)] = 0.
     cl_dg_clus[np.isinf(cl_dg_clus)] = 0.
 
     return el, cl_dg_po, cl_dg_clus
 
 def scale_cl_dust(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slope, el_norm = 3000):
         
-    #conert to Dls
+    #convert to Dls
     dl_fac = el * (el+1)/2/np.pi
     dl_dust_freq0 = dl_fac * cl_dust_freq0
 
@@ -89,7 +102,7 @@ def scale_cl_dust(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slope, 
 
     dl_dust = dl_dust_freq0[el == el_norm][0] * epsilon_nu1_nu2 * (1.*etanu1 * etanu2 / etanu0 /etanu0) * (el*1./el_norm)**el_slope
 
-    cl_dust = dl_dust / dl_fac
+    cl_dust = dl_to_cl(dl_dust, dl_fac)
     cl_dust[np.isnan(cl_dust)] = 0.
 
     return el, cl_dust
@@ -157,7 +170,7 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
             cl_rg_freq0 /= reduce_radio_power_150
         el_norm = 3000
 
-    #conert to Dls
+    #convert to Dls
     dl_fac = el * (el+1)/2/np.pi
     dl_rg = dl_fac * cl_rg_freq0
 
@@ -168,7 +181,7 @@ def get_cl_radio(freq1, freq2, freq0 = 150, fg_model = 'george15', spec_index_rg
 
     dl_rg = dl_rg[el == el_norm][0] * epsilon_nu1_nu2 * (1.*freq1 * freq2/freq0/freq0)**spec_index_rg * (el*1./el_norm)**2
 
-    cl_rg = dl_rg / dl_fac
+    cl_rg = dl_to_cl(dl_rg, dl_fac)
 
     cl_rg[np.isnan(cl_rg)] = 0.
 
@@ -230,7 +243,7 @@ def perform_power_law_fit(el, cl, ell_norm = 80):
     pars, cov = curve_fit(f=power_law, xdata=el, ydata=dl, p0=[amp_ini, alpha_ini], bounds = ((amp_ini*amp_low_fac, alpha_ini-delta_alpha), (amp_ini*amp_high_fac, alpha_ini+delta_alpha)))
     
     dl_fit = power_law(el, pars[0], pars[1])
-    cl_fit = dl_fit / dl_fac
+    cl_fit = dl_to_cl(dl_fit, dl_fac)
     cl_fit[np.isinf(cl_fit)] = 0.
     cl_fit[np.isnan(cl_fit)] = 0.
 
@@ -419,7 +432,7 @@ def get_cl_dust_galactic(el, freq1, freq2 = None, freq0 = 353., el_norm = 80., e
         return dl_dust
     else:
         dl_fac = el * (el+1)/2/np.pi
-        cl_dust = dl_dust / dl_fac
+        cl_dust = dl_to_cl(dl_dust, dl_fac)
     return cl_dust
 
 def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax = None):
