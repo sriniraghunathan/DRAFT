@@ -41,7 +41,7 @@ import foregrounds as fg
 import misc
 
 
-################################################################################################################
+# Covariance
 
 def get_analytic_covariance(
         param_dict,
@@ -446,6 +446,93 @@ def get_analytic_covariance(
         return el, cl_dic
 
 
+# Frequency response
+
+def get_cib_freq_dep(nu, Tcib=20., beta=1.505):  ##Tcmb=2.7255,  #Tcmb was unused
+    r"""
+    Frequency dependence of the CIB as a modified blackbody.
+
+    .. math::
+
+        f(\nu) = \nu^\beta \, \frac{B_\nu(T_\mathrm{CIB})}{\mathrm{d}B_\nu/\mathrm{d}T}\, ,
+
+    where the division by :math:`\mathrm{d}B_\nu/\mathrm{d}T` converts from flux to thermodynamic temperature units.
+
+    Parameters
+    ----------
+    nu : float
+        Frequency in GHz.
+    Tcib : float, optional
+        Dust temperature :math:`T_\mathrm{CIB}` in K. Default 20.
+    beta : float, optional
+        Emissivity index :math:`\beta`. Default 1.505, the Poisson CIB value; the clustered component uses 2.505.
+
+    Returns
+    -------
+    value : float
+        Frequency dependence in thermodynamic temperature units, unnormalized.
+
+    Raises
+    ------
+    ValueError
+        If ``nu`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
+    """
+
+    misc.check_freqs_in_ghz(nu)
+    bnu1 = fg.get_BnuT(nu, temp=Tcib)
+    dbdt = fg.get_dB_dT(nu)
+    value = ((nu * 1e9)**beta) * bnu1 / dbdt  #the frequency power law is evaluated in Hz
+
+    return value
+
+
+def get_radio_freq_dep(nu, nu0=150., spec_index_rg=-0.76, null_highfreq_radio=True, highfreq_radio_threshold=230):
+    r"""
+    Frequency dependence of radio sources as a power law.
+
+    .. math::
+
+        f(\nu) = \frac{\mathrm{d}B_{\nu_0}/\mathrm{d}T}{\mathrm{d}B_\nu/\mathrm{d}T} \left( \frac{\nu}{\nu_0} \right)^{\!\alpha} ,
+
+    with the ratio of blackbody derivatives converting from flux to thermodynamic temperature units.
+
+    Parameters
+    ----------
+    nu : float
+        Frequency in GHz.
+    nu0 : float, optional
+        Reference frequency in GHz. Default 150.
+    spec_index_rg : float, optional
+        Radio spectral index :math:`\alpha`. Default -0.76.
+    null_highfreq_radio : bool, optional
+        Return zero above ``highfreq_radio_threshold``, where the radio contribution is negligible. Default ``True``.
+    highfreq_radio_threshold : float, optional
+        Threshold in GHz for the above. Default 230.
+
+    Returns
+    -------
+    value : float
+        Frequency dependence in thermodynamic temperature units, normalized to unity at ``nu0`` up to the unit conversion.
+    Raises
+    ------
+    ValueError
+        If ``nu`` or ``nu0`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
+    """
+
+    misc.check_freqs_in_ghz(nu, nu0, highfreq_radio_threshold)
+
+    nr = fg.get_dB_dT(nu0)
+    dr = fg.get_dB_dT(nu)
+    epsilon_nu1_nu0 = nr/dr
+    scaling = (nu/nu0)**spec_index_rg
+    value = epsilon_nu1_nu0 * scaling
+
+    if null_highfreq_radio and (nu > highfreq_radio_threshold):
+        value = 0.
+
+    return value
+
+
 def get_acap(freqarr, final_comp='cmb', freqcalib_fac=None, nspecs=1, spec_index_rg=-0.76):
     r"""
     Frequency response :math:`a_\nu` of a sky component across a set of bands.
@@ -591,90 +678,7 @@ def get_acap(freqarr, final_comp='cmb', freqcalib_fac=None, nspecs=1, spec_index
     return acap
 
 
-def get_cib_freq_dep(nu, Tcib=20., beta=1.505):  ##Tcmb=2.7255,  #Tcmb was unused
-    r"""
-    Frequency dependence of the CIB as a modified blackbody.
-
-    .. math::
-
-        f(\nu) = \nu^\beta \, \frac{B_\nu(T_\mathrm{CIB})}{\mathrm{d}B_\nu/\mathrm{d}T}\, ,
-
-    where the division by :math:`\mathrm{d}B_\nu/\mathrm{d}T` converts from flux to thermodynamic temperature units.
-
-    Parameters
-    ----------
-    nu : float
-        Frequency in GHz.
-    Tcib : float, optional
-        Dust temperature :math:`T_\mathrm{CIB}` in K. Default 20.
-    beta : float, optional
-        Emissivity index :math:`\beta`. Default 1.505, the Poisson CIB value; the clustered component uses 2.505.
-
-    Returns
-    -------
-    value : float
-        Frequency dependence in thermodynamic temperature units, unnormalized.
-
-    Raises
-    ------
-    ValueError
-        If ``nu`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
-    """
-
-    misc.check_freqs_in_ghz(nu)
-    bnu1 = fg.get_BnuT(nu, temp=Tcib)
-    dbdt = fg.get_dB_dT(nu)
-    value = ((nu * 1e9)**beta) * bnu1 / dbdt  #the frequency power law is evaluated in Hz
-
-    return value
-
-
-def get_radio_freq_dep(nu, nu0=150., spec_index_rg=-0.76, null_highfreq_radio=True, highfreq_radio_threshold=230):
-    r"""
-    Frequency dependence of radio sources as a power law.
-
-    .. math::
-
-        f(\nu) = \frac{\mathrm{d}B_{\nu_0}/\mathrm{d}T}{\mathrm{d}B_\nu/\mathrm{d}T} \left( \frac{\nu}{\nu_0} \right)^{\!\alpha} ,
-
-    with the ratio of blackbody derivatives converting from flux to thermodynamic temperature units.
-
-    Parameters
-    ----------
-    nu : float
-        Frequency in GHz.
-    nu0 : float, optional
-        Reference frequency in GHz. Default 150.
-    spec_index_rg : float, optional
-        Radio spectral index :math:`\alpha`. Default -0.76.
-    null_highfreq_radio : bool, optional
-        Return zero above ``highfreq_radio_threshold``, where the radio contribution is negligible. Default ``True``.
-    highfreq_radio_threshold : float, optional
-        Threshold in GHz for the above. Default 230.
-
-    Returns
-    -------
-    value : float
-        Frequency dependence in thermodynamic temperature units, normalized to unity at ``nu0`` up to the unit conversion.
-    Raises
-    ------
-    ValueError
-        If ``nu`` or ``nu0`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
-    """
-
-    misc.check_freqs_in_ghz(nu, nu0, highfreq_radio_threshold)
-
-    nr = fg.get_dB_dT(nu0)
-    dr = fg.get_dB_dT(nu)
-    epsilon_nu1_nu0 = nr/dr
-    scaling = (nu/nu0)**spec_index_rg
-    value = epsilon_nu1_nu0 * scaling
-
-    if null_highfreq_radio and (nu > highfreq_radio_threshold):
-        value = 0.
-
-    return value
-
+# Covariance assembly
 
 def get_teb_spec_combination(cl_dic):
     """
@@ -710,42 +714,6 @@ def get_teb_spec_combination(cl_dic):
         specs = None
 
     return nspecs, specs
-
-
-def corr_from_cov(covmat):
-    r"""
-    Correlation matrix corresponding to a covariance matrix.
-
-    .. math::
-
-        R_{ij} = \frac{C_{ij}}{\sqrt{C_{ii} C_{jj}}}
-
-    Parameters
-    ----------
-    covmat : array_like
-        Covariance matrix, assumed square.
-
-    Returns
-    -------
-    corrmat : ndarray
-        Correlation matrix, of the same shape as ``covmat``.
-
-    Raises
-    ------
-    ValueError
-        If any diagonal entry of ``covmat`` is not positive, which would otherwise give a non-finite correlation.
-    """
-
-    diags = np.diag(covmat)
-    if np.any(diags <= 0.):
-        raise ValueError('covmat must have a positive diagonal, got %s' % (diags))
-    corrmat = np.zeros_like(covmat)
-    for i in range(covmat.shape[0]):
-        for j in range(covmat.shape[0]):
-            corrmat[i, j] = covmat[i, j] / np.sqrt( diags[i] * diags[j] )
-    #corrmat = covmat / np.outer(np.sqrt(diags), np.sqrt(diags))
-
-    return corrmat
 
 
 def create_clmat(freqarr, elcnt, cl_dic):
@@ -860,6 +828,44 @@ def get_clinv(freqarr, elcnt, cl_dic, return_clmat=False):
     else:
         return clinv
 
+
+def corr_from_cov(covmat):
+    r"""
+    Correlation matrix corresponding to a covariance matrix.
+
+    .. math::
+
+        R_{ij} = \frac{C_{ij}}{\sqrt{C_{ii} C_{jj}}}
+
+    Parameters
+    ----------
+    covmat : array_like
+        Covariance matrix, assumed square.
+
+    Returns
+    -------
+    corrmat : ndarray
+        Correlation matrix, of the same shape as ``covmat``.
+
+    Raises
+    ------
+    ValueError
+        If any diagonal entry of ``covmat`` is not positive, which would otherwise give a non-finite correlation.
+    """
+
+    diags = np.diag(covmat)
+    if np.any(diags <= 0.):
+        raise ValueError('covmat must have a positive diagonal, got %s' % (diags))
+    corrmat = np.zeros_like(covmat)
+    for i in range(covmat.shape[0]):
+        for j in range(covmat.shape[0]):
+            corrmat[i, j] = covmat[i, j] / np.sqrt( diags[i] * diags[j] )
+    #corrmat = covmat / np.outer(np.sqrt(diags), np.sqrt(diags))
+
+    return corrmat
+
+
+# ILC residuals
 
 def residual_power(
         param_dict,  #unused argument
@@ -1034,7 +1040,8 @@ def residual_power(
     else:
         return cl_residual
 
-################################################################################################################
+
+# Superseded code, kept for now, could be removed later
 
 #coth and compton_y_to_delta_Tcmb are duplicates of the foregrounds.py versions.
 #The copies below reference h, k_B and Tcmb, none of which are defined in this module, so every call failed.

@@ -19,47 +19,7 @@ Power spectra carry whatever units the input ``cl`` is given in and maps carry i
 import numpy as np
 
 
-def cl_to_cl2d(el, cl, mapparams):
-    r"""
-    Interpolate a 1-D power spectrum onto the 2-D flat-sky Fourier grid.
-
-    Each grid point is assigned :math:`C_\ell` at :math:`\ell = \sqrt{\ell_x^2 + \ell_y^2}`, with :math:`\ell_x` and :math:`\ell_y` taken from :func:`get_lxly`.
-
-    Parameters
-    ----------
-    el : array_like
-        Multipoles :math:`\ell` at which ``cl`` is defined. Must be strictly increasing.
-    cl : array_like
-        Power spectrum :math:`C_\ell`, the same length as ``el``.
-    mapparams : list
-        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the pixel counts along each axis and ``dx`` and ``dy`` are the pixel sizes in arcminutes.
-        ``nx`` and ``ny`` must be integers. A float pixel count, which is what a plain :class:`numpy.ndarray` of ``mapparams`` produces, raises inside :func:`numpy.fft.fftfreq`.
-
-    Returns
-    -------
-    cl2d : ndarray
-        Power spectrum on the 2-D grid, of shape ``(ny, nx)``.
-
-    Raises
-    ------
-    ValueError
-        If ``el`` is not strictly increasing since :func:`numpy.interp` would otherwise return silently incorrect values.
-
-    Notes
-    -----
-    :func:`numpy.interp` clamps outside the range of ``el``, so every grid point above ``max(el)`` is assigned ``cl[-1]`` rather than zero.
-    """
-
-    if np.any(np.diff(el) <= 0):
-        raise ValueError('el must be strictly increasing, but it decreases or repeats at index %s' % (int(np.argmax(np.diff(el) <= 0)) + 1))
-
-    lx, ly = get_lxly(mapparams)
-    ell = np.sqrt(lx**2. + ly**2.)
-
-    cl2d = np.interp(ell.flatten(), el, cl).reshape(ell.shape)  #NOTE: np.interp clamps, so modes above el.max() get cl[-1] rather than zero
-
-    return cl2d
-
+# Fourier grid
 
 def get_lxly(mapparams):
     r"""
@@ -117,50 +77,49 @@ def get_lxly_az_angle(lx, ly):
     return 2*np.arctan2(lx, -ly)
 
 
-def convert_eb_qu(map1, map2, mapparams, eb_to_qu=1):
+def cl_to_cl2d(el, cl, mapparams):
     r"""
-    Rotate a pair of flat-sky polarization maps between E/B and Q/U.
+    Interpolate a 1-D power spectrum onto the 2-D flat-sky Fourier grid.
 
-    The transform is a rotation by :math:`2\phi_\ell` applied in Fourier space,
-
-    .. math::
-
-        \begin{pmatrix} Q \\ U \end{pmatrix} = \begin{pmatrix} \cos 2\phi_\ell & -\sin 2\phi_\ell \\ \sin 2\phi_\ell & \cos 2\phi_\ell \end{pmatrix} \begin{pmatrix} E \\ B \end{pmatrix}\, ,
-
-    with the transpose of that matrix applied in the opposite direction. The rotation is orthogonal mode by mode, but see the note below on the Nyquist row and column.
+    Each grid point is assigned :math:`C_\ell` at :math:`\ell = \sqrt{\ell_x^2 + \ell_y^2}`, with :math:`\ell_x` and :math:`\ell_y` taken from :func:`get_lxly`.
 
     Parameters
     ----------
-    map1, map2 : array_like
-        The pair to rotate, E and B when ``eb_to_qu`` is set and Q and U otherwise.
+    el : array_like
+        Multipoles :math:`\ell` at which ``cl`` is defined. Must be strictly increasing.
+    cl : array_like
+        Power spectrum :math:`C_\ell`, the same length as ``el``.
     mapparams : list
-        Flat-sky map geometry ``[nx, ny, dx, dy]``.
-    eb_to_qu : int, optional
-        If non-zero, rotate E/B to Q/U. Otherwise rotate Q/U to E/B. Default 1.
+        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the pixel counts along each axis and ``dx`` and ``dy`` are the pixel sizes in arcminutes.
+        ``nx`` and ``ny`` must be integers. A float pixel count, which is what a plain :class:`numpy.ndarray` of ``mapparams`` produces, raises inside :func:`numpy.fft.fftfreq`.
 
     Returns
     -------
-    map1_mod, map2_mod : ndarray
-        The rotated pair, Q and U when ``eb_to_qu`` is set and E and B otherwise.
+    cl2d : ndarray
+        Power spectrum on the 2-D grid, of shape ``(ny, nx)``.
+
+    Raises
+    ------
+    ValueError
+        If ``el`` is not strictly increasing since :func:`numpy.interp` would otherwise return silently incorrect values.
 
     Notes
     -----
-    Only the real part of the inverse transform is retained. On an even-sized grid this discards information. A pure E-mode input, and a field with no power on the Nyquist row and column, are transformed exactly.
+    :func:`numpy.interp` clamps outside the range of ``el``, so every grid point above ``max(el)`` is assigned ``cl[-1]`` rather than zero.
     """
 
+    if np.any(np.diff(el) <= 0):
+        raise ValueError('el must be strictly increasing, but it decreases or repeats at index %s' % (int(np.argmax(np.diff(el) <= 0)) + 1))
+
     lx, ly = get_lxly(mapparams)
-    angle = get_lxly_az_angle(lx, ly)
+    ell = np.sqrt(lx**2. + ly**2.)
 
-    map1_fft, map2_fft = np.fft.fft2(map1), np.fft.fft2(map2)
-    if eb_to_qu:
-        map1_mod = np.fft.ifft2( np.cos(angle) * map1_fft - np.sin(angle) * map2_fft ).real
-        map2_mod = np.fft.ifft2( np.sin(angle) * map1_fft + np.cos(angle) * map2_fft ).real
-    else:
-        map1_mod = np.fft.ifft2( np.cos(angle) * map1_fft + np.sin(angle) * map2_fft ).real
-        map2_mod = np.fft.ifft2( -np.sin(angle) * map1_fft + np.cos(angle) * map2_fft ).real
+    cl2d = np.interp(ell.flatten(), el, cl).reshape(ell.shape)  #NOTE: np.interp clamps, so modes above el.max() get cl[-1] rather than zero
 
-    return map1_mod, map2_mod
+    return cl2d
 
+
+# Filters
 
 def get_lpf_hpf(mapparams, lmin_lmax, filter_type=0):
     """
@@ -254,6 +213,53 @@ def wiener_filter(mapparams, cl_signal, cl_noise, el=None):
     return wiener_filter2d
 
 
+# Simulations
+
+def convert_eb_qu(map1, map2, mapparams, eb_to_qu=1):
+    r"""
+    Rotate a pair of flat-sky polarization maps between E/B and Q/U.
+
+    The transform is a rotation by :math:`2\phi_\ell` applied in Fourier space,
+
+    .. math::
+
+        \begin{pmatrix} Q \\ U \end{pmatrix} = \begin{pmatrix} \cos 2\phi_\ell & -\sin 2\phi_\ell \\ \sin 2\phi_\ell & \cos 2\phi_\ell \end{pmatrix} \begin{pmatrix} E \\ B \end{pmatrix}\, ,
+
+    with the transpose of that matrix applied in the opposite direction. The rotation is orthogonal mode by mode, but see the note below on the Nyquist row and column.
+
+    Parameters
+    ----------
+    map1, map2 : array_like
+        The pair to rotate, E and B when ``eb_to_qu`` is set and Q and U otherwise.
+    mapparams : list
+        Flat-sky map geometry ``[nx, ny, dx, dy]``.
+    eb_to_qu : int, optional
+        If non-zero, rotate E/B to Q/U. Otherwise rotate Q/U to E/B. Default 1.
+
+    Returns
+    -------
+    map1_mod, map2_mod : ndarray
+        The rotated pair, Q and U when ``eb_to_qu`` is set and E and B otherwise.
+
+    Notes
+    -----
+    Only the real part of the inverse transform is retained. On an even-sized grid this discards information. A pure E-mode input, and a field with no power on the Nyquist row and column, are transformed exactly.
+    """
+
+    lx, ly = get_lxly(mapparams)
+    angle = get_lxly_az_angle(lx, ly)
+
+    map1_fft, map2_fft = np.fft.fft2(map1), np.fft.fft2(map2)
+    if eb_to_qu:
+        map1_mod = np.fft.ifft2( np.cos(angle) * map1_fft - np.sin(angle) * map2_fft ).real
+        map2_mod = np.fft.ifft2( np.sin(angle) * map1_fft + np.cos(angle) * map2_fft ).real
+    else:
+        map1_mod = np.fft.ifft2( np.cos(angle) * map1_fft + np.sin(angle) * map2_fft ).real
+        map2_mod = np.fft.ifft2( -np.sin(angle) * map1_fft + np.cos(angle) * map2_fft ).real
+
+    return map1_mod, map2_mod
+
+
 def cl2map(mapparams, cl, el=None):
     r"""
     Draw a Gaussian random flat-sky map with a given power spectrum.
@@ -303,152 +309,6 @@ def cl2map(mapparams, cl, el=None):
     flatskymap = flatskymap - np.mean(flatskymap)
 
     return flatskymap
-
-
-def map2cl(mapparams, flatskymap1, flatskymap2=None, binsize=None, minbin=100, maxbin=10000, mask=None, filter_2d=None):
-    r"""
-    Auto- or cross-power spectrum of one or two flat-sky maps.
-
-    The 2-D periodogram is formed and then averaged in annuli of :math:`\ell` by :func:`radial_profile`,
-
-    .. math::
-
-        \hat{C}_\ell = \frac{\mathrm{d}x^2}{n_x n_y} \left\langle \tilde{m}_1 \tilde{m}_2^* \right\rangle_\ell ,
-
-    where :math:`\mathrm{d}x` is in radians and :math:`\tilde{m}` is the unnormalized discrete transform.
-
-    Parameters
-    ----------
-    mapparams : list
-        Flat-sky map geometry ``[nx, ny, dx, dy]``.
-    flatskymap1 : array_like
-        First map, of shape ``(ny, nx)``.
-    flatskymap2 : array_like, optional
-        Second map, of the same shape. If given, the cross spectrum is returned in place of the auto spectrum.
-    binsize : float, optional
-        Width of the :math:`\ell` bins. Defaults to the :math:`\ell_x` grid spacing, i.e. along the second axis.
-    minbin, maxbin : float, optional
-        Lowest and highest :math:`\ell` of the binning. Defaults 100 and 10000.
-    mask : array_like, optional
-        Window that the caller has already applied to the maps. Only its mean is used to rescale the spectrum. The maps are not multiplied by it here.
-    filter_2d : array_like, optional
-        Filter already applied to the maps, of shape ``(ny, nx)``. Its radial profile is divided out of the spectrum.
-
-    Returns
-    -------
-    el : ndarray
-        Bin centers.
-    cl : ndarray
-        Binned power spectrum.
-
-    Raises
-    ------
-    ValueError
-        If ``flatskymap1`` does not match the grid implied by ``mapparams`` or if ``flatskymap2`` is given and does not have the same shape as ``flatskymap1``.
-    """
-
-    nx, ny, dx, dx = mapparams  #NOTE: dy is dropped and dx ends up holding dy
-    dx_rad = np.radians(dx/60.)
-
-    lx, ly = get_lxly(mapparams)
-    if np.shape(flatskymap1) != lx.shape:
-        raise ValueError('flatskymap1 must have the same shape as the Fourier grid built from mapparams, got %s and %s' % (np.shape(flatskymap1), lx.shape))
-
-    if binsize is None:
-        binsize = lx.ravel()[1] - lx.ravel()[0]
-
-    if flatskymap2 is None:
-        flatskymap_psd = abs( np.fft.fft2(flatskymap1) * dx_rad)**2 / (nx * ny)
-    else: #cross spectra now
-        if flatskymap1.shape != flatskymap2.shape:
-            raise ValueError('flatskymap1 and flatskymap2 must have the same shape, got %s and %s' % (flatskymap1.shape, flatskymap2.shape))
-        flatskymap_psd = np.fft.fft2(flatskymap1) * dx_rad * np.conj( np.fft.fft2(flatskymap2) ) * dx_rad / (nx * ny)
-
-    rad_prf = radial_profile(flatskymap_psd, (lx, ly), bin_size=binsize, minbin=minbin, maxbin=maxbin, to_arcmins=0)
-    el, cl = rad_prf[:, 0], rad_prf[:, 1]
-
-    if mask is not None:
-        fsky = np.mean(mask)  #NOTE: <W> or <W^2>?
-        cl /= fsky
-
-    if filter_2d is not None:
-        rad_prf_filter_2d = radial_profile(filter_2d, (lx, ly), bin_size=binsize, minbin=minbin, maxbin=maxbin, to_arcmins=0)
-        el, fl = rad_prf_filter_2d[:, 0], rad_prf_filter_2d[:, 1]
-        cl /= fl  #NOTE: Unguarded, so bins where the filter is identically zero return inf
-
-    return el, cl
-
-
-def radial_profile(z, xy=None, bin_size=1., minbin=0., maxbin=10., to_arcmins=1):
-    """
-    Average a 2-D field in annuli of constant radius.
-
-    Parameters
-    ----------
-    z : array_like
-        Field to profile, real or complex. Must be 2-D when ``xy`` is not given.
-    xy : tuple of ndarray, optional
-        Coordinate grids ``(x, y)``, each the same shape as ``z``. Defaults to :func:`numpy.indices`, i.e. pixel indices.
-    bin_size : float, optional
-        Width of the radial bins, in the units of ``xy``. Default 1.
-    minbin, maxbin : float, optional
-        Lowest and highest radius of the binning. Defaults 0 and 10.
-    to_arcmins : int, optional
-        If non-zero, multiply the radius by 60 before binning, i.e. convert degrees to arcminutes. Default 1.
-
-    Returns
-    -------
-    radprf : ndarray
-        Array of shape ``(nbin, 3)`` holding the bin center, the mean of ``z`` over the bin and an uncertainty.
-
-    Raises
-    ------
-    ValueError
-        If ``z`` is not 2-D and ``xy`` is not given or if the ``xy`` grids do not have the same shape as ``z``.
-
-    Notes
-    -----
-    The defaults are mutually inconsistent. ``to_arcmins`` presumes ``xy`` in degrees, whereas the fallback used when ``xy`` is omitted supplies pixel indices.
-    Pass ``xy`` explicitly or set ``to_arcmins`` to zero, as :func:`map2cl` does.
-
-    The bin mean divides by the number of non-zero entries rather than by the number of entries, so a field containing exact zeros is averaged over its non-zero subset alone.
-    """
-
-    z = np.asarray(z)
-    if xy is None:
-        if z.ndim != 2:
-            raise ValueError('z must be 2-D when xy is not given, got %s dimensions' % (z.ndim))
-        x, y = np.indices(z.shape)
-    else:
-        x, y = xy
-        if np.shape(x) != z.shape or np.shape(y) != z.shape:
-            raise ValueError('xy grids must have the same shape as z, got %s and %s for z of shape %s' % (np.shape(x), np.shape(y), z.shape))
-
-    #radius = np.hypot(X,Y) * 60.
-    radius = (x**2. + y**2.) ** 0.5
-    if to_arcmins: radius *= 60.
-
-    binarr = np.arange(minbin, maxbin, bin_size)
-    radprf = np.zeros((len(binarr), 3))
-
-    hit_count = []
-
-    for b, binval in enumerate(binarr):
-        ind = np.where((radius >= binval) & (radius < binval + bin_size))
-        radprf[b, 0] = (binval + bin_size/2.)
-        hits = len(np.where(abs(z[ind]) > 0.)[0])  #NOTE: Counts only non-zero pixels
-
-        if hits > 0:
-            radprf[b, 1] = np.sum(z[ind]) / hits  #NOTE: radprf is float, so casting may occur
-            radprf[b, 2] = np.std(z[ind])
-        hit_count.append(hits)
-
-    hit_count = np.asarray(hit_count)
-    std_mean = np.sum(radprf[:, 2] * hit_count) / np.sum(hit_count)
-    errval = std_mean / (hit_count)**0.5  #NOTE: inf for empty bins and std_mean is pooled across all bins, not per bin
-    radprf[:, 2] = errval
-
-    return radprf
 
 
 def make_gaussian_realization(mapparams, el, cl, cl2=None, cl12=None, bl=None, qu_or_eb='qu'):
@@ -576,3 +436,151 @@ def make_gaussian_realization(mapparams, el, cl, cl2=None, cl12=None, bl=None, q
     SIM = SIM - np.mean(SIM)  #NOTE: For the 3-field cube this removes one global mean, not each field's own; a B map of exact zeros comes back as a non-zero constant
 
     return SIM
+
+
+# Power spectra
+
+def radial_profile(z, xy=None, bin_size=1., minbin=0., maxbin=10., to_arcmins=1):
+    """
+    Average a 2-D field in annuli of constant radius.
+
+    Parameters
+    ----------
+    z : array_like
+        Field to profile, real or complex. Must be 2-D when ``xy`` is not given.
+    xy : tuple of ndarray, optional
+        Coordinate grids ``(x, y)``, each the same shape as ``z``. Defaults to :func:`numpy.indices`, i.e. pixel indices.
+    bin_size : float, optional
+        Width of the radial bins, in the units of ``xy``. Default 1.
+    minbin, maxbin : float, optional
+        Lowest and highest radius of the binning. Defaults 0 and 10.
+    to_arcmins : int, optional
+        If non-zero, multiply the radius by 60 before binning, i.e. convert degrees to arcminutes. Default 1.
+
+    Returns
+    -------
+    radprf : ndarray
+        Array of shape ``(nbin, 3)`` holding the bin center, the mean of ``z`` over the bin and an uncertainty.
+
+    Raises
+    ------
+    ValueError
+        If ``z`` is not 2-D and ``xy`` is not given or if the ``xy`` grids do not have the same shape as ``z``.
+
+    Notes
+    -----
+    The defaults are mutually inconsistent. ``to_arcmins`` presumes ``xy`` in degrees, whereas the fallback used when ``xy`` is omitted supplies pixel indices.
+    Pass ``xy`` explicitly or set ``to_arcmins`` to zero, as :func:`map2cl` does.
+
+    The bin mean divides by the number of non-zero entries rather than by the number of entries, so a field containing exact zeros is averaged over its non-zero subset alone.
+    """
+
+    z = np.asarray(z)
+    if xy is None:
+        if z.ndim != 2:
+            raise ValueError('z must be 2-D when xy is not given, got %s dimensions' % (z.ndim))
+        x, y = np.indices(z.shape)
+    else:
+        x, y = xy
+        if np.shape(x) != z.shape or np.shape(y) != z.shape:
+            raise ValueError('xy grids must have the same shape as z, got %s and %s for z of shape %s' % (np.shape(x), np.shape(y), z.shape))
+
+    #radius = np.hypot(X,Y) * 60.
+    radius = (x**2. + y**2.) ** 0.5
+    if to_arcmins: radius *= 60.
+
+    binarr = np.arange(minbin, maxbin, bin_size)
+    radprf = np.zeros((len(binarr), 3))
+
+    hit_count = []
+
+    for b, binval in enumerate(binarr):
+        ind = np.where((radius >= binval) & (radius < binval + bin_size))
+        radprf[b, 0] = (binval + bin_size/2.)
+        hits = len(np.where(abs(z[ind]) > 0.)[0])  #NOTE: Counts only non-zero pixels
+
+        if hits > 0:
+            radprf[b, 1] = np.sum(z[ind]) / hits  #NOTE: radprf is float, so casting may occur
+            radprf[b, 2] = np.std(z[ind])
+        hit_count.append(hits)
+
+    hit_count = np.asarray(hit_count)
+    std_mean = np.sum(radprf[:, 2] * hit_count) / np.sum(hit_count)
+    errval = std_mean / (hit_count)**0.5  #NOTE: inf for empty bins and std_mean is pooled across all bins, not per bin
+    radprf[:, 2] = errval
+
+    return radprf
+
+
+def map2cl(mapparams, flatskymap1, flatskymap2=None, binsize=None, minbin=100, maxbin=10000, mask=None, filter_2d=None):
+    r"""
+    Auto- or cross-power spectrum of one or two flat-sky maps.
+
+    The 2-D periodogram is formed and then averaged in annuli of :math:`\ell` by :func:`radial_profile`,
+
+    .. math::
+
+        \hat{C}_\ell = \frac{\mathrm{d}x^2}{n_x n_y} \left\langle \tilde{m}_1 \tilde{m}_2^* \right\rangle_\ell ,
+
+    where :math:`\mathrm{d}x` is in radians and :math:`\tilde{m}` is the unnormalized discrete transform.
+
+    Parameters
+    ----------
+    mapparams : list
+        Flat-sky map geometry ``[nx, ny, dx, dy]``.
+    flatskymap1 : array_like
+        First map, of shape ``(ny, nx)``.
+    flatskymap2 : array_like, optional
+        Second map, of the same shape. If given, the cross spectrum is returned in place of the auto spectrum.
+    binsize : float, optional
+        Width of the :math:`\ell` bins. Defaults to the :math:`\ell_x` grid spacing, i.e. along the second axis.
+    minbin, maxbin : float, optional
+        Lowest and highest :math:`\ell` of the binning. Defaults 100 and 10000.
+    mask : array_like, optional
+        Window that the caller has already applied to the maps. Only its mean is used to rescale the spectrum. The maps are not multiplied by it here.
+    filter_2d : array_like, optional
+        Filter already applied to the maps, of shape ``(ny, nx)``. Its radial profile is divided out of the spectrum.
+
+    Returns
+    -------
+    el : ndarray
+        Bin centers.
+    cl : ndarray
+        Binned power spectrum.
+
+    Raises
+    ------
+    ValueError
+        If ``flatskymap1`` does not match the grid implied by ``mapparams`` or if ``flatskymap2`` is given and does not have the same shape as ``flatskymap1``.
+    """
+
+    nx, ny, dx, dx = mapparams  #NOTE: dy is dropped and dx ends up holding dy
+    dx_rad = np.radians(dx/60.)
+
+    lx, ly = get_lxly(mapparams)
+    if np.shape(flatskymap1) != lx.shape:
+        raise ValueError('flatskymap1 must have the same shape as the Fourier grid built from mapparams, got %s and %s' % (np.shape(flatskymap1), lx.shape))
+
+    if binsize is None:
+        binsize = lx.ravel()[1] - lx.ravel()[0]
+
+    if flatskymap2 is None:
+        flatskymap_psd = abs( np.fft.fft2(flatskymap1) * dx_rad)**2 / (nx * ny)
+    else: #cross spectra now
+        if flatskymap1.shape != flatskymap2.shape:
+            raise ValueError('flatskymap1 and flatskymap2 must have the same shape, got %s and %s' % (flatskymap1.shape, flatskymap2.shape))
+        flatskymap_psd = np.fft.fft2(flatskymap1) * dx_rad * np.conj( np.fft.fft2(flatskymap2) ) * dx_rad / (nx * ny)
+
+    rad_prf = radial_profile(flatskymap_psd, (lx, ly), bin_size=binsize, minbin=minbin, maxbin=maxbin, to_arcmins=0)
+    el, cl = rad_prf[:, 0], rad_prf[:, 1]
+
+    if mask is not None:
+        fsky = np.mean(mask)  #NOTE: <W> or <W^2>?
+        cl /= fsky
+
+    if filter_2d is not None:
+        rad_prf_filter_2d = radial_profile(filter_2d, (lx, ly), bin_size=binsize, minbin=minbin, maxbin=maxbin, to_arcmins=0)
+        el, fl = rad_prf_filter_2d[:, 0], rad_prf_filter_2d[:, 1]
+        cl /= fl  #NOTE: Unguarded, so bins where the filter is identically zero return inf
+
+    return el, cl

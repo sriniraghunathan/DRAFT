@@ -23,9 +23,13 @@ import warnings
 import numpy as np
 
 
+# Constants and module state
+
 #data directory, resolved relative to the repo root rather than the current working directory
 data_folder = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data' )
 
+
+# Experiment specifications
 
 def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
     r"""

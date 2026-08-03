@@ -1,16 +1,18 @@
 """
 Helper routines supporting the ILC noise and residual calculation in get_ilc_residuals.py.
 
-Main path (called by get_ilc_residuals.py):
-    get_param_dict  -- parse params.ini into a dict
-    get_beam_dic    -- per-frequency beam transfer functions
-    get_nl          -- per-frequency noise power spectra
+The module is grouped into six sections:
 
-Internal helper function:
-    get_bl          -- inverse squared beam window function
+* Argument checking: ``check_freqs_in_ghz``
+* Parameter file I/O: ``get_param_dict``
+* Beams: ``get_bl``, ``get_beam_dic``, ``rebeam``
+* Noise: ``get_nl``
+* Power spectrum uncertainties: ``get_delta_cl``
+* Map-domain utilities: ``get_apod_mask``, ``healpix_rotate_coords``
 
-Standalone utilities, currently not on the main path:
-    rebeam, get_delta_cl, get_apod_mask, healpix_rotate_coords
+``check_freqs_in_ghz`` is called by ``foregrounds.py`` and ``ilc.py``.
+``get_param_dict``, ``get_beam_dic`` and ``get_nl`` are currently called by ``get_ilc_residuals.py``, and ``get_bl`` is an internal helper used by the latter two.
+The remainder (``rebeam``, ``get_delta_cl``, ``get_apod_mask`` and ``healpix_rotate_coords``) are standalone utilities that are currently not used elsewhere in this repository.
 """
 
 import warnings
@@ -19,9 +21,30 @@ import numpy as np
 
 import flatsky
 
-#################################################################################
-#################################################################################
-#################################################################################
+
+# Argument checking
+
+def check_freqs_in_ghz(*freqs):
+    r"""
+    Check that frequencies look like values in GHz.
+
+    Parameters
+    ----------
+    *freqs : float
+        Frequencies to check. ``None`` entries are skipped.
+
+    Raises
+    ------
+    ValueError
+        If any frequency is not positive, or is at or above :math:`10^4` and so is presumably in Hz.
+    """
+
+    bad = [nu for nu in freqs if nu is not None and not 0. < nu < 1e4]
+    if bad:
+        raise ValueError('Frequencies must be positive and in GHz, got %s' % (bad))
+
+
+# Parameter file I/O
 
 def get_param_dict(paramfile):
     """
@@ -69,6 +92,46 @@ def get_param_dict(paramfile):
         param_dict[p] = pval
 
     return param_dict
+
+
+# Beams
+
+def get_bl(beamval, el):
+    r"""
+    Inverse squared Gaussian beam window function.
+
+    Returns :math:`1 / B_\ell^2`, not :math:`B_\ell` itself:
+
+    .. math::
+
+        \frac{1}{B_\ell^2} = \exp\!\left[ \ell (\ell+1) \frac{\theta_b^2}{8\log2} \right] .
+
+    This is the form needed to deconvolve the beam from a noise power spectrum.
+    Callers wanting :math:`B_\ell` itself should take ``get_bl(beamval, el)**-0.5``.
+
+    Parameters
+    ----------
+    beamval : float
+        Beam full-width at half-maximum :math:`\theta_b` in arcminutes. Converted to radians internally.
+    el : array_like
+        Multipole moments :math:`\ell` at which to evaluate the beam.
+
+    Returns
+    -------
+    bl : ndarray
+        Inverse squared beam window function, same shape as ``el``.
+
+    Notes
+    -----
+    :math:`B_\ell = \exp\!\left[ -\ell(\ell+1) \sigma^2/2 \right]`, with :math:`\sigma = \frac{\theta_b}{\sqrt{8 \log2}}`, is commonly used, but this function provides the inverse squared beam, :math:`1/B_\ell^2`.
+    """
+
+    fwhm_radians = np.radians(beamval/60.)
+    sigma = fwhm_radians / np.sqrt(8. * np.log(2.))
+    sigma2 = sigma**2
+    bl = np.exp(el * (el+1) * sigma2)
+
+    return bl
 
 
 def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam=None, make_2d=0, mapparams=None):
@@ -172,95 +235,7 @@ def rebeam(bl_dic, threshold=1000.):
     return np.asarray( rebeamarr )
 
 
-def healpix_rotate_coords(hmap, coord):
-    """
-    Rotate a HEALPix map between coordinate systems.
-
-    Parameters
-    ----------
-    hmap : array_like
-        HEALPix map, assumed to be in RING ordering.
-    coord : list of str
-        Two-element ``[from, to]`` specification passed to ``healpy.Rotator``.
-        Example: ``['C', 'G']`` to go from equatorial (RA/Dec) to galactic coordinates.
-
-    Returns
-    -------
-    rot_hmap : ndarray
-        Map of the same length as ``hmap``, with pixel values moved to their rotated positions.
-
-    Raises
-    ------
-    ImportError
-        If ``healpy`` is not installed. It is imported lazily so that the rest of this module can be used without it.
-    """
-
-    try:
-        import healpy as H
-    except ImportError:
-        raise ImportError('healpix_rotate_coords requires healpy')
-
-    #get map pixel
-    pixel = np.arange(len(hmap))
-
-    #get angles in this map first
-    nside = H.get_nside(hmap)
-    angles = H.pix2ang(nside, pixel)
-
-    #rotate the angles to the desired new coordinate
-    rotated_angles = H.Rotator(coord=coord)(*angles)
-
-    #get the rotated pixel values
-    rotated_pixel = H.ang2pix(nside, *rotated_angles)
-
-    #initialize new map
-    rot_hmap = np.zeros(len(pixel))
-
-    #push the original map pixel to the new map (in the rotated pixel positions)
-    rot_hmap[rotated_pixel] = hmap[pixel]
-
-    return rot_hmap
-
-################################################################################################################
-
-def get_bl(beamval, el):
-    r"""
-    Inverse squared Gaussian beam window function.
-
-    Returns :math:`1 / B_\ell^2`, not :math:`B_\ell` itself:
-
-    .. math::
-
-        \frac{1}{B_\ell^2} = \exp\!\left[ \ell (\ell+1) \frac{\theta_b^2}{8\log2} \right] .
-
-    This is the form needed to deconvolve the beam from a noise power spectrum.
-    Callers wanting :math:`B_\ell` itself should take ``get_bl(beamval, el)**-0.5``.
-
-    Parameters
-    ----------
-    beamval : float
-        Beam full-width at half-maximum :math:`\theta_b` in arcminutes. Converted to radians internally.
-    el : array_like
-        Multipole moments :math:`\ell` at which to evaluate the beam.
-
-    Returns
-    -------
-    bl : ndarray
-        Inverse squared beam window function, same shape as ``el``.
-
-    Notes
-    -----
-    :math:`B_\ell = \exp\!\left[ -\ell(\ell+1) \sigma^2/2 \right]`, with :math:`\sigma = \frac{\theta_b}{\sqrt{8 \log2}}`, is commonly used, but this function provides the inverse squared beam, :math:`1/B_\ell^2`.
-    """
-
-    fwhm_radians = np.radians(beamval/60.)
-    sigma = fwhm_radians / np.sqrt(8. * np.log(2.))
-    sigma2 = sigma**2
-    bl = np.exp(el * (el+1) * sigma2)
-
-    return bl
-
-################################################################################################################
+# Noise
 
 def get_nl(noiseval, el, beamval, use_beam_window=1, uk_to_K=0, elknee=-1, alphaknee=0, beamval2=None, noiseval2=None, elknee2=-1, alphaknee2=0, rho=None, Nred1=-1., Nred2=-1.):  #, so_like=False):
     r"""
@@ -437,7 +412,8 @@ def get_nl(noiseval, el, beamval, use_beam_window=1, uk_to_K=0, elknee=-1, alpha
 #
 #    return final_nl
 
-################################################################################################################
+
+# Power spectrum uncertainties
 
 #def get_delta_cl(el, cl, nl, fsky=1., delta_l=1.):
 def get_delta_cl(el, cl, nl=None, fsky=1., delta_l=1.):
@@ -480,7 +456,8 @@ def get_delta_cl(el, cl, nl=None, fsky=1., delta_l=1.):
 
     return delta_cl
 
-################################################################################################################
+
+# Map-domain utilities
 
 def get_apod_mask(ra_grid, dec_grid, mask_radius=2., taper_radius=6., in_arcmins=1):
     """
@@ -527,23 +504,52 @@ def get_apod_mask(ra_grid, dec_grid, mask_radius=2., taper_radius=6., in_arcmins
 
     return mask
 
-################################################################################################################
 
-def check_freqs_in_ghz(*freqs):
-    r"""
-    Check that frequencies look like values in GHz.
+def healpix_rotate_coords(hmap, coord):
+    """
+    Rotate a HEALPix map between coordinate systems.
 
     Parameters
     ----------
-    *freqs : float
-        Frequencies to check. ``None`` entries are skipped.
+    hmap : array_like
+        HEALPix map, assumed to be in RING ordering.
+    coord : list of str
+        Two-element ``[from, to]`` specification passed to ``healpy.Rotator``.
+        Example: ``['C', 'G']`` to go from equatorial (RA/Dec) to galactic coordinates.
+
+    Returns
+    -------
+    rot_hmap : ndarray
+        Map of the same length as ``hmap``, with pixel values moved to their rotated positions.
 
     Raises
     ------
-    ValueError
-        If any frequency is not positive, or is at or above :math:`10^4` and so is presumably in Hz.
+    ImportError
+        If ``healpy`` is not installed. It is imported lazily so that the rest of this module can be used without it.
     """
 
-    bad = [nu for nu in freqs if nu is not None and not 0. < nu < 1e4]
-    if bad:
-        raise ValueError('Frequencies must be positive and in GHz, got %s' % (bad))
+    try:
+        import healpy as H
+    except ImportError:
+        raise ImportError('healpix_rotate_coords requires healpy')
+
+    #get map pixel
+    pixel = np.arange(len(hmap))
+
+    #get angles in this map first
+    nside = H.get_nside(hmap)
+    angles = H.pix2ang(nside, pixel)
+
+    #rotate the angles to the desired new coordinate
+    rotated_angles = H.Rotator(coord=coord)(*angles)
+
+    #get the rotated pixel values
+    rotated_pixel = H.ang2pix(nside, *rotated_angles)
+
+    #initialize new map
+    rot_hmap = np.zeros(len(pixel))
+
+    #push the original map pixel to the new map (in the rotated pixel positions)
+    rot_hmap[rotated_pixel] = hmap[pixel]
+
+    return rot_hmap
