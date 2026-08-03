@@ -30,9 +30,9 @@ args_keys = args.__dict__
 for kargs in args_keys:
     param_value = args_keys[kargs]
     if isinstance(param_value, str):
-        cmd = '%s = "%s"' %(kargs, param_value)
+        cmd = '%s = "%s"' % (kargs, param_value)
     else:
-        cmd = '%s = %s' %(kargs, param_value)
+        cmd = '%s = %s' % (kargs, param_value)
     exec(cmd)
 # In[4]:
 
@@ -118,42 +118,42 @@ if (1): #20230530
     freqarr_str = '-'.join( np.asarray( freqarr ).astype(str) )
     which_spec_arr_str = '-'.join( np.asarray( which_spec_arr ).astype(str) )
     parent_folder = 'results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust'
-    parent_folder = '%s/202310xx_modified_PBDR_config_for_Neff_paper/' %(parent_folder) #20231025 - modified PBDR config: https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
+    parent_folder = '%s/202310xx_modified_PBDR_config_for_Neff_paper/' % (parent_folder) #20231025 - modified PBDR config: https://docs.google.com/spreadsheets/d/10fL76XTzhgP_B_GKsEW4nqNTkRgvp2dh4zYh6Y-G2AE/edit#gid=0
 
     if expname.find('s4_all_chile_config_lat_')>-1 or expname.find('advanced_so')>-1:
         #parent_folder = 'results/s4_all_chile_config'
         parent_folder = 'results/s4_all_chile_config/report/'
 
     if final_comp != 'cmb':
-        parent_folder = '%s/%s/' %(parent_folder, final_comp)
+        parent_folder = '%s/%s/' % (parent_folder, final_comp)
 
     if noise_scalings_for_bands is not None and len(np.unique(noise_scalings_for_bands))>1: #20230530 - scale noise levels of bands
-        parent_folder = '%s/noise_scalings/' %(parent_folder)
+        parent_folder = '%s/noise_scalings/' % (parent_folder)
         noise_scalings_for_bands_str = '-'.join([str(n) for n in noise_scalings_for_bands])
-        noise_scalings_for_bands_str = '_noisescalings%s' %(noise_scalings_for_bands_str)
+        noise_scalings_for_bands_str = '_noisescalings%s' % (noise_scalings_for_bands_str)
 
     if s4_so_joint_configs:
-        parent_folder = '%s/s4_so_joint_configs/' %(parent_folder)
+        parent_folder = '%s/s4_so_joint_configs/' % (parent_folder)
     if null_comp is not None:
-        null_comp_str = 'nulled_%s' %('-'.join(null_comp))
-        parent_folder = '%s/%s/' %(parent_folder, null_comp_str)
+        null_comp_str = 'nulled_%s' % ('-'.join(null_comp))
+        parent_folder = '%s/%s/' % (parent_folder, null_comp_str)
 
     if param_dict['lmax']>5002:
-        parent_folder = '%s/lmax_%s/' %(parent_folder, param_dict['lmax'])    
-    parent_folder = '%s/%s/' %(parent_folder, expname)
+        parent_folder = '%s/lmax_%s/' % (parent_folder, param_dict['lmax'])    
+    parent_folder = '%s/%s/' % (parent_folder, expname)
 
-    opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' %(parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
+    opfname = '%s/%s_ilc_galaxy%s_%s_%s.npy' % (parent_folder, expname, include_gal, freqarr_str, which_spec_arr_str)
     if null_comp is not None:
-        opfname = '%s_%s.npy' %(opfname.replace('.npy', ''), null_comp_str)
+        opfname = '%s_%s.npy' % (opfname.replace('.npy', ''), null_comp_str)
 
     if not corr_noise:
         opfname = opfname.replace('.npy', '_nocorrnoise.npy')
 
     if expname.find('s4')>-1 or expname.find('cmbhd')>-1:
-        opfname = opfname.replace(parent_folder, '%s/planck_mask/TT-EE/baseline/' %(parent_folder))
+        opfname = opfname.replace(parent_folder, '%s/planck_mask/TT-EE/baseline/' % (parent_folder))
 
     if include_gal:
-        opfname = opfname.replace('.npy', '_galmask%s.npy' %(which_gal_mask))
+        opfname = opfname.replace('.npy', '_galmask%s.npy' % (which_gal_mask))
 
     if remove_atm:
         opfname = opfname.replace('.npy', '_noatmnoise.npy')
@@ -162,9 +162,9 @@ if (1): #20230530
         if len(cl_multiplier_dic) > 1:
             cl_multiplier_str = 'pilcmultfacs'
             for kkk in cl_multiplier_dic:
-                cl_multiplier_str = '%s-%s%s'%(cl_multiplier_str, kkk, cl_multiplier_dic[kkk])
+                cl_multiplier_str = '%s-%s%s'% (cl_multiplier_str, kkk, cl_multiplier_dic[kkk])
             cl_multiplier_str = cl_multiplier_str.strip('-')
-            opfname = opfname.replace('.npy', '_%s.npy' %(cl_multiplier_str))
+            opfname = opfname.replace('.npy', '_%s.npy' % (cl_multiplier_str))
 
     if include_gal:    
         cl_gal_folder = param_dict['cl_gal_folder']
@@ -180,17 +180,17 @@ if (1): #20230530
         pass
 
     if param_dict['lmax']!=5000:
-        opfname = opfname.replace('.npy', '_lmax%s.npy' %(param_dict['lmax']))
+        opfname = opfname.replace('.npy', '_lmax%s.npy' % (param_dict['lmax']))
 
     if noise_scalings_for_bands is not None and len(np.unique(noise_scalings_for_bands))>1: #20230530 - scale noise levels of bands
-        opfname = opfname.replace('.npy', '%s.npy' %(noise_scalings_for_bands_str))
+        opfname = opfname.replace('.npy', '%s.npy' % (noise_scalings_for_bands_str))
 
 
     opfolder = '/'.join(opfname.split('/')[:-1])
-    if not os.path.exists(opfolder): os.system('mkdir -p %s' %(opfolder))
+    if not os.path.exists(opfolder): os.system('mkdir -p %s' % (opfolder))
 
     if expname.lower().find('s4')>-1:#total_obs_time_default != total_obs_time:
-        opfname = opfname.replace('.npy', '_for%gyears.npy' %(total_obs_time))
+        opfname = opfname.replace('.npy', '_for%gyears.npy' % (total_obs_time))
         
     print(opfname)
 
@@ -337,7 +337,7 @@ for TPcntr, TP in enumerate( TParr ):
                 if (0):#freq1 == 93:# and freq2 == 145:
                     loglog(el, nl_s4_ultradeep, color = 'black', label = 'S4-Ultra deep'); loglog(el, nl_s4_wide, color = 'red', label = 'S4-Wide'); 
                     loglog(el, nl, color = 'darkgreen', label = 'S4'); 
-                    title('%s: (%s, %s)' %(TP, freq1, freq2)); legend(loc = 3); show()
+                    title('%s: (%s, %s)' % (TP, freq1, freq2)); legend(loc = 3); show()
 
             nl_dic[TP][(freq1, freq2)] = nl
 
@@ -373,9 +373,9 @@ if (0):
         
         if use_dls:
             dl_fac = el * (el+1)/2/np.pi
-            plot(el, dl_fac * currnl, label = '%s GHz ' %(freq), ls = '-', color = color_arr[fcntr])
+            plot(el, dl_fac * currnl, label = '%s GHz ' % (freq), ls = '-', color = color_arr[fcntr])
         else:
-            plot(el, currnl, label = r'%s GHz (%.2f $\mu$K-arcmin)' %(freq, noise_uk_arcmin), ls = '-', color = color_arr[fcntr])
+            plot(el, currnl, label = r'%s GHz (%.2f $\mu$K-arcmin)' % (freq, noise_uk_arcmin), ls = '-', color = color_arr[fcntr])
         #plot(nl_dic_actual['T'][(freq,freq)], lw = 2., color = colordic[freq])
     legend(loc = 1)
     if not use_dls:
@@ -387,7 +387,7 @@ if (0):
     xlabel(r'Multipole $\ell$', fontsize = 14)
     expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer').replace('_', r'\_')
     ##expname_str = 'S4-Wide'
-    title(r'%s' %(expname_str), fontsize = 14)
+    title(r'%s' % (expname_str), fontsize = 14)
     ##savefig('s4_wide_nl.png', dpi= 200.); sys.exit()
     show(); sys.exit()
 
@@ -513,7 +513,7 @@ if include_gal:
     cl_gal_dic_dust_fname = param_dict['cl_gal_dic_dust_fname']
     try:
         cl_gal_folder = param_dict['cl_gal_folder']
-        cl_gal_dic_dust_fname = '%s/%s' %(cl_gal_folder, cl_gal_dic_dust_fname)
+        cl_gal_dic_dust_fname = '%s/%s' % (cl_gal_folder, cl_gal_dic_dust_fname)
     except:
         pass
     galdustsims_cl = np.load(cl_gal_dic_dust_fname, allow_pickle=1, encoding = 'latin1').item()

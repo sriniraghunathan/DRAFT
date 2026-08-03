@@ -1,4 +1,7 @@
+import warnings
+
 import numpy as np
+
 import flatsky
 
 #################################################################################
@@ -22,7 +25,7 @@ def get_param_dict(paramfile):
                 pval = float(pval)
                 if int(pval) == float(pval):
                     pval = int(pval)
-            except:
+            except (ValueError, OverflowError):
                 pass
         # replace unallowed characters in paramname
         p = p.replace('(','').replace(')','')
@@ -40,7 +43,7 @@ def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam = None, make_2d = 0, mappar
         
         if make_2d:
             assert mapparams is not None
-            el = np.arange(len(bl_dic[freq]))
+            #el = np.arange(len(bl_dic[freq]))
             bl_dic[freq] = flatsky.cl_to_cl2d(el, bl_dic[freq], mapparams) 
 
     if opbeam is not None:
@@ -63,10 +66,11 @@ def rebeam(bl_dic, threshold = 1000.):
     bl_eff = bl_dic['effective']
     rebeamarr = []
     for freq in freqarr:
-        if freq == 'effective': continue
-        bad_inds = np.where(bl_dic[freq]<0)
-        bl_dic[freq][bad_inds] = 0.
-        currinvbeamval = 1./bl_dic[freq]
+        #if freq == 'effective': continue
+        currbl = np.copy( np.asarray(bl_dic[freq], dtype = float) )
+        currinvbeamval = np.zeros_like( currbl )
+        np.divide(1., currbl, out = currinvbeamval, where = (currbl > 0.))
+        currinvbeamval[currbl <= 0.] = threshold
         currinvbeamval[currinvbeamval>threshold] = threshold
         rebeamval = bl_eff * currinvbeamval
         rebeamarr.append( rebeamval )
@@ -117,17 +121,17 @@ def get_bl(beamval, el):
     sigma2 = sigma ** 2
     bl = np.exp(el * (el+1) * sigma2)
 
-    #bl = np.exp(-0.5*el * (el+1) * sigma2) ##traditionally this is how it is written. But note that I do the inverse and this funciton returns bl**2
+    #bl = np.exp(-0.5*el * (el+1) * sigma2) ##traditionally this is how it is written. But note that I do the inverse and this function returns 1/bl**2
     return bl
 
 ################################################################################################################
 
-def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1., so_like = False):
+def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1.): #, so_like = False):
 
     if Nred1!= -1:
         total_years = 5.
         fsky = 0.4 #0.35
-        survey_time = 1.
+        #survey_time = 1.
         obs_efficiency = 0.2
         noisy_map_eges_ign_factor = 0.15
         single_year = 365.25 * 24. * 3600. * obs_efficiency * (1.-noisy_map_eges_ign_factor)
@@ -151,36 +155,30 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
     el = np.asarray(el, dtype = float)
     el_safe = np.where(el > 0., el, np.inf)
 
-    if use_beam_window:
-        bl = get_bl(beamval, el)
-        if cross_band_noise: bl2 = get_bl(beamval2, el)
-
     delta_T_radians = noiseval * np.radians(1./60.)
-    #nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
-    #nl = np.asarray( [nl[int(l)] for l in el] )
     nl = np.full(len(el), delta_T_radians**2.)
-    nl_white = np.copy(nl)
+    #nl_white = np.copy(nl)
 
     if cross_band_noise:
         delta_T2_radians = noiseval2 * np.radians(1./60.)
-        nl2 = np.tile(delta_T2_radians**2., int(max(el)) + 1 )
-        nl2 = np.asarray( [nl2[int(l)] for l in el] )
-        nl2_white = np.copy(nl2)
+    #    nl2 = np.full(len(el), delta_T2_radians**2.)
+    #    nl2_white = np.copy(nl2)
 
-    if use_beam_window: 
-        nl *= bl
-        if cross_band_noise: nl2 *= bl2
+    if use_beam_window:
+        nl = nl * get_bl(beamval, el)
+    #    if cross_band_noise:
+    #        nl2 = nl2 * get_bl(beamval2, el)
 
     if elknee != -1.:
         if Nred1==-1:
-            nl = np.copy(nl) * (1. + (elknee * 1./el_safe)**alphaknee )
+            nl = np.copy(nl) * (1. + (elknee * 1./el_safe)**alphaknee)
         else:
-            nl = np.copy(nl) + Nred1*(elknee * 1./el_safe)**alphaknee
-            if cross_band_noise and elknee2 != -1.:
-                if Nred2==-1:
-                    nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
-                else:
-                    nl2 = np.copy(nl2) + Nred2*(elknee2 * 1./el)**alphaknee2
+            nl = np.copy(nl) + Nred1 * (elknee * 1./el_safe)**alphaknee
+    #        if cross_band_noise and elknee2 != -1.:
+    #            if Nred2==-1:
+    #                nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2)
+    #            else:
+    #                nl2 = np.copy(nl2) + Nred2*(elknee2 * 1./el)**alphaknee2
 
     if cross_band_noise and (elknee != -1. and elknee2 != -1.):
         ###final_nl = rho * nl**0.5 * nl2**0.5
@@ -191,62 +189,69 @@ def get_nl(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1,
 
     return final_nl
 
-def get_nl_v1(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1.):
-
-    cross_band_noise = 0
-    if noiseval2 is not None and beamval2 is not None:
-        assert rho is not None
-        cross_band_noise = 1
-
-    if uk_to_K: 
-        noiseval = noiseval/1e6
-        if cross_band_noise: noiseval2 = noiseval2/1e6
-
-    if use_beam_window:
-        bl = get_bl(beamval, el)
-        if cross_band_noise: bl2 = get_bl(beamval2, el)
-
-    delta_T_radians = noiseval * np.radians(1./60.)
-    nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
-    nl = np.asarray( [nl[int(l)] for l in el] )
-    nl_white = np.copy(nl)
-
-    if cross_band_noise:
-        delta_T2_radians = noiseval2 * np.radians(1./60.)
-        nl2 = np.tile(delta_T2_radians**2., int(max(el)) + 1 )
-        nl2 = np.asarray( [nl2[int(l)] for l in el] )
-        nl2_white = np.copy(nl2)
-
-    if use_beam_window: 
-        nl *= bl
-        if cross_band_noise: nl2 *= bl2
-
-    if elknee != -1.:
-        if Nred1==-1:
-            nl = np.copy(nl) * (1. + (elknee * 1./el)**alphaknee )
-        else:
-            nl = np.copy(nl) + Nred1*(elknee * 1./el)**alphaknee
-            if cross_band_noise and elknee2 != -1.:
-                if Nred2==-1:
-                    nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
-                else:
-                    nl2 = np.copy(nl2) + Nred2*(elknee2 * 1./el)**alphaknee2
-
-    if cross_band_noise and (elknee != -1. and elknee2 != -1.):
-        ###final_nl = rho * nl**0.5 * nl2**0.5
-        final_nl = rho * delta_T_radians * (elknee * 1./el)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el)**(alphaknee2/2.)
-        #N[i,j,:] = rho * (w1*np.pi/180./60. * (ell/knee1)**(gamma1/2)) * (w2*np.pi/180./60. * (ell/knee2)**(gamma2/2))
-    else:
-        final_nl = np.copy(nl)
-
-    return final_nl
+#def get_nl_v1(noiseval, el, beamval, use_beam_window = 1, uk_to_K = 0, elknee = -1, alphaknee = 0, beamval2 = None, noiseval2 = None, elknee2 = -1, alphaknee2 = 0, rho = None, Nred1 = -1., Nred2=-1.):
+#
+#    cross_band_noise = 0
+#    if noiseval2 is not None and beamval2 is not None:
+#        assert rho is not None
+#        cross_band_noise = 1
+#
+#    if uk_to_K: 
+#        noiseval = noiseval/1e6
+#        if cross_band_noise: noiseval2 = noiseval2/1e6
+#
+#    if use_beam_window:
+#        bl = get_bl(beamval, el)
+#        if cross_band_noise: bl2 = get_bl(beamval2, el)
+#
+#    delta_T_radians = noiseval * np.radians(1./60.)
+#    nl = np.tile(delta_T_radians**2., int(max(el)) + 1 )
+#    nl = np.asarray( [nl[int(l)] for l in el] )
+#    nl_white = np.copy(nl)
+#
+#    if cross_band_noise:
+#        delta_T2_radians = noiseval2 * np.radians(1./60.)
+#        nl2 = np.tile(delta_T2_radians**2., int(max(el)) + 1 )
+#        nl2 = np.asarray( [nl2[int(l)] for l in el] )
+#        nl2_white = np.copy(nl2)
+#
+#    if use_beam_window: 
+#        nl *= bl
+#        if cross_band_noise: nl2 *= bl2
+#
+#    if elknee != -1.:
+#        if Nred1==-1:
+#            nl = np.copy(nl) * (1. + (elknee * 1./el)**alphaknee )
+#        else:
+#            nl = np.copy(nl) + Nred1*(elknee * 1./el)**alphaknee
+#            if cross_band_noise and elknee2 != -1.:
+#                if Nred2==-1:
+#                    nl2 = np.copy(nl2) * (1. + (elknee2 * 1./el)**alphaknee2 )
+#                else:
+#                    nl2 = np.copy(nl2) + Nred2*(elknee2 * 1./el)**alphaknee2
+#
+#    if cross_band_noise and (elknee != -1. and elknee2 != -1.):
+#        ###final_nl = rho * nl**0.5 * nl2**0.5
+#        final_nl = rho * delta_T_radians * (elknee * 1./el)**(alphaknee/2.) * delta_T2_radians * (elknee2 * 1./el)**(alphaknee2/2.)
+#        #N[i,j,:] = rho * (w1*np.pi/180./60. * (ell/knee1)**(gamma1/2)) * (w2*np.pi/180./60. * (ell/knee2)**(gamma2/2))
+#    else:
+#        final_nl = np.copy(nl)
+#
+#    return final_nl
 
 ################################################################################################################
-def get_delta_cl(el, cl, nl, fsky = 1., delta_l = 1.):
+
+#def get_delta_cl(el, cl, nl, fsky = 1., delta_l = 1.):
+def get_delta_cl(el, cl, nl = None, fsky = 1., delta_l = 1.):
+    
+    if nl is not None and np.any(np.asarray(nl) != 0.):
+        warnings.warn("nl provided but not used: get_delta_cl currently returns sample variance only",
+                      stacklevel = 2)
 
     delta_cl = np.sqrt(2./ (2.*el + 1) / fsky / delta_l) * (cl)## + nl)
 
     return delta_cl
+
 ################################################################################################################
 
 def get_apod_mask(ra_grid, dec_grid, mask_radius = 2., taper_radius = 6., in_arcmins = 1):
