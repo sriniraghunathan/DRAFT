@@ -1,9 +1,26 @@
+"""
+Instrument specifications for the experiment configurations supported by get_ilc_residuals.py.
+
+The module exposes a single function, ``get_exp_specs``, which maps an experiment name onto the per-band beams, white-noise levels and atmospheric-noise parameters from which the noise power spectra are built in ``misc.get_nl``.
+
+Seven experiment families are covered:
+
+* CMB-S4: the CMB-S4 Wide and CMB-S4 Ultra-deep variants, the preliminary baseline/conceptual design, and the Chile-only revised configurations, which may be combined with an SO-like LAT,
+* CMB-HD,
+* AtLAST,
+* Advanced Simons Observatory,
+* Simons Observatory, baseline and goal,
+* South Pole Telescope: SPT-SZ, SPTpol and SPT-3G,
+* Planck.
+
+``get_exp_specs`` is called by ``get_ilc_residuals.py``.
+``data_folder`` points at the repository's ``data`` directory and is used to load the per-patch survey noise levels needed by the Chile-only revised configurations.
+"""
+
 import os
 import warnings
 
 import numpy as np
-
-#import copy, sys
 
 
 #data directory, resolved relative to the repo root rather than the current working directory
@@ -11,6 +28,95 @@ data_folder = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__fi
 
 
 def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
+    r"""
+    Beams, noise levels and atmospheric-noise parameters for one experiment configuration.
+
+    Each frequency band is described by a beam full-width at half-maximum :math:`\theta_b` in arcminutes, a white-noise level :math:`\Delta_X` in :math:`\mathrm{\mu K}\,\mathrm{arcmin}` for temperature and polarization (:math:`X = T, P`), and the low-frequency (1/f)/atmospheric parameters :math:`\ell_\mathrm{knee}` and :math:`\alpha_\mathrm{knee}` entering
+
+    .. math::
+
+        N_\ell^X = \Delta_X^2 B_\ell^{-2} \left[ 1 + \left( \frac{\ell_\mathrm{knee}}{\ell} \right)^{\!\alpha_\mathrm{knee}} \right] ,
+
+    as evaluated by :func:`misc.get_nl`. An :math:`\ell_\mathrm{knee}` of ``-1`` disables the atmospheric term for that band.
+
+    Parameters
+    ----------
+    expname : str
+        Experiment configuration. The recognized configurations, grouped by experiment:
+
+        * **CMB-S4**, selected by ``s4`` appearing anywhere in the name:
+
+          - ``s4wide``, and the detector-scaled variants ``s4wide_scaled_sobaseline``, ``s4wide_scaled_aso``, ``s4wide_single_chlat`` and ``s4wide_single_chlat_plus_aso``
+          - ``s4wide_scaled_aso_plus_fulls4scaledsobaseline`` and ``s4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline``, which add a full SO-baseline-scaled CMB-S4. Only these two names accept that suffix
+          - ``s4wide_202310xx_pbdr_config``, ``s4deepv3r025_202310xx_pbdr_config``, ``s4wide_acheived_performance_pbdr_202312xx``, ``s4wide_chlat_el40``
+          - ``s4deep``, ``s4deepv3r025``, ``s4deepv3r025_tma``
+          - the Chile-only revised configurations, ``s4_all_chile_config_<survey>---patch<N>[---year<Y>]``, optionally combined with an SO-like LAT by appending ``+advanced_so_baseline`` or ``+advanced_so_goal``, itself optionally suffixed ``---year<Z>``.
+            ``<survey>`` is one of ``lat_wide``, ``lat_wide_phase2``, ``lat_wide_dc0``, ``lat_roman`` or ``lat_delensing``, and ``<N>`` selects a sky patch, both looked up in ``data/cmbs4_chile_opt_survey_patch_noise_levels.npy``.
+
+        * **CMB-HD**, selected by ``cmbhd`` or ``cmb-hd`` appearing anywhere in the name.
+        * **AtLAST**, selected by ``atlast``: ``atlast`` or ``atlast_dummy``.
+        * **Advanced Simons Observatory**, selected by ``advanced_so``: ``advanced_so_baseline`` or ``advanced_so_goal``, optionally suffixed ``---year<Y>``.
+        * **Simons Observatory**: ``sobaseline`` or ``sogoal``, case insensitive. (``ccat_prime_so`` reaches this family but has no noise levels defined and raises.)
+        * **South Pole Telescope**, selected by ``spt``: ``sptsz``, ``sptpol``, ``sptpol_summer``, ``sptpolsummer``, ``sptpolultradeep``, ``sptpolultradeepplus3g``, ``sptpolplusultradeep``, ``sptpolplusultradeepplus3g``, ``sptpolplusultradeepplus3gfull``, ``spt3g``, ``spt3gsummer``, ``spt3g_summer``, ``spt3g_y12``, ``spt3g_ZP``, ``spt3g_TC``, ``spt3g_WG2``, ``spt3g_plus_spt3g+_WG2``.
+        * **Planck**: ``planck``, case insensitive.
+
+        The tests are applied in the order above and are substring matches, so a name containing ``s4``, ``atlast``, ``advanced_so`` or ``spt`` anywhere is routed to that family.
+        CMB-S4 and CMB-HD share a single dispatch test, so a name matching both is given the CMB-HD specifications.
+    corr_noise_for_spt : int, optional
+        Whether the SPT bands carry correlated atmospheric noise. Ignored by every other family, whose correlated-noise setting is fixed in the source. Default 1.
+    remove_atm : int, optional
+        If non-zero, switch off the atmospheric term by setting :math:`\ell_\mathrm{knee}` to ``-1`` and :math:`\alpha_\mathrm{knee}` to zero. Honored only by the Simons Observatory and South Pole Telescope families. Default 0.
+
+    Returns
+    -------
+    specs_dic : dict
+        Per-band specifications, keyed by frequency band centre in GHz.
+        Each value is the seven-element list ``[beam_fwhm, delta_T, elknee_T, alphaknee_T, delta_P, elknee_P, alphaknee_P]``, with the beam in arcminutes and both noise levels in :math:`\mathrm{\mu K}\,\mathrm{arcmin}`.
+    corr_noise_bands : dict
+        For each band, the list of bands its atmospheric noise is correlated with.
+        A band mapped to itself alone has no correlated partner, so the corresponding cross-band noise is zero.
+    rho : float
+        Correlation coefficient between the atmospheric noise of two correlated bands, passed to :func:`misc.get_nl`.
+    corr_noise : int
+        Whether correlated atmospheric noise is modelled for this configuration.
+    Nred_dic : dict
+        Red-noise amplitudes in :math:`\mathrm{\mu K}^2\,\mathrm{s}`, keyed by band, each a ``[Nred_T, Nred_P]`` pair in which ``-1`` disables the treatment.
+        Empty except for the Simons Observatory family.
+
+    Raises
+    ------
+    ValueError
+        If ``expname`` is not a string, if it matches no family or matches a family but none of its configurations, if the Chile-only or Advanced SO name does not follow the ``---patch<N>`` / ``---year<Y>`` grammar, or if a parsed observing time is not positive.
+
+    Warns
+    -----
+    UserWarning
+        If ``remove_atm`` is set for a CMB-S4, CMB-HD, AtLAST or Advanced SO configuration, none of which implement it. The atmospheric term is retained.
+
+    Notes
+    -----
+    Polarization noise levels are :math:`\Delta_P = \sqrt{2} \Delta_T` unless the configuration quotes them separately.
+    Bands with no usable data in a given configuration are given a large :math:`\Delta_X` rather than being omitted, so that the ILC weights them to zero.
+
+    Observing times are handled by rescaling the reference white-noise level of a configuration from its reference duration :math:`t_\mathrm{ref}` to the requested :math:`t`:
+
+    .. math::
+
+        \Delta_X \rightarrow \Delta_X \sqrt{ t_\mathrm{ref} / t } .
+
+    Configurations that combine two instruments do so by inverse-variance weighting of the white-noise levels band by band:
+
+    .. math::
+
+        \Delta_X = \left( \Delta_{X,1}^{-2} + \Delta_{X,2}^{-2} \right)^{-1/2} .
+
+    The returned dictionaries are built afresh on every call, so callers may mutate them without affecting later calls.
+    ``rho`` is returned regardless of ``corr_noise`` and is unused when it is zero, in which case its value differs between families and should not be relied on.
+    """
+
+    if not isinstance(expname, str):
+        raise ValueError('expname must be a string; got %s' % (type(expname).__name__))
+
     Nred_dic = {}
 
     if expname.find('s4') > -1 or expname.find('cmbhd') > -1 or expname.find('cmb-hd') > -1:
@@ -432,7 +538,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
         for nu in specs_dic:
             corr_noise_bands[nu] = [nu]
 
-    elif expname.lower().find('advanced_so') > -1: #20250504
+    elif expname.find('advanced_so') > -1: #20250504
         if remove_atm:
             warnings.warn('remove_atm is not implemented for Advanced SO configurations; the atmospheric term is retained', stacklevel=2)
         #https://arxiv.org/pdf/2503.00636

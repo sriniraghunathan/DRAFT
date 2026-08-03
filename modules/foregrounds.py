@@ -1,40 +1,111 @@
+r"""
+Foreground power spectra supporting the ILC noise and residual calculation in get_ilc_residuals.py.
+
+The module is grouped into four sections:
+
+* Unit conversions and spectral functions: ``coth``, ``dl_to_cl``, ``get_BnuT``, ``get_dB_dT``, ``compton_y_to_delta_Tcmb``
+* Power-law fitting: ``power_law``, ``perform_power_law_fit``, ``smooth_cib_spectra``
+* Galactic foregrounds: ``scale_cl_dust_galactic``, ``get_cl_dust_galactic``, ``get_cl_galactic``
+* Extragalactic foregrounds: ``get_foreground_power_spt``, ``get_cl_dust_cib``, ``scale_cl_dust_cib``, ``get_cl_tsz``, ``get_cl_tsz_cib``, ``get_cl_radio``
+
+``get_BnuT``, ``get_dB_dT``, ``get_cl_galactic``, ``get_foreground_power_spt``, ``get_cl_dust_cib``, ``get_cl_tsz``, ``get_cl_tsz_cib`` and ``get_cl_radio`` are called by ``ilc.py``.
+``scale_cl_dust_cib``, ``smooth_cib_spectra`` and ``get_cl_dust_galactic`` are standalone utilities that are currently not used elsewhere in this repository.
+The remaining routines are internal helpers.
+
+Power spectra are in units of :math:`\mathrm{\mu K}^2` unless stated otherwise.
+Frequencies are in GHz throughout.
+"""
+
 import os
 import warnings
 
 import numpy as np
+from scipy.io import readsav
 from scipy.optimize import curve_fit, leastsq
 
-#from pylab import *
+import misc
 
-#import ilc
 
-# Constants
+#Planck constant, Boltzmann constant and speed of light (in SI units)
 h, k_B, c = 6.62607004e-34, 1.38064852e-23, 2.99792458e8
-# Cache for the galactic sim spectra: get_cl_galactic is called once per band pair and the files are ~40MB
-_cl_gal_cache = {}
-# Resolve the data directory relative to the repo root, not the current working directory
+
+#the data directory, resolved relative to the repo root rather than the current working directory
 data_folder = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data' )
+
+#cache for the galactic sim spectra: get_cl_galactic is called once per band pair
+_cl_gal_cache = {}
 
 ################################################################################################################
 
-def compton_y_to_delta_Tcmb(freq1, freq2=None, Tcmb=2.73):  #default is 2.73, get_dB_dT and get_BnuT use 2.725
+def compton_y_to_delta_Tcmb(freq, freq_max=None, Tcmb=2.73):  #default is 2.73, get_dB_dT and get_BnuT use 2.725
+    r"""
+    Convert Compton-y to a CMB temperature fluctuation.
 
-    if freq1 < 1e4: freq1 = freq1 * 1e9
-    if freq2 is not None:
-        if freq2 < 1e4: freq2 = freq2 * 1e9
-        freq = np.arange(freq1, freq2, delta_nu)  #fix undefined delta_nu
+    The thermal SZ spectral function in the non-relativistic limit is
+
+    .. math::
+
+        g(x) = x \coth(x/2) - 4\, , \qquad x = \frac{h \nu}{k_\mathrm{B} T_\mathrm{CMB}}\, .
+
+    This function returns :math:`T_\mathrm{CMB} \langle g \rangle`, so that :math:`\Delta T = y` times the returned value.
+
+    Parameters
+    ----------
+    freq : float
+        Frequency in GHz.
+    freq_max : float, optional
+        Upper end of a frequency band. If given, :math:`g` is averaged across the band rather than evaluated at a single frequency. (Currently not usable.)
+    Tcmb : float, optional
+        CMB temperature in K. Default 2.73.
+
+    Returns
+    -------
+    delta_tcmb : float
+        Conversion factor from Compton-y to :math:`\Delta T_\mathrm{CMB}`, in the units of ``Tcmb``.
+
+    Raises
+    ------
+    ValueError
+        If ``freq`` or ``freq_max`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
+    NotImplementedError
+        If ``freq_max`` is given. Band averaging is not implemented.
+    """
+
+    misc.check_freqs_in_ghz(freq, freq_max)
+    freq = freq * 1e9
+    if freq_max is not None:
+        #freq_max = freq_max * 1e9
+        #freq_arr = np.arange(freq, freq_max, delta_nu)  #fix undefined delta_nu
+        raise NotImplementedError('Band averaging is not implemented yet')
     else:
-        freq = np.asarray([freq1])
+        freq_arr = np.asarray([freq])
 
-    x = (h * freq) / (k_B * Tcmb)
+    x = (h * freq_arr) / (k_B * Tcmb)
     g_nu = x * coth(x/2.) - 4.
 
     return Tcmb * np.mean(g_nu)
 
 
 def dl_to_cl(dl, dl_fac):
-    """
-    Convert Dls -> Cls. dl_fac = l(l+1)/2pi vanishes at l = 0, so divide only where it is non-zero
+    r"""
+    Convert :math:`D_\ell` to :math:`C_\ell`.
+
+    .. math::
+
+        C_\ell = \frac{2\pi}{\ell(\ell+1)} D_\ell
+
+    Parameters
+    ----------
+    dl : array_like
+        Power spectrum :math:`D_\ell`.
+    dl_fac : array_like
+        Conversion factor :math:`\ell(\ell+1)/(2\pi)`, same shape as ``dl``.
+
+    Returns
+    -------
+    cl : ndarray
+        Power spectrum :math:`C_\ell`, same shape as ``dl``.
+        Entries where ``dl_fac`` is zero are set to zero instead of dividing, so :math:`\ell = 0` is safe.
     """
 
     cl = np.zeros_like( np.asarray(dl, dtype=float) )
@@ -43,8 +114,52 @@ def dl_to_cl(dl, dl_fac):
     return cl
 
 
-def get_cl_dust(freq1, freq2, fg_model='george15', freq0=150, spec_index_dg_po=1.505-0.077, spec_index_dg_clus=2.51-0.2, Tcib=20., reduce_cib_power=None):
+def get_cl_dust_cib(freq1, freq2, fg_model='george15', freq0=150, spec_index_dg_po=1.505-0.077, spec_index_dg_clus=2.51-0.2, Tcib=20., reduce_cib_power=None):
+    r"""
+    Cosmic infrared background power spectra (Poisson and clustered).
 
+    The George et al. 2015 spectra at ``freq0`` are anchored at :math:`\ell = 3000` and scaled to the requested pair of frequencies with a modified blackbody,
+
+    .. math::
+
+        \eta_\nu = \nu^\beta B_\nu(T_\mathrm{CIB})\, ,
+
+    and converted from flux to CMB temperature units with :math:`\epsilon_{\nu_1 \nu_2} = (\mathrm{d}B/\mathrm{d}T|_{\nu_0})^2 / (\mathrm{d}B/\mathrm{d}T|_{\nu_1} \mathrm{d}B/\mathrm{d}T|_{\nu_2})`.
+    The Poisson term then follows :math:`D_\ell \propto \ell^2` and the clustered term :math:`D_\ell \propto \ell^{0.8}`.
+
+    Parameters
+    ----------
+    freq1, freq2 : float
+        Frequencies of the two channels in GHz.
+    fg_model : str, optional
+        Foreground model, ``'george15'`` or ``'reichardt21'``. Both use the same template here. Default ``'george15'``.
+    freq0 : float, optional
+        Reference frequency in GHz at which the template is normalized. Default 150.
+    spec_index_dg_po : float, optional
+        Modified blackbody spectral index :math:`\beta` of the Poisson term. Default ``1.505 - 0.077``.
+    spec_index_dg_clus : float, optional
+        Modified blackbody spectral index :math:`\beta` of the clustered term. Default ``2.51 - 0.2``.
+    Tcib : float, optional
+        CIB dust temperature in K. Default 20.
+    reduce_cib_power : float, optional
+        If given, the ``freq0`` CIB power is divided by this factor before scaling.
+
+    Returns
+    -------
+    el : ndarray
+        Multipole moments :math:`\ell`.
+    cl_dg_po : ndarray
+        Poisson CIB spectrum.
+    cl_dg_clus : ndarray
+        Clustered CIB spectrum.
+
+    Raises
+    ------
+    ValueError
+        If ``fg_model`` is not one of the supported models.
+    """
+
+    misc.check_freqs_in_ghz(freq0, freq1, freq2)
     if fg_model not in ['george15', 'reichardt21']:
         raise ValueError("fg_model must be 'george15' or 'reichardt21', got %s" % (fg_model))
     el, cl_dg_po_freq0 = get_foreground_power_spt('DG-Po', freq1=freq0, freq2=freq0)
@@ -91,7 +206,45 @@ def get_cl_dust(freq1, freq2, fg_model='george15', freq0=150, spec_index_dg_po=1
     return el, cl_dg_po, cl_dg_clus
 
 
-def scale_cl_dust(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slope, el_norm=3000):
+def scale_cl_dust_cib(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slope, el_norm=3000):
+    r"""
+    Rescale a dust power spectrum from one frequency to a pair of frequencies.
+
+    The input spectrum at ``freq0`` is anchored at ``el_norm``, scaled with the modified blackbody of :func:`get_cl_dust_cib` and given the shape :math:`D_\ell \propto \ell^{\mathrm{el\_slope}}`.
+
+    Parameters
+    ----------
+    el : array_like
+        Multipole moments :math:`\ell`.
+    cl_dust_freq0 : array_like
+        Dust spectrum :math:`C_\ell` at ``freq0``, same shape as ``el``.
+    freq0 : float
+        Reference frequency in GHz.
+    freq1, freq2 : float
+        Frequencies of the two channels in GHz.
+    beta : float
+        Modified blackbody spectral index.
+    Tcib : float
+        Dust temperature in K.
+    el_slope : float
+        Power-law slope of :math:`D_\ell`.
+    el_norm : float, optional
+        Multipole at which the input spectrum is anchored. Must be present in ``el``. Default 3000.
+
+    Returns
+    -------
+    el : ndarray
+        Multipole moments, unchanged from the input.
+    cl_dust : ndarray
+        Rescaled spectrum :math:`C_\ell`.
+
+    Raises
+    ------
+    IndexError
+        If ``el_norm`` is not present in ``el``.
+    """
+
+    misc.check_freqs_in_ghz(freq0, freq1, freq2)
 
     #convert to Dls
     dl_fac = el * (el+1)/2/np.pi
@@ -119,14 +272,49 @@ def scale_cl_dust(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slope, 
 
 
 def get_cl_tsz(freq1, freq2, freq0=150, fg_model='george15', reduce_tsz_power=None):
+    r"""
+    Thermal Sunyaev-Zel'dovich power spectrum.
 
+    The template at ``freq0`` is scaled by the ratio of tSZ spectral functions,
+
+    .. math::
+
+        C_\ell^{\nu_1 \nu_2} = C_\ell^{\nu_0 \nu_0} \frac{g(\nu_1) g(\nu_2)}{g(\nu_0)^2}\, ,
+
+    with :math:`g` as returned by :func:`compton_y_to_delta_Tcmb`.
+
+    Parameters
+    ----------
+    freq1, freq2 : float
+        Frequencies of the two channels in GHz.
+    freq0 : float, optional
+        Reference frequency in GHz. Default 150.
+    fg_model : str, optional
+        Foreground model, ``'george15'`` or ``'reichardt21'``. Both use the same template here. Default ``'george15'``.
+    reduce_tsz_power : float, optional
+        If given, the scaled spectrum is divided by this factor.
+
+    Returns
+    -------
+    el : ndarray
+        Multipole moments :math:`\ell`.
+    cl_tsz : ndarray
+        tSZ power spectrum.
+
+    Raises
+    ------
+    ValueError
+        If ``fg_model`` is not one of the supported models.
+    """
+
+    misc.check_freqs_in_ghz(freq0, freq1, freq2)
     if fg_model not in ['george15', 'reichardt21']:
         raise ValueError("fg_model must be 'george15' or 'reichardt21', got %s" % (fg_model))
     el, cl_tsz_freq0 = get_foreground_power_spt('tSZ', freq1=freq0, freq2=freq0)
 
-    tsz_fac_freq0 = compton_y_to_delta_Tcmb(freq0*1e9)
-    tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1*1e9)
-    tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2*1e9)
+    tsz_fac_freq0 = compton_y_to_delta_Tcmb(freq0)
+    tsz_fac_freq1 = compton_y_to_delta_Tcmb(freq1)
+    tsz_fac_freq2 = compton_y_to_delta_Tcmb(freq2)
 
     scalefac = tsz_fac_freq1 * tsz_fac_freq2 / (tsz_fac_freq0**2.)
 
@@ -141,7 +329,47 @@ def get_cl_tsz(freq1, freq2, freq0=150, fg_model='george15', reduce_tsz_power=No
 
 
 def get_cl_tsz_cib(freq1, freq2, freq0=150, fg_model='george15', spec_index_dg_po=1.505-0.077, spec_index_dg_clus=2.51-0.2, Tcib=20., cl_cib_dic=None, reduce_tsz_power=None):  #, cib_flux_threshold=1.5):
+    r"""
+    Correlated thermal SZ and CIB power spectrum.
 
+    .. math::
+
+        C_\ell^{\mathrm{tSZ} \times \mathrm{CIB}} = -\rho \left( \sqrt{C_\ell^{\mathrm{tSZ}, \nu_1 \nu_1} C_\ell^{\mathrm{CIB}, \nu_2 \nu_2}} + \sqrt{C_\ell^{\mathrm{tSZ}, \nu_2 \nu_2} C_\ell^{\mathrm{CIB}, \nu_1 \nu_1}} \right)
+
+    The correlation coefficient :math:`\rho` is 0.1 for ``'george15'`` and 0.078 for ``'reichardt21'``.
+
+    Parameters
+    ----------
+    freq1, freq2 : float
+        Frequencies of the two channels in GHz.
+    freq0 : float, optional
+        Reference frequency in GHz. Default 150.
+    fg_model : str, optional
+        Foreground model, ``'george15'`` or ``'reichardt21'``. Only :math:`\rho` differs between them. Default ``'george15'``.
+    spec_index_dg_po, spec_index_dg_clus : float, optional
+        Modified blackbody spectral indices of the Poisson and clustered CIB terms. Default ``1.505 - 0.077`` and  ``2.51 - 0.2``.
+    Tcib : float, optional
+        CIB dust temperature in K. Default 20.
+    cl_cib_dic : dict, optional
+        CIB auto-spectra keyed by ``(freq, freq)``, each an ``(el, cl)`` pair.
+        If given, these replace the spectra that would otherwise come from :func:`get_cl_dust_cib`.
+    reduce_tsz_power : float, optional
+        If given, both tSZ auto-spectra are divided by this factor.
+
+    Returns
+    -------
+    el : ndarray
+        Multipole moments :math:`\ell`.
+    cl_tsz_cib : ndarray
+        Correlated tSZ x CIB spectrum.
+
+    Raises
+    ------
+    ValueError
+        If ``fg_model`` is not one of the supported models.
+    """
+
+    misc.check_freqs_in_ghz(freq0, freq1, freq2)
     if fg_model not in ['george15', 'reichardt21']:
         raise ValueError("fg_model must be 'george15' or 'reichardt21', got %s" % (fg_model))
     if fg_model == 'george15':
@@ -154,7 +382,7 @@ def get_cl_tsz_cib(freq1, freq2, freq0=150, fg_model='george15', spec_index_dg_p
         el, cl_dg_freq1_freq1 = cl_cib_dic[(freq1, freq1)]
     else:
         #get tSZ and CIB spectra for freq1
-        el, cl_dg_po_freq1_freq1, cl_dg_clus_freq1_freq1 = get_cl_dust(freq1, freq1, freq0=freq0, fg_model=fg_model, spec_index_dg_po=spec_index_dg_po, spec_index_dg_clus=spec_index_dg_clus, Tcib=Tcib)
+        el, cl_dg_po_freq1_freq1, cl_dg_clus_freq1_freq1 = get_cl_dust_cib(freq1, freq1, freq0=freq0, fg_model=fg_model, spec_index_dg_po=spec_index_dg_po, spec_index_dg_clus=spec_index_dg_clus, Tcib=Tcib)
         cl_dg_freq1_freq1 = cl_dg_po_freq1_freq1 + cl_dg_clus_freq1_freq1
 
     #get tSZ and CIB spectra for freq2
@@ -162,8 +390,11 @@ def get_cl_tsz_cib(freq1, freq2, freq0=150, fg_model='george15', spec_index_dg_p
     if cl_cib_dic is not None:
         el, cl_dg_freq2_freq2 = cl_cib_dic[(freq2, freq2)]
     else:
-        el, cl_dg_po_freq2_freq2, cl_dg_clus_freq2_freq2 = get_cl_dust(freq2, freq2, freq0=freq0, fg_model=fg_model, spec_index_dg_po=spec_index_dg_po, spec_index_dg_clus=spec_index_dg_clus, Tcib=Tcib)
+        el, cl_dg_po_freq2_freq2, cl_dg_clus_freq2_freq2 = get_cl_dust_cib(freq2, freq2, freq0=freq0, fg_model=fg_model, spec_index_dg_po=spec_index_dg_po, spec_index_dg_clus=spec_index_dg_clus, Tcib=Tcib)
         cl_dg_freq2_freq2 = cl_dg_po_freq2_freq2 + cl_dg_clus_freq2_freq2
+    if len(cl_dg_freq1_freq1) != len(cl_dg_freq2_freq2):
+        raise ValueError('The CIB spectra for %s and %s have different lengths (%s and %s)'
+                         % (freq1, freq2, len(cl_dg_freq1_freq1), len(cl_dg_freq2_freq2)))
     if len(el) != len(cl_tsz_freq2_freq2):
         cl_tsz_freq1_freq1 = np.interp(el, np.arange(len(cl_tsz_freq1_freq1)), cl_tsz_freq1_freq1)
         cl_tsz_freq2_freq2 = np.interp(el, np.arange(len(cl_tsz_freq2_freq2)), cl_tsz_freq2_freq2)
@@ -178,7 +409,46 @@ def get_cl_tsz_cib(freq1, freq2, freq0=150, fg_model='george15', spec_index_dg_p
 
 
 def get_cl_radio(freq1, freq2, freq0=150, fg_model='george15', spec_index_rg=-0.9, null_highfreq_radio=1, reduce_radio_power_150=None):
+    r"""
+    Radio galaxy power spectrum.
 
+    The template at ``freq0`` is anchored at :math:`\ell = 3000` and scaled as a power law in frequency,
+
+    .. math::
+
+        D_\ell^{\nu_1 \nu_2} = D_{3000}^{\nu_0 \nu_0} \epsilon_{\nu_1 \nu_2} \left( \frac{\nu_1 \nu_2}{\nu_0^2} \right)^{\!\alpha_\mathrm{rg}} \left( \frac{\ell}{3000} \right)^{\!2} ,
+
+    with :math:`\epsilon_{\nu_1 \nu_2}` the flux to CMB temperature conversion defined in :func:`get_cl_dust_cib`.
+
+    Parameters
+    ----------
+    freq1, freq2 : float
+        Frequencies of the two channels in GHz.
+    freq0 : float, optional
+        Reference frequency in GHz. Default 150.
+    fg_model : str, optional
+        Foreground model. Only ``'george15'`` is implemented here. Default ``'george15'``.
+    spec_index_rg : float, optional
+        Radio spectral index :math:`\alpha_\mathrm{rg}`. Default -0.9.
+    null_highfreq_radio : int, optional
+        If non-zero, the spectrum is set to zero when either frequency exceeds 230 GHz. Default 1.
+    reduce_radio_power_150 : float, optional
+        If given, the template is divided by this factor before scaling.
+
+    Returns
+    -------
+    el : ndarray
+        Multipole moments :math:`\ell`.
+    cl_rg : ndarray
+        Radio galaxy power spectrum.
+
+    Raises
+    ------
+    ValueError
+        If ``fg_model`` is not ``'george15'``.
+    """
+
+    misc.check_freqs_in_ghz(freq0, freq1, freq2)
     if fg_model != 'george15':
         raise ValueError("get_cl_radio only implements fg_model='george15', got %s" % (fg_model))
 
@@ -210,6 +480,43 @@ def get_cl_radio(freq1, freq2, freq0=150, fg_model='george15', spec_index_rg=-0.
 
 
 def smooth_cib_spectra(el, cl, min_el=200, el_knee_guess=2000):
+    r"""
+    Smooth a CIB spectrum with a Poisson plus clustered fit.
+
+    Multipoles above ``min_el`` are fitted by least squares with
+
+    .. math::
+
+        C_\ell = A \left[ 1 + \left( \frac{\ell_\mathrm{knee}}{\ell} \right)^{\!\alpha} \right]
+
+    and the fit is interpolated back onto the input multipoles.
+
+    Parameters
+    ----------
+    el : array_like
+        Multipole moments :math:`\ell`.
+    cl : array_like
+        Power spectrum to smooth, same shape as ``el``.
+    min_el : float, optional
+        Multipoles at or below this value are excluded from the fit and set to zero in the output. Default 200.
+    el_knee_guess : float, optional
+        Initial guess for :math:`\ell_\mathrm{knee}`. Also the lower multipole bound used to estimate the initial Poisson level. Default 2000.
+
+    Returns
+    -------
+    cl_fit : ndarray
+        Smoothed spectrum on the input multipoles, zero outside the fitted range.
+
+    Raises
+    ------
+    ValueError
+        If no multipole exceeds ``el_knee_guess``, in which case the Poisson level cannot be estimated.
+
+    Notes
+    -----
+    If the fitted knee multipole comes out negative, the initial guess is returned instead of the fit.
+    """
+
     el_ori = np.copy(el)
     non_zero_ind = np.where(el > min_el)[0]
     el = el[non_zero_ind]
@@ -248,14 +555,65 @@ def smooth_cib_spectra(el, cl, min_el=200, el_knee_guess=2000):
 
 
 def power_law(ell, A, alpha, ell_norm=80.):
+    r"""
+    Power law in multipole.
+
+    .. math::
+
+        A \left( \frac{\ell}{\ell_\mathrm{norm}} \right)^{\!\alpha}
+
+    Parameters
+    ----------
+    ell : array_like
+        Multipole moments :math:`\ell`.
+    A : float
+        Amplitude at :math:`\ell = \ell_\mathrm{norm}`.
+    alpha : float
+        Power-law index :math:`\alpha`.
+    ell_norm : float, optional
+        Multipole at which the amplitude is defined. Default 80.
+
+    Returns
+    -------
+    fit : ndarray
+        Power law evaluated at ``ell``, with non-finite entries set to zero. For negative ``alpha`` this includes :math:`\ell = 0`.
+    """
+
     #print(A, alpha)#, end = ' ')
+    ell = np.asarray(ell, dtype=float)
     fit = A * ((ell / ell_norm) ** alpha)
     badinds = np.where(~np.isfinite(fit))[0]
     fit[badinds] = 0.
+
     return fit
 
 
 def perform_power_law_fit(el, cl, ell_norm=80):
+    r"""
+    Fit a power law to a power spectrum.
+
+    :math:`D_\ell` is fitted with :func:`power_law` over a deliberately narrow range: the amplitude is bounded to within 5 per cent of the measured :math:`D_\ell` at ``ell_norm`` and the index to :math:`-0.3 \pm 0.1`.
+
+    Parameters
+    ----------
+    el : ndarray
+        Multipole moments :math:`\ell`.
+    cl : ndarray
+        Power spectrum :math:`C_\ell`, same shape as ``el``.
+    ell_norm : float, optional
+        Multipole at which the fitted amplitude is defined. Must be present in ``el``. Default 80.
+
+    Returns
+    -------
+    cl_fit : ndarray
+        Fitted spectrum :math:`C_\ell` on the input multipoles, with non-finite entries set to zero.
+
+    Raises
+    ------
+    ValueError
+        If ``ell_norm`` is not present in ``el``, or if :math:`D_\ell` at ``ell_norm`` is not positive.
+    """
+
     dl_fac = (el * (el + 1))/2/np.pi
     dl = cl * dl_fac
     badinds = np.where(~np.isfinite(dl))[0]
@@ -283,8 +641,68 @@ def perform_power_law_fit(el, cl, ell_norm=80):
     return cl_fit
 
 
-def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask=None, bl_dic=None, el=None, use_power_law_fit=False, use_sed_scaling=True, freq0_for_sed_scaling=278., ell_norm=80., Tdust=20., beta_dust=1.54):
+def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask=None, bl_dic=None, el=None, use_power_law_fit=False, use_sed_scaling=True, freq0_for_sed_scaling=278, ell_norm=80., Tdust=20., beta_dust=1.54):
+    r"""
+    Galactic foreground power spectrum from the PySM simulations.
 
+    The spectra are read from the simulation file named in ``param_dict``, and selected by galactic mask and spectrum type.
+    For dust with ``use_sed_scaling`` set, the auto-spectrum at 278 GHz is rescaled to the requested pair of frequencies with :func:`scale_cl_dust_galactic`, rather than using the simulated spectrum for that pair.
+
+    Parameters
+    ----------
+    param_dict : dict
+        Parameter dictionary, as returned by ``misc.get_param_dict``.
+        Must contain the file name for the requested component (``cl_gal_dic_dust_fname``, ``cl_gal_dic_sync_fname`` or ``cl_gal_dic_freefree_fname``), and may contain ``cl_gal_folder`` and ``which_gal_mask``.
+    component : str
+        Galactic component, one of ``'dust'``, ``'sync'`` or ``'freefree'``.
+    freq1, freq2 : float
+        Frequencies of the two channels in GHz. Each is mapped onto the nearest simulated band internally.
+    which_spec : str
+        Spectrum to return, one of ``'TT'``, ``'EE'``, ``'BB'``, ``'TE'``, ``'EB'`` or ``'TB'``.
+    which_gal_mask : int, optional
+        Index of the galactic mask. Defaults to 0, but ``param_dict['which_gal_mask']`` takes precedence when present, and a conflicting value given here is ignored with a warning.
+    bl_dic : dict, optional
+        Beam window functions :math:`B_\ell` keyed by frequency. If given, the spectrum is beam deconvolved.
+    el : array_like, optional
+        Multipoles onto which the result is interpolated. If omitted, the simulation multipoles are returned.
+    use_power_law_fit : bool, optional
+        If True, the spectrum is replaced by the power-law fit of :func:`perform_power_law_fit`. Default False.
+    use_sed_scaling : bool, optional
+        If True, dust spectra are obtained by rescaling the 278 GHz auto-spectrum. Default True.
+    freq0_for_sed_scaling : float, optional
+        Reference frequency in GHz for the SED scaling. Currently ignored: the function hardcodes 278 GHz and warns if a different value is passed. Default 278.
+    ell_norm : float, optional
+        Multipole at which the power-law fit is normalized. Default 80.
+    Tdust : float, optional
+        Galactic dust temperature in K. Default 20.
+    beta_dust : float, optional
+        Galactic dust spectral index. Default 1.54.
+
+    Returns
+    -------
+    el_gal : ndarray
+        Multipole moments :math:`\ell`.
+    cl_gal : ndarray
+        Galactic power spectrum.
+
+    Raises
+    ------
+    ValueError
+        If ``component`` is not one of the supported components.
+    KeyError
+        If either frequency is outside the simulated bands or if the requested band pair is absent from the file in both orderings.
+
+    Warns
+    -----
+    UserWarning
+        If ``freq0_for_sed_scaling`` differs from 278 or if ``which_gal_mask`` conflicts with the value in ``param_dict``.
+
+    Notes
+    -----
+    Synchrotron and free-free are never SED scaled, so those spectra always come from the simulations at the nearest simulated band.
+    """
+
+    misc.check_freqs_in_ghz(freq0_for_sed_scaling, freq1, freq2)
     gal_freq_dic = {20: 20, 27: 27, 39: 39, 93: 93, 90: 93, 143: 143, 145: 145, 150: 150, 225: 225, 220: 225, 278: 278, 350: 350}
 
     #https://healpy.readthedocs.io/en/1.5.0/generated/healpy.sphtfunc.anafast.html#healpy.sphtfunc.anafast
@@ -313,7 +731,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
     except KeyError:
         pass
 
-    if (0):  ##component == 'sync':
+    if (0):  ##component == 'sync':  #fix
         #fix me: Forcing sync. to CUmilta's simulations
         print('\n\t\tForcing sync. to CUmilta\'s simulations\n\n')
         try:
@@ -335,12 +753,12 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
         _cl_gal_cache[cl_gal_dic_fname] = np.load(cl_gal_dic_fname, allow_pickle=1, encoding='latin1').item()['cl_dic']
     cl_gal_dic = _cl_gal_cache[cl_gal_dic_fname][which_gal_mask]
     #Next line silently overrode input, so included warning.
-    if freq0_for_sed_scaling != 278.:
-        warnings.warn('freq0_for_sed_scaling=%s ignored: get_cl_galactic hardcodes 278.' % (freq0_for_sed_scaling), stacklevel=2)
-    freq0_for_sed_scaling = 278.
+    if freq0_for_sed_scaling != 278:
+        warnings.warn('freq0_for_sed_scaling=%s ignored: get_cl_galactic hardcodes 278 GHz.' % (freq0_for_sed_scaling), stacklevel=2)
+    freq0_for_sed_scaling = 278
     if (freq0_for_sed_scaling, freq0_for_sed_scaling) not in cl_gal_dic:
         use_sed_scaling = False
-    if ( freq1_to_use >= max(list(gal_freq_dic)) or freq2_to_use >= max(list(gal_freq_dic)) ) and use_sed_scaling:
+    if ( freq1_to_use >= max(gal_freq_dic.values()) or freq2_to_use >= max(gal_freq_dic.values()) ) and use_sed_scaling:
         cl_dust_freq0 = cl_gal_dic[ (freq0_for_sed_scaling, freq0_for_sed_scaling) ]
         if component == 'dust':
             cl_gal = scale_cl_dust_galactic(cl_dust_freq0, freq1, freq2=freq2, freq0=freq0_for_sed_scaling, Tdust=Tdust, beta_dust=beta_dust)
@@ -360,7 +778,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
         #force TE to be np.sqrt(TT) * np.sqrt(EE)
         cl_gal_tt, cl_gal_ee = cl_gal_dic[ (freq1, freq2) ][0], cl_gal_dic[ (freq1, freq2) ][1]
 
-        if (1):  ##component == 'dust':
+        if (1):  ##component == 'dust':  #fix
             rte = 0.35 #page 5 of https://arxiv.org/pdf/1801.04945.pdf: Discussion below Fig.5; also page 38 of https://readthedocs.org/projects/so-pysm-models/downloads/pdf/0.2.dev/
         else: ##elif component == 'sync':
             rte = 0.
@@ -416,7 +834,7 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
 
         cl_gal = cl_gal / (bl1 * bl2)
 
-        if (0): #20210426 - nulling highly smoothed modes
+        if (0): #20210426 - nulling highly smoothed modes  #fix
             op_beam = bl_dic[145]
             beam_ratio = op_beam**2. / (bl1 * bl2)
             highly_deconv_inds = np.where(beam_ratio >= 500)
@@ -430,10 +848,40 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
     return el_gal, cl_gal
 
 
-def scale_cl_dust_galactic(cl, freq1, freq2=None, freq0=278., Tdust=19.6, beta_dust=1.6):
+def scale_cl_dust_galactic(cl, freq1, freq2=None, freq0=278., Tdust=19.6, beta_dust=1.6):  #defaults differ from those of get_cl_galactic (20 K and 1.54)
+    r"""
+    Rescale a galactic dust spectrum to a pair of frequencies.
+
+    The modified blackbody scaling of :func:`get_cl_dust_galactic` is applied with no change of multipole shape:
+
+    .. math::
+
+        C_\ell^{\nu_1 \nu_2} = C_\ell^{\nu_0 \nu_0} \epsilon_{\nu_1 \nu_2} \frac{\eta_{\nu_1} \eta_{\nu_2}}{\eta_{\nu_0}^2}\, , \qquad \eta_\nu = \nu^{\beta_\mathrm{d}} B_\nu(T_\mathrm{d})\, .
+
+    Parameters
+    ----------
+    cl : array_like
+        Dust spectrum :math:`C_\ell` at ``freq0``.
+    freq1 : float
+        Frequency of the first channel in GHz.
+    freq2 : float, optional
+        Frequency of the second channel in GHz. Defaults to ``freq1``.
+    freq0 : float, optional
+        Reference frequency in GHz. Default 278.
+    Tdust : float, optional
+        Dust temperature :math:`T_\mathrm{d}` in K. Default 19.6.
+    beta_dust : float, optional
+        Dust spectral index :math:`\beta_\mathrm{d}`. Default 1.6.
+
+    Returns
+    -------
+    cl_dust : ndarray
+        Rescaled spectrum, same shape as ``cl``.
+    """
 
     if freq2 is None:
         freq2 = freq1
+    misc.check_freqs_in_ghz(freq0, freq1, freq2)
 
     nr = ( get_dB_dT(freq0) )**2.
     dr = get_dB_dT(freq1) * get_dB_dT(freq2)
@@ -454,14 +902,52 @@ def scale_cl_dust_galactic(cl, freq1, freq2=None, freq0=278., Tdust=19.6, beta_d
 
 
 def get_cl_dust_galactic(el, freq1, freq2=None, freq0=353., el_norm=80., el_slope=-0.58, Tdust=19.6, Adust_freq0=4.3, spec_index_dust=1.6, return_dl=0):
+    r"""
+    Analytic galactic dust power spectrum.
+
+    A power law in multipole with a modified blackbody frequency scaling,
+
+    .. math::
+
+        D_\ell^{\nu_1 \nu_2} = A_{\nu_0} \epsilon_{\nu_1 \nu_2} \frac{\eta_{\nu_1} \eta_{\nu_2}}{\eta_{\nu_0}^2} \left( \frac{\ell}{\ell_\mathrm{norm}} \right)^{\!\mathrm{el\_slope}} .
+
+    Parameters
+    ----------
+    el : array_like
+        Multipole moments :math:`\ell`.
+    freq1 : float
+        Frequency of the first channel in GHz.
+    freq2 : float, optional
+        Frequency of the second channel in GHz. Defaults to ``freq1``.
+    freq0 : float, optional
+        Reference frequency in GHz. Default 353.
+    el_norm : float, optional
+        Multipole at which the amplitude is defined. Default 80.
+    el_slope : float, optional
+        Power-law slope of :math:`D_\ell`. Default -0.58.
+    Tdust : float, optional
+        Dust temperature in K. Default 19.6.
+    Adust_freq0 : float, optional
+        Amplitude :math:`A_{\nu_0}` of :math:`D_\ell` at ``el_norm`` and ``freq0``, in :math:`\mathrm{\mu K}^2`. Default 4.3.
+    spec_index_dust : float, optional
+        Dust spectral index. Default 1.6.
+    return_dl : int, optional
+        If non-zero, return :math:`D_\ell` instead of :math:`C_\ell`. Default 0.
+
+    Returns
+    -------
+    cl_dust : ndarray
+        Dust spectrum, :math:`C_\ell` by default or :math:`D_\ell` when ``return_dl`` is set.
+    """
 
     if freq2 is None:
         freq2 = freq1
+    misc.check_freqs_in_ghz(freq0, freq1, freq2)
 
     nr = ( get_dB_dT(freq0) )**2.
     dr = get_dB_dT(freq1) * get_dB_dT(freq2)
 
-    epsilon_nu1_nu2 = nr/dr
+    epsilon_nu1_nu2 = nr / dr
 
     bnu1 = get_BnuT(freq1, temp=Tdust)
     bnu2 = get_BnuT(freq2, temp=Tdust)
@@ -475,55 +961,56 @@ def get_cl_dust_galactic(el, freq1, freq2=None, freq0=353., el_norm=80., el_slop
 
     if return_dl:
         return dl_dust
+
     else:
         dl_fac = el * (el+1)/2/np.pi
         cl_dust = dl_to_cl(dl_dust, dl_fac)
+
     return cl_dust
 
 
 def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax=None):
-    """
-    Foreground powers from George et al. 2015 results.
+    r"""
+    Best-fit foreground power spectra from George et al. (2015).
 
-    Uses .sav file generated by Christian Reichardt.
+    The spectra are read from an IDL save file produced by Christian Reichardt, converted from :math:`D_\ell` to :math:`C_\ell` and padded with zeros down to :math:`\ell = 0`.
 
     Parameters
     ----------
     component : str
-        The foreground component to use. Must be one of
-        'all', 'tSZ', 'kSZ', 'DG-Cl', 'DG-Po', 'RG', 'tSZ-CIB', 'Total', 'CMB'
-    freq1 : int
-        Frequency band. If `freq2` is specified, the cross-spectrum between
-        the two frequencies will be returned. Otherwise autospectrum of freq1.
+        Foreground component, one of ``'all'``, ``'tSZ'``, ``'kSZ'``, ``'DG-Cl'``, ``'DG-Po'``, ``'RG'``, ``'tSZ-CIB'``, ``'Total'`` or ``'CMB'``.
+        ``'all'`` sums the tSZ, kSZ, clustered CIB, Poisson CIB and radio terms.
+    freq1 : int, optional
+        Frequency band in GHz. A value of 90 is treated as 95. Default 150.
     freq2 : int, optional
-        Frequency band for cross-spectrum with `freq1`
-    units : str
-        'k' or 'uk'. Note: default savfile is Dls in uK
+        Second frequency band in GHz, for a cross-spectrum. Defaults to ``freq1``.
+        The pair is sorted internally, so the order of the two frequencies does not matter.
+    units : str, optional
+        ``'uK'`` for :math:`\mathrm{\mu K}^2` or ``'K'`` for :math:`\mathrm{K}^2`. Default ``'uK'``.
+    lmax : int, optional
+        If given, the output is truncated to :math:`\ell <` ``lmax``.
 
     Returns
     -------
-    fgnd_cls : array
-        Power spectrum of `component` at specified frequency band.
-    """
-    components = [
-        'all',
-        'tSZ',
-        'kSZ',
-        'DG-Cl',
-        'DG-Po',
-        'RG',
-        'tSZ-CIB',
-        'Total',
-        'CMB',
-    ]
-    if component not in components:
-        raise ValueError(
-            '{} not in list of possible foregrounds, must be one of {}'.format(
-                component, components
-            )
-        )
+    el : ndarray
+        Multipole moments :math:`\ell`, starting at zero.
+    spec : ndarray
+        Power spectrum :math:`C_\ell` of ``component``.
 
-    from scipy.io import readsav
+    Raises
+    ------
+    ValueError
+        If ``component`` is not one of the listed components, or if the frequency pair is not one of the six covered by the fit: (95, 95), (95, 150), (95, 220), (150, 150), (150, 220) and (220, 220).
+    """
+
+    components = ['all', 'tSZ', 'kSZ', 'DG-Cl', 'DG-Po', 'RG', 'tSZ-CIB', 'Total', 'CMB']
+    if component not in components:
+        raise ValueError('%s not in list of possible foregrounds, must be one of %s' % (component, components))
+    if units.lower() not in ['uk', 'k']:
+        raise ValueError("units must be 'uK' or 'K', got %s" % (units))
+    if lmax is not None and lmax < 0:
+        raise ValueError('lmax must be non-negative, got %s' % (lmax))
+
     filename = '%s/george_plot_bestfit_line.sav' % (data_folder)
     data = readsav(filename)
 
@@ -535,18 +1022,13 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax=
         freq2 = 95
     if freq1 > freq2:
         freq1, freq2 = freq2, freq1
+    misc.check_freqs_in_ghz(freq1, freq2)
 
-    freqs = np.asarray(
-        [(95, 95), (95, 150), (95, 220), (150, 150), (150, 220), (220, 220)]
-    )
+    freqs = np.asarray([(95, 95), (95, 150), (95, 220), (150, 150), (150, 220), (220, 220)])
     #dl_all = data['ml_dls'][(freqs[:, 0] == freq1) & (freqs[:, 1] == freq2)][0]
     sel = (freqs[:, 0] == freq1) & (freqs[:, 1] == freq2)
     if not sel.any():
-        raise ValueError(
-            '({}, {}) GHz is not in the George et al. 2015 results, must be one of {}'.format(
-                freq1, freq2, [tuple(pair) for pair in freqs.tolist()]
-            )
-        )
+        raise ValueError('(%s, %s) GHz is not in the George et al. (2015) results, must be one of %s' % (freq1, freq2, [tuple(pair) for pair in freqs.tolist()]))
     dl_all = data['ml_dls'][sel][0]
     labels = data['ml_dl_labels'].astype('str')
     el = np.asarray(data['ml_l'], dtype=int)
@@ -560,12 +1042,12 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax=
     else:
         spec = dl_all[labels == component][0]
 
-    # Changing Dls to Cls
+    #changing Dls to Cls
     spec /= el * (el + 1.0) / 2.0 / np.pi
     if units.lower() == 'k':
         spec /= 1e12
 
-    # Pad to l=0
+    #pad to l=0
     spec = np.concatenate((np.zeros(min(el)), spec))
     el = np.concatenate((np.arange(min(el)), el))
 
@@ -577,13 +1059,43 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax=
 
 
 def get_dB_dT(nu, nu0=None, temp=2.725):  #default is 2.725, compton_y_to_delta_Tcmb uses 2.73
-    if nu < 1e4: nu *= 1e9
+    r"""
+    Derivative of the blackbody spectrum with respect to temperature.
+
+    .. math::
+
+        \frac{\mathrm{d}B_\nu}{\mathrm{d}T} \propto \frac{x^4 e^x}{(e^x - 1)^2}\, , \qquad x = \frac{h \nu}{k_\mathrm{B} T}\, ,
+
+    up to a constant that cancels in the flux to temperature ratios used throughout this module.
+
+    Parameters
+    ----------
+    nu : float
+        Frequency in GHz.
+    nu0 : float, optional
+        Reference frequency in GHz. If given, the ratio of the value at ``nu`` to the value at ``nu0`` is returned instead.
+    temp : float, optional
+        Temperature in K. Default 2.725.
+
+    Returns
+    -------
+    dBdT : float
+        :math:`\mathrm{d}B_\nu/\mathrm{d}T` in arbitrary units, or the dimensionless ratio to its value at ``nu0``.
+
+    Raises
+    ------
+    ValueError
+        If ``nu`` or ``nu0`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
+    """
+
+    misc.check_freqs_in_ghz(nu, nu0)
+    nu = nu * 1e9
 
     x = h*nu/(k_B*temp)
     dBdT = x**4. * np.exp(x) / (np.exp(x)-1)**2.
 
     if nu0 is not None:
-        if nu0 < 1e4: nu0 *= 1e9
+        nu0 = nu0 * 1e9
         x0 = h*nu0/(k_B*temp)
         dBdT0 = x0**4 * np.exp(x0) / (np.exp(x0)-1)**2.
         return dBdT / dBdT0
@@ -592,14 +1104,60 @@ def get_dB_dT(nu, nu0=None, temp=2.725):  #default is 2.725, compton_y_to_delta_
 
 
 def get_BnuT(nu, temp=2.725):  #default is 2.725 (but not used), compton_y_to_delta_Tcmb uses 2.73
-    if nu < 1e4: nu *= 1e9
+    r"""
+    Planck blackbody spectrum.
+
+    .. math::
+
+        B_\nu(T) = \frac{2 h \nu^3}{c^2} \frac{1}{e^x - 1} , \qquad x = \frac{h \nu}{k_\mathrm{B} T}\, .
+
+    Parameters
+    ----------
+    nu : float
+        Frequency in GHz.
+    temp : float, optional
+        Temperature in K. Default 2.725.
+
+    Returns
+    -------
+    bnu : float
+        Blackbody intensity in :math:`\mathrm{W}\,\mathrm{m}^{-2}\,\mathrm{Hz}^{-1}\,\mathrm{sr}^{-1}`.
+
+    Raises
+    ------
+    ValueError
+        If ``nu`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
+    """
+
+    misc.check_freqs_in_ghz(nu)
+    nu = nu * 1e9
     x = h*nu/(k_B*temp)
 
-    t1 = 2 * h * nu**3./ c**2.
+    t1 = 2 * h * nu**3. / c**2.
     t2 = 1. / (np.exp(x)-1.)
 
     return t1 * t2
 
 
 def coth(x):
+    r"""
+    Hyperbolic cotangent.
+
+    .. math::
+
+        \coth x = \frac{e^x + e^{-x}}{e^x - e^{-x}}
+
+    Parameters
+    ----------
+    x : array_like
+        Argument.
+
+    Returns
+    -------
+    coth : ndarray
+        :math:`\coth x`, same shape as ``x``.
+    """
+
+    x = np.asarray(x, dtype=float)
+
     return (np.exp(x) + np.exp(-x)) / (np.exp(x) - np.exp(-x))

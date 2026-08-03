@@ -1,11 +1,44 @@
+r"""
+Internal linear combination (ILC) of multi-frequency CMB data supporting the residual calculation in get_ilc_residuals.py.
+
+The module is grouped into four sections:
+
+* Covariance: ``get_analytic_covariance``
+* Frequency response: ``get_cib_freq_dep``, ``get_radio_freq_dep``, ``get_acap``
+* Covariance assembly: ``get_teb_spec_combination``, ``create_clmat``, ``get_clinv``, ``corr_from_cov``
+* ILC residuals: ``residual_power``
+
+Three variants are supported.
+A standard ILC minimizes the variance subject to unit response for the required component.
+A constrained ILC additionally nulls one or more other components, selected with the ``null_comp`` argument of ``residual_power``.
+A partial ILC suppresses a component by a chosen factor rather than nulling it, selected with the ``cl_multiplier_dic`` argument of ``get_analytic_covariance``.
+
+``get_analytic_covariance``, ``residual_power`` and ``create_clmat`` are called by ``get_ilc_residuals.py``.
+``corr_from_cov`` is a standalone utility that is currently not used elsewhere in this repository.
+The remaining routines are internal helpers.
+
+A single ILC is specified by a frequency response vector :math:`a_\nu` for the component to be recovered and a band-band covariance :math:`C_{\nu\nu'}(\ell)`.
+The weights that minimize the variance while returning the component with unit response are
+
+.. math::
+
+    w_\nu(\ell) = \frac{\sum_{\nu'} C^{-1}_{\nu\nu'}(\ell)\, a_{\nu'}}{\sum_{\nu\nu'} a_\nu C^{-1}_{\nu\nu'}(\ell)\, a_{\nu'}}\, ,
+
+and the residual power left in the ILC map is the denominator of that expression inverted.
+``get_analytic_covariance`` builds :math:`C_{\nu\nu'}`, ``get_acap`` builds :math:`a_\nu` and ``residual_power`` combines them.
+
+Power spectra are in units of :math:`\mathrm{\mu K}^2` and frequencies are in GHz.
+Band ordering follows the ``freqarr`` supplied by the caller: ``get_acap``, ``create_clmat`` and the returned weights are all indexed in that order, so ``freqarr``, ``freqcalib_fac`` and the covariance must be consistent.
+Component names follow the spelling used in the returned foreground dictionary, namely ``cib`` for the cosmic infrared background and ``galdust``/``galsync`` for the galactic terms.
+"""
+
 import re
 import warnings
 
 import numpy as np
 
 import foregrounds as fg
-
-#import os, sys, scipy as sc, misc  #unused
+import misc
 
 
 ################################################################################################################
@@ -33,80 +66,96 @@ def get_analytic_covariance(
         return_fg_spectra=True,
         force_cl_dic=None
         ):
-    """
-    Get signal + noise covariance for ILC.
-    Supports MV-ILC, cILC, partial ILC, etc..
+    r"""
+    Signal and noise covariance :math:`C_{\nu\nu'}(\ell)` across a set of frequency bands.
+
+    The covariance combines the CMB, the extragalactic and galactic foregrounds, and the instrumental noise:
+
+    .. math::
+
+        C_{\nu\nu'}(\ell) = C_\ell^\mathrm{CMB} + C_\ell^\mathrm{kSZ} + C_{\ell,\nu\nu'}^\mathrm{tSZ}
+        + C_{\ell,\nu\nu'}^\mathrm{radio} + C_{\ell,\nu\nu'}^\mathrm{CIB}
+        + C_{\ell,\nu\nu'}^{\mathrm{tSZ} \times \mathrm{CIB}} + C_{\ell,\nu\nu'}^\mathrm{gal} + N_\ell^{\nu\nu'}\, ,
+
+    where the CMB and kSZ terms are frequency independent in thermodynamic units.
+    Individual terms can be excluded with ``ignore_fg``, which is how the component being recovered is kept out of the covariance, or rescaled with ``cl_multiplier_dic`` for a partial ILC.
+
 
     Parameters
     ----------
-    param_dict: dict
-        Dictionary containing the params
-    freqarr : array
-        array of frequency bands for which we need the covariance.
-    el : array
-        Multipoles over which the covariance must be defined.
-        Default is None in which case el = np.arange( len(cl_cmb) ) derived below.
-    nl_dic : dict
-        Dictionary containing the noise covariance in the bands.
-        Default is None.
-    bl_dic : dict
-        Dictionary containing the beams. Only used for galactic foreground file since cl_gal have S4 beams.
-        Default is None.
-    ignore_fg : list
-        List of signals that must be excluded from the covariance.
-    which_spec : str
-        spectra name TT/EE/TE.
-    pol_frac_per_cent_dust : float
-        Pol fraction for CIB.
-        Default is 0.02.
-    pol_frac_per_cent_radio : float
-        Pol fraction for Radio galaxies.
-        Default is 0.03.
-    pol_frac_per_cent_tsz : float
-        Pol fraction for tSZ. Default is zero.
-    pol_frac_per_cent_ksz : float
-        Pol fraction for kSZ. Default is zero.
-    include_gal : bool
-        Include galactic foregrounds.
-        Default is None.
-    cib_corr_coeffs : dict
-        Cross-correlation coefficients across bands for CIB.
-        Default is None.
-    null_highfreq_radio : bool
-        Null radio beyond 230 GHz.
-        Deault is True.
-    reduce_radio_power_150 : float
-        Reduce radio power by some number.
-        Default is None.
-    reduce_tsz_power : float
-        Reduce tSZ power by some number.
-        Default is None.
-    reduce_cib_power : float
-        Reduce CIB power by some number.
-        Default is None.
-    remove_cib_decorr : bool
-        Remove CIB decorrelations.
-        Default is False.
-    cl_multiplier_dic : dict
-        Dictionary containing factors by which a certain signal must be suppressed in the covariance.
-        For partial ILC.
-        Default is None.
-    return_fg_spectra : bool
-        Return the spectra for each foreground signal along with the total covariance.
-        Default is True.
-    force_cl_dic : dict
-        Supply own foreground Cl dict.
-        Default is None.
+    param_dict : dict
+        Parameter dictionary, as returned by ``misc.get_param_dict``.
+        Must contain ``freq0``, ``fg_model``, ``spec_index_rg``, ``spec_index_dg_po``, ``spec_index_dg_clus`` and ``Tcib``, and the galactic file names when ``include_gal`` is set.
+    freqarr : array_like
+        Frequency bands in GHz. The returned dictionary is keyed by pairs drawn from this list and the ordering is the one used throughout the ILC.
+    el : array_like, optional
+        Multipole moments :math:`\ell`, which must start at zero.
+        Default ``None``, in which case the multipoles of the SPT foreground templates are used.
+    nl_dic : dict, optional
+        Noise power spectra, keyed either by band or by band pair. A band pair that is absent is taken to have zero cross-band noise.
+        Each entry must cover at least the requested multipoles. Default ``None``, i.e. a noise-free covariance.
+    bl_dic : dict, optional
+        Beam transfer functions :math:`B_\ell` keyed by band, used only to correct the galactic templates, which carry the S4 beams. Default ``None``.
+    ignore_fg : list, optional
+        Components to leave out of the covariance, drawn from ``cmb``, ``tsz``, ``y``, ``ksz``, ``radio``, ``cib``, ``noise`` and ``tsz_cib``.
+        Requesting ``cmb`` also removes the kSZ. Default is an empty list.
+    which_spec : str, optional
+        Spectrum to compute, one of ``'TT'``, ``'EE'`` or ``'TE'``. Default ``'TT'``.
+    pol_frac_per_cent_dust : float, optional
+        Polarization fraction of the CIB. Default 0.02.
+    pol_frac_per_cent_radio : float, optional
+        Polarization fraction of the radio sources. Default 0.03.
+    pol_frac_per_cent_tsz : float, optional
+        Polarization fraction of the tSZ. Default 0.
+    pol_frac_per_cent_ksz : float, optional
+        Polarization fraction of the kSZ. Default 0.
+    include_gal : bool, optional
+        Include galactic dust and synchrotron from the PySM simulations. Default 0.
+    cib_corr_coeffs : dict, optional
+        CIB decorrelation coefficients keyed by band pair, applied to the cross-band CIB power.
+        Every off-diagonal pair must be present if the dictionary is supplied at all.
+        Default ``None``, i.e. fully correlated.
+    null_highfreq_radio : bool, optional
+        Null the radio power above the high-frequency threshold of :func:`foregrounds.get_cl_radio`. Default 1.
+    reduce_radio_power_150 : float, optional
+        Rescale the radio power at 150 GHz by this factor. Default ``None``.
+    reduce_tsz_power : float, optional
+        Rescale the tSZ power by this factor. Default ``None``.
+    reduce_cib_power : float, optional
+        Rescale the CIB power by this factor. Default ``None``.
+    remove_cib_decorr : bool, optional
+        Replace the cross-band CIB with the geometric mean of the two auto-spectra, which removes the decorrelation built into the template. Overrides ``cib_corr_coeffs``. Default 0.
+    cl_multiplier_dic : dict, optional
+        Factors by which individual components are rescaled in the covariance for a partial ILC.
+        Keys are drawn from ``cmb``, ``ksz``, ``tsz``, ``radio``, ``cib``, ``tsz_cib``, ``galdust``, ``galsync`` and ``noise``. Default ``None``.
+    return_fg_spectra : bool, optional
+        Also return the individual component spectra. Default ``True``.
+    force_cl_dic : dict, optional
+        Spectra supplied by the caller which override the internally computed ones.
+        Recognized keys are ``cmb``, ``ksz``, ``y``, ``tsz``, ``cib``, ``tsz_cib`` or ``cib_tsz``, and ``rad`` or ``radio``. Default ``None``.
 
     Returns
     -------
-    el : array
-        Multipoles over which the covariance is defined.
+    el : ndarray
+        Multipole moments over which the covariance is defined.
     cl_dic : dict
-        Total covariance in each band as a dictionary.
-    fg_cl_dic: dict
-        Spectra for each foreground signal in each band as a dictionary.
-        Only returned when return_fg_spectra is True.
+        Total covariance, keyed by band pair.
+    fg_cl_dic : dict
+        Spectrum of each component, keyed by component name and then by band pair.
+        Only returned when ``return_fg_spectra`` is set.
+
+    Raises
+    ------
+    ValueError
+         If ``freqarr`` is empty or contains a repeated band, if ``el`` is empty or does not start at zero, if an entry of ``nl_dic`` is shorter than ``el``, if ``ignore_fg`` or ``cl_multiplier_dic`` contains an unrecognized component or if ``cib_corr_coeffs`` is supplied without an entry for every band pair.
+
+    Notes
+    -----
+    ``cib`` denotes the cosmic infrared background throughout, whereas ``galdust`` denotes galactic dust.
+    Note that :func:`foregrounds.get_cl_galactic` uses ``dust`` for the latter.
+
+    Noise that has been amplified by beam deconvolution is clipped at :math:`5 \times 10^4\,\mathrm{\mu K}^2` to limit the dynamic range of the covariance.
+    The galactic terms are currently not clipped, so at multipoles where the beam correction of a large-beam channel diverges the covariance can still become badly conditioned.
     """
 
     #ignore_fg = foreground terms that must be ignored
@@ -124,6 +173,12 @@ def get_analytic_covariance(
 
     el_, cl_cmb = fg.get_foreground_power_spt('CMB', freq1=param_dict['freq0'], freq2=param_dict['freq0'])
     if el is None: el = np.copy(el_)
+    if len(freqarr) == 0:
+        raise ValueError('freqarr must not be empty')
+    if len(set(freqarr)) != len(freqarr):
+        raise ValueError('freqarr must not contain repeated bands, got %s' % (list(freqarr)))
+    if len(el) == 0:
+        raise ValueError('el must not be empty')
     if min(el) != 0:
         raise ValueError('el must start at 0, got el[0] = %s' % (min(el)))
     if nl_dic is not None:
@@ -369,20 +424,19 @@ def get_analytic_covariance(
             cl[np.isnan(cl)] = 0.
             cl[np.isinf(cl)] = 0.
 
-            ##########################################################################################
-            #20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
-            adjust_for_large_beams = False
-            if adjust_for_large_beams:
-                beam_tol_for_ilc = 1000. #some large number
-                bl = bl_dic[freq1]
-                if 'effective' in bl_dic:
-                    bl_eff = bl_dic['effective']
-                else:
-                    bl_eff = bl_dic[145]
-                bad_inds = np.where( (bl_eff/bl > beam_tol_for_ilc) )[0]
-                print(freq1, freq2, bad_inds)
-                cl[bad_inds] = 0.
-            ##########################################################################################
+            #Commented since False anyway
+            ##20200516 - adjusting Nl when beam is too large (for 30/40 GHz bands)
+            #adjust_for_large_beams = False
+            #if adjust_for_large_beams:
+            #    beam_tol_for_ilc = 1000. #some large number
+            #    bl = bl_dic[freq1]
+            #    if 'effective' in bl_dic:
+            #        bl_eff = bl_dic['effective']
+            #    else:
+            #        bl_eff = bl_dic[145]
+            #    bad_inds = np.where( (bl_eff/bl > beam_tol_for_ilc) )[0]
+            #    print(freq1, freq2, bad_inds)
+            #    cl[bad_inds] = 0.
 
             cl_dic[(freq1, freq2)] = cl
 
@@ -393,48 +447,61 @@ def get_analytic_covariance(
 
 
 def get_acap(freqarr, final_comp='cmb', freqcalib_fac=None, nspecs=1, spec_index_rg=-0.76):
-    """
-    get frequency dependence of a sky signal.
+    r"""
+    Frequency response :math:`a_\nu` of a sky component across a set of bands.
+
+    The response is the factor by which the component appears in each band relative to the reference, in the same thermodynamic units as the maps, multiplied by any calibration factor:
+
+    .. math::
+
+        a_\nu = f(\nu) \, g_\nu\, ,
+
+    with :math:`f` the spectral dependence of the component and :math:`g_\nu` the calibration factor.
 
     Parameters
     ----------
-    freqarr : array
-        array of frequency bands for which we need the covariance.
+    freqarr : array_like
+        Frequency bands in GHz. The response is returned in this order, which must match the band ordering used to build the covariance.
+    final_comp : str, optional
+        Component whose response is required. Default ``'cmb'``. One of
 
-    final_comp : str
-        It can be
-        'cmb' for CMB spectra
-        'tsz' or 'y' for thermal SZ
-        'radio' for radio galaxies (see get_radio_freq_dep() function)
-        'cib' or 'cibpo' for Poisson component of the CIB.
-        'cibclus' for clustered component of the CIB.
-        #'misc_cib_tcibxx_betayy' for misc CIB with T_d=xx and beta=yy.  #not implemented
-        #'misc_radio_alphaxx' for misc radio with spectral index=xx.  #not implemented
-        #In the above case, the code will get the freq dep of radio as
-        #get_radio_freq_dep(...., alpha=xxx)
+        * ``'cmb'``, unit response in every band,
+        * ``'tsz'`` or ``'y'``, the thermal SZ spectral function from :func:`foregrounds.compton_y_to_delta_Tcmb`,
+        * ``'cib'`` or ``'cibpo'``, the Poisson CIB from :func:`get_cib_freq_dep`,
+        * ``'cibclus'``, the clustered CIB, i.e. :func:`get_cib_freq_dep` with :math:`\beta = 2.505`,
+        * ``'misc_cib_tcibXX_betaYY'``, the CIB with dust temperature ``XX`` and emissivity index ``YY``,
+        * ``'radio'``, radio sources from :func:`get_radio_freq_dep`.
 
-    freqcalib_fac: array
-        array containing calibration factors / mis-matches between different bands.
-        default is None which is equivalent to [1, 1, 1, ... 1] in all bands.
-
-    nspecs : int
-        tells if we are performing ILC for T alone or T/E/B together.
-        default is 1. For only one map component.
-
-    spec_index_rg : float
-        radio spectral index, only used when final_comp is 'radio'.
-        default is -0.76.
+    freqcalib_fac : array_like, optional
+        Multiplicative gain of each band, in the same order as ``freqarr``, by which the assumed response is scaled.
+        Default ``None``, which is equivalent to unity in every band.
+    nspecs : int, optional
+        Number of map components entering the ILC jointly, as returned by :func:`get_teb_spec_combination`.
+        Default 1, i.e. temperature or polarization alone.
+    spec_index_rg : float, optional
+        Radio spectral index, used only when ``final_comp`` is ``'radio'``. Default -0.76.
 
     Returns
     -------
-    acap : array
-        freq. dependene of the respective sky component.
-        for example: CMB will be [1., 1., ...., 1.] in all bands.
+    acap : ndarray
+        Frequency response, of shape ``(nspecs * len(freqarr), nspecs)``.
+        For a joint temperature and polarization ILC only the CMB has a nonzero polarization response.
+
+    Raises
+    ------
+    ValueError
+        If no frequency response is implemented for ``final_comp``.
+        This includes ``ksz``, ``noise`` and ``tsz_cib``, which :func:`residual_power` accepts as components but which have no response here.
+         Also if ``freqcalib_fac`` does not have exactly one entry per band.
     """
+
+    #``'misc_radio_alphaYY'``, radio with spectral index ```YY`` is not implemented, so removed from the docstring
     nc = len(freqarr)
 
     if freqcalib_fac is None:
         freqcalib_fac = np.ones(nc)
+    elif np.shape(freqcalib_fac) != (nc,):
+        raise ValueError('freqcalib_fac must have one entry per band, got shape %s for %s bands' % (np.shape(freqcalib_fac), nc))
 
     if final_comp.lower() == 'cmb':
         freqscale_fac = np.ones(nc)
@@ -525,18 +592,77 @@ def get_acap(freqarr, final_comp='cmb', freqcalib_fac=None, nspecs=1, spec_index
 
 
 def get_cib_freq_dep(nu, Tcib=20., beta=1.505):  ##Tcmb=2.7255,  #Tcmb was unused
-    nu = nu * 1e9
+    r"""
+    Frequency dependence of the CIB as a modified blackbody.
+
+    .. math::
+
+        f(\nu) = \nu^\beta \, \frac{B_\nu(T_\mathrm{CIB})}{\mathrm{d}B_\nu/\mathrm{d}T}\, ,
+
+    where the division by :math:`\mathrm{d}B_\nu/\mathrm{d}T` converts from flux to thermodynamic temperature units.
+
+    Parameters
+    ----------
+    nu : float
+        Frequency in GHz.
+    Tcib : float, optional
+        Dust temperature :math:`T_\mathrm{CIB}` in K. Default 20.
+    beta : float, optional
+        Emissivity index :math:`\beta`. Default 1.505, the Poisson CIB value; the clustered component uses 2.505.
+
+    Returns
+    -------
+    value : float
+        Frequency dependence in thermodynamic temperature units, unnormalized.
+
+    Raises
+    ------
+    ValueError
+        If ``nu`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
+    """
+
+    misc.check_freqs_in_ghz(nu)
     bnu1 = fg.get_BnuT(nu, temp=Tcib)
     dbdt = fg.get_dB_dT(nu)
-    value = (nu**beta) * bnu1 / dbdt
+    value = ((nu * 1e9)**beta) * bnu1 / dbdt  #the frequency power law is evaluated in Hz
 
     return value
 
 
 def get_radio_freq_dep(nu, nu0=150., spec_index_rg=-0.76, null_highfreq_radio=True, highfreq_radio_threshold=230):
-    nu = nu * 1e9
-    nu0 = nu0 * 1e9
-    highfreq_radio_threshold = highfreq_radio_threshold * 1e9
+    r"""
+    Frequency dependence of radio sources as a power law.
+
+    .. math::
+
+        f(\nu) = \frac{\mathrm{d}B_{\nu_0}/\mathrm{d}T}{\mathrm{d}B_\nu/\mathrm{d}T} \left( \frac{\nu}{\nu_0} \right)^{\!\alpha} ,
+
+    with the ratio of blackbody derivatives converting from flux to thermodynamic temperature units.
+
+    Parameters
+    ----------
+    nu : float
+        Frequency in GHz.
+    nu0 : float, optional
+        Reference frequency in GHz. Default 150.
+    spec_index_rg : float, optional
+        Radio spectral index :math:`\alpha`. Default -0.76.
+    null_highfreq_radio : bool, optional
+        Return zero above ``highfreq_radio_threshold``, where the radio contribution is negligible. Default ``True``.
+    highfreq_radio_threshold : float, optional
+        Threshold in GHz for the above. Default 230.
+
+    Returns
+    -------
+    value : float
+        Frequency dependence in thermodynamic temperature units, normalized to unity at ``nu0`` up to the unit conversion.
+    Raises
+    ------
+    ValueError
+        If ``nu`` or ``nu0`` is not positive, or is at or above :math:`10^4` and so is presumably in Hz rather than GHz.
+    """
+
+    misc.check_freqs_in_ghz(nu, nu0, highfreq_radio_threshold)
 
     nr = fg.get_dB_dT(nu0)
     dr = fg.get_dB_dT(nu)
@@ -552,27 +678,23 @@ def get_radio_freq_dep(nu, nu0=150., spec_index_rg=-0.76, null_highfreq_radio=Tr
 
 def get_teb_spec_combination(cl_dic):
     """
-    uses cl_dict to determine if we are using ILC jointly for T/E/B.
+    Determine whether the ILC is to be performed on one map component or on several jointly.
 
     Parameters
     ----------
-    cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-        Keys must be TT, EE, TE, etc.
+    cl_dic : dict
+        Auto- and cross-spectra of different frequency channels keyed by spectrum name, i.e. ``'TT'``, ``'EE'``, ``'TE'``, ``'BB'``, ``'TB'``, ``'EB'``.
 
     Returns
     -------
     nspecs : int
-        tells if we are performing ILC for T alone or T/E/B together.
-        default is 1. For only one map component.
+        Number of map components entering the ILC, namely 1 for temperature or polarization alone, 2 for temperature and E-modes jointly, and 3 when B-modes are included.
+    specs : list of str or None
+        The spectrum names in sorted order or ``None`` if the combination of keys is not one of those recognized.
 
-    specs : list
-        creates ['TT', 'EE', 'TE', ... etc.] based on cl_dict that is supplied.
-        For example:
-        ['TT'] = ILC for T-only
-        ['EE'] = ILC for E-only
-        ['TT', 'EE'] = ILC for T and E separately.
-        ['TT', 'EE', 'TE'] = ILC for T and E jointly.
+    Notes
+    -----
+    When :func:`create_clmat` is uaws, only 1 and 2 are usable since B-modes are absent.
     """
 
     specs = sorted( list( cl_dic.keys() ) )
@@ -591,21 +713,32 @@ def get_teb_spec_combination(cl_dic):
 
 
 def corr_from_cov(covmat):
-    """
-    Get correlation matrix from covariance matrix.
+    r"""
+    Correlation matrix corresponding to a covariance matrix.
+
+    .. math::
+
+        R_{ij} = \frac{C_{ij}}{\sqrt{C_{ii} C_{jj}}}
 
     Parameters
     ----------
-    covmat: array
-        Covariance matrix.
+    covmat : array_like
+        Covariance matrix, assumed square.
 
     Returns
     -------
-    corrmat: array
-        Correlation matrix.
+    corrmat : ndarray
+        Correlation matrix, of the same shape as ``covmat``.
+
+    Raises
+    ------
+    ValueError
+        If any diagonal entry of ``covmat`` is not positive, which would otherwise give a non-finite correlation.
     """
 
     diags = np.diag(covmat)
+    if np.any(diags <= 0.):
+        raise ValueError('covmat must have a positive diagonal, got %s' % (diags))
     corrmat = np.zeros_like(covmat)
     for i in range(covmat.shape[0]):
         for j in range(covmat.shape[0]):
@@ -616,24 +749,39 @@ def corr_from_cov(covmat):
 
 
 def create_clmat(freqarr, elcnt, cl_dic):
-    """
-    Get the inverse covariance matrix at a specific multipole moment ell.
+    r"""
+    Band-band covariance matrix at one multipole.
+
+    For a single map component, the matrix is :math:`C_{\nu\nu'}(\ell)` over the requested bands.
+    For a joint temperature and polarization ILC, it is the block matrix
+
+    .. math::
+
+        \begin{pmatrix} C^{TT}_{\nu\nu'} & C^{TE}_{\nu\nu'} \\ C^{TE}_{\nu\nu'} & C^{EE}_{\nu\nu'} \end{pmatrix}
+
+    of size ``nspecs * len(freqarr)`` on a side.
+
 
     Parameters
     ----------
-    freqarr: list
-        Frequency array
-    elcnt: int
-        ell index.
-    cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-        Keys must be TT, EE, TE, etc.
+    freqarr : array_like
+        Frequency bands in GHz. Rows and columns follow this order.
+    elcnt : int
+        Index into the multipole axis of the spectra, not the multipole itself.
+    cl_dic : dict
+        Auto- and cross-spectra at all :math:`\ell` keyed by spectrum name and then by band pair.
 
     Returns
     -------
-    clmat: array
-        Covariance matrix at the ell index.
+    clmat : ndarray
+        Covariance matrix at the requested multipole index.
+
+    Raises
+    ------
+    ValueError
+        If the keys of ``cl_dic`` are not a recognized combination of spectra.
     """
+
     nc = len(freqarr)
     nspecs, pspec_arr = get_teb_spec_combination(cl_dic)
     if pspec_arr is None:
@@ -669,29 +817,35 @@ def create_clmat(freqarr, elcnt, cl_dic):
 
 
 def get_clinv(freqarr, elcnt, cl_dic, return_clmat=False):
-    """
-    Get the inverse covariance matrix at a specific multipole moment ell.
+    r"""
+    Inverse of the band-band covariance matrix at one multipole :math:`\ell`.
 
     Parameters
     ----------
-    freqarr: list
-        Frequency array
-    elcnt: int
-        ell index.
-    cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-        Keys must be TT, EE, TE, etc.
-    return_clmat: bool
-        If True, return covariance at a specific ell. (For debugging pruposes)
-        Default is False
+    freqarr : array_like
+        Frequency bands in GHz.
+    elcnt : int
+        Index into the multipole axis of the spectra, not the multipole :math:`\ell` itself.
+    cl_dic : dict
+        Auto- and cross-spectra at all :math:`\ell` keyed by spectrum name and then by band pair.
+    return_clmat : bool, optional
+        Also return the covariance itself, which is convenient for debugging. Default ``False``.
 
     Returns
     -------
-    clinv: array
-        Inverse covariance matrix at the given ell index.
-    clmat: array
-        Covariance matrix at the ell index.
-        Only returned if return_clmat is set to True.
+    clinv : ndarray
+        Inverse covariance at the requested multipole index.
+    clmat : ndarray
+        Covariance at the same index. Only returned when ``return_clmat`` is set.
+
+    Warns
+    -----
+    UserWarning
+        If the covariance contains non-finite entries. ``numpy.linalg.pinv`` returns zeros for an infinite entry without raising, which would otherwise silently zero the weights at that multipole.
+
+    Notes
+    -----
+    The Moore-Penrose pseudo-inverse is used, so a rank-deficient covariance, for instance one in which a band carries no information, is handled without raising.
     """
 
     #clmat = np.asmatrix( create_clmat(freqarr, elcnt, cl_dic) )
@@ -719,44 +873,69 @@ def residual_power(
         lmin=10,
         return_weights=True
         ):
-    """
-    Get the residual ILC power.
+    r"""
+    Residual power and weights of an ILC.
+
+    For a standard ILC, the weights and the residual power follow from the covariance :math:`C_{\nu\nu'}` and the frequency response :math:`a_\nu` of the component being recovered:
+
+    .. math::
+
+        w_\nu = \frac{\sum_{\nu'} C^{-1}_{\nu\nu'} a_{\nu'}}{\sum_{\nu\nu'} a_\nu C^{-1}_{\nu\nu'} a_{\nu'}} \, , \qquad C_\ell^\mathrm{res} = \left( \sum_{\nu\nu'} a_\nu C^{-1}_{\nu\nu'} a_{\nu'} \right)^{\!-1} .
+
+    When ``null_comp`` is given, a constrained ILC is performed instead. Here, :math:`G` is the matrix whose columns are the response of the component to be recovered followed by those of the components to be nulled, and :math:`e_1` is the first unit vector,
+
+    .. math::
+
+        w = C^{-1} G \left( G^T C^{-1} G \right)^{-1} e_1 \, ,
+
+    which returns the required component with unit response while nulling the others.
 
     Parameters
     ----------
-    freqarr: list
-        Frequency array
-    el: int
-        Multipole moment ell.
-    cl_dic: dict
-        dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-        Keys must be TT, EE, TE, etc.
-    final_comp: str
-        Name of the signal that is being minimized.
-        Default is 'cmb'.
-        Options are ['cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise', 'tsz_cib']
-    null_comp: str
-        Name of the signal that is being nulled.
-        Default is None.
-        Options are ['cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise', 'tsz_cib']
-    spec_index_rg: float
-        Default radio spectral index set to -0.76.
-    freqcalib_fac: array
-        array containing calibration factors / mis-matches between different bands.
-        default is None which is equivalent to [1, 1, 1, ... 1] in all bands.
-    lmin: int
-        Minimum multipole moment to use.
-        Default is 10.
-    return_weights: bool
-        If True return ILC weights along with the residuals
+    param_dict : dict
+        Parameter dictionary. Currently unused, but retained so that the call signature matches the other routines.
+    freqarr : array_like
+        Frequency bands in GHz, in the same order as the covariance and the weights.
+    el : array_like
+        Multipole moments :math:`\ell`.
+    cl_dic : dict
+        Auto- and cross-spectra at all :math:`\ell` keyed by spectrum name and then by band pair, as returned by :func:`get_analytic_covariance`.
+    final_comp : str, optional
+        Component to be recovered. Default ``'cmb'``.
+        Options are 'cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise' and 'tsz_cib'.
+    null_comp : str or list of str, optional
+        Component or components to be nulled, which selects a constrained ILC. Default ``None``.
+        Options are the same as for ``final_comp``.
+    spec_index_rg : float, optional
+        Radio spectral index, passed to :func:`get_acap` and used only for radio components. Default -0.76.
+    freqcalib_fac : array_like, optional
+        Multiplicative gain of each band, in the same order as ``freqarr``, by which the assumed response is scaled.
+        Default ``None``, which is equivalent to unity in every band.
+    lmin : int, optional
+        Multipoles at or below this value are skipped and their residual left at zero. Default 10.
+    return_weights : bool, optional
+        Also return the weights. Default ``True``.
 
     Returns
     -------
-    cl_residual: array
-        ILC residuals defined over the desired multiples.
-    weightsarr: array
-        ILC weights defined over the desired multiples for all the frequency bands.
-        Only returned if return_weights is set to True.
+    cl_residual : ndarray
+        Residual power, of shape ``(3, len(el))``.
+        The rows are the temperature, polarization and cross-terms, with only the first being filled for a single map component.
+    weightsarr : ndarray
+        ILC weights, of shape ``(nspecs * len(freqarr), nspecs, len(el))``.
+        Only returned when ``return_weights`` is set.
+
+    Raises
+    ------
+    ValueError
+        If ``freqarr`` is empty or contains a repeated band, if ``final_comp`` or any entry of ``null_comp`` is not a recognized component, if ``freqcalib_fac`` does not have exactly one entry per band, or if the response of ``final_comp`` lies in the span of the nulled components and so cannot be preserved and nulled at once.
+
+    Notes
+    -----
+    Non-finite residuals, which arise where the covariance cannot be inverted, are set to zero.
+
+    A constrained ILC is supported only for a single map component.
+    Combining ``null_comp`` with a joint temperature and polarization covariance raises ``IndexError`` since the joint constrained formalism is not implemented.
     """
 
     #assert final_comp in ['cmb', 'tsz', 'y', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
@@ -770,8 +949,12 @@ def residual_power(
                 raise ValueError('null_comp must be one of %s, got %s' % (possible_comps, curr_null_comp))
     #if freqcalib_fac is not None:
     #    assert len(freqcalib_fac) == len(freqarr)
-    if freqcalib_fac is not None and len(freqcalib_fac) != len(freqarr):
-        raise ValueError('freqcalib_fac has %s entries but freqarr has %s' % (len(freqcalib_fac), len(freqarr)))
+    if len(freqarr) == 0:
+        raise ValueError('freqarr must not be empty')
+    if len(set(freqarr)) != len(freqarr):
+        raise ValueError('freqarr must not contain repeated bands, got %s' % (list(freqarr)))
+    if freqcalib_fac is not None and np.shape(freqcalib_fac) != (len(freqarr),):
+        raise ValueError('freqcalib_fac must have one entry per band, got shape %s for %s bands' % (np.shape(freqcalib_fac), len(freqarr)))
 
     nspecs, pspec_arr = get_teb_spec_combination(cl_dic) #20200527 - teb
     acap = get_acap(freqarr, final_comp=final_comp, freqcalib_fac=freqcalib_fac, nspecs=nspecs, spec_index_rg=spec_index_rg)
@@ -791,6 +974,12 @@ def residual_power(
                     bcap = np.column_stack( (bcap, curr_bcap) )
                 total_comp_to_null += 1
             #bcap = np.asmatrix(bcap)
+
+        #A null_comp whose response is collinear with that of final_comp asks for the component to be preserved and nulled at once.
+        #Note that 'tsz' and 'y' are aliases, so comparing the names alone would not catch every case.
+        bcap_2d = bcap if np.ndim(bcap) > 1 else np.reshape(bcap, (-1, 1))
+        if np.linalg.matrix_rank(np.column_stack( (acap, bcap_2d) )) == np.linalg.matrix_rank(bcap_2d):
+            raise ValueError('The response of final_comp = %s lies in the span of the nulled components %s, so it cannot be preserved and nulled at the same time' % (final_comp, null_comp))
 
     nc = len(freqarr)
     weightsarr = np.zeros( (nspecs * nc, nspecs, len( el ) ) )
@@ -862,14 +1051,13 @@ def residual_power(
 #    Returns
 #    -------
 #    coth_x: float
-#        Hyperbolic cotanget of x.
+#        Hyperbolic cotangent of x.
 #    """
 #
 #    coth_x = (np.exp(x) + np.exp(-x)) / (np.exp(x) - np.exp(-x))
 #
 #    return coth_x
 #
-################################################################################################################
 #
 #def compton_y_to_delta_Tcmb(nu):
 #    """
@@ -885,6 +1073,7 @@ def residual_power(
 #    g_nu_with_tcmb: float
 #        tSZ frequency response in Tcmb units.
 #    """
+#
 #    nu *= 1e9
 #    x = h * nu / k_B / Tcmb
 #    g_nu = x * coth(x/2.) - 4.
