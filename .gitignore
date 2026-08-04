@@ -7,3 +7,6 @@ tmp
 *.SO*
 *.so*
 *.fits
+
+/results/
+/docs/build/doctrees/
