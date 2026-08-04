@@ -2,14 +2,13 @@ import argparse, os, sys, warnings
 
 import numpy as np
 
-sys.path.append('modules')
-import misc, exp_specs
+sys.path.append( os.path.join( os.path.dirname(os.path.abspath(__file__)), 'modules' ) )
+import exp_specs
+import misc
 import ilc
 
-#import scipy as sc, pickle, gzip, foregrounds as fg  #unused
-
-#import matplotlib.cbook
-#warnings.filterwarnings('ignore', category=RuntimeWarning)
+#params
+paramfile = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'params.ini' )
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-expname', dest='expname', action='store', help='expname', type=str, required=True)
@@ -25,41 +24,44 @@ parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scale
 parser.add_argument('-noise_scalings_for_bands', dest='noise_scalings_for_bands', action='store', help='noise_scalings_for_bands', nargs='+', type=float, default=None)
 
 #20230531 - option to get CMB or y
-parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, default='cmb')
+parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, default='cmb', choices=['cmb', 'tsz', 'y', 'radio', 'cib']) #['cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise', 'tsz_cib'])
+parser.add_argument('-null_comp', dest='null_comp', action='store', help='null_comp', nargs='+', type=str, default=None, choices=['cmb', 'tsz', 'y', 'radio', 'cib']) #['cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise', 'tsz_cib'])
+parser.add_argument('-paramfile', dest='paramfile', action='store', help='paramfile', type=str, default=paramfile)
 parser.add_argument('-debug', dest='debug', action='store', help='debug', type=int, default=0)  #unused
 
 
 args = parser.parse_args()
-args_keys = args.__dict__
-for kargs in args_keys:
-    param_value = args_keys[kargs]
-    if isinstance(param_value, str):
-        cmd = '%s = "%s"' % (kargs, param_value)
-    else:
-        cmd = '%s = %s' % (kargs, param_value)
-    exec(cmd)
+#args_keys = args.__dict__
+#for kargs in args_keys:
+#    param_value = args_keys[kargs]
+#    if isinstance(param_value, str):
+#        cmd = '%s = "%s"' % (kargs, param_value)
+#    else:
+#        cmd = '%s = %s' % (kargs, param_value)
+#    exec(cmd)
+expname = args.expname
+total_obs_time = args.total_obs_time
+include_gal = args.include_gal
+which_gal_mask = args.which_gal_mask
+interactive_mode = args.interactive_mode
+save_fg_res_and_weights = args.save_fg_res_and_weights
+s4_so_joint_configs = args.s4_so_joint_configs
+include_fulls4scaledsobaseline = args.include_fulls4scaledsobaseline
+noise_scalings_for_bands = args.noise_scalings_for_bands
+final_comp = args.final_comp
+debug = args.debug
 
 
 #if not debug:
-import matplotlib
+import matplotlib as mpl
 if not interactive_mode:
-    matplotlib.use('Agg')
-from pylab import *
+    mpl.use('Agg')
+import matplotlib.pyplot as plt
 
-rcParams['figure.dpi'] = 150
-rcParams['font.family'] = 'serif'
-rcParams["figure.facecolor"] = 'white'
+plt.rcParams['figure.dpi'] = 150
+plt.rcParams['font.family'] = 'serif'
+plt.rcParams["figure.facecolor"] = 'white'
 
-#some constants
-#h = 6.62607004e-34 #Planck constant in m2 kg / s
-#k_B = 1.38064852e-23 #Boltzmann constant in m2 kg s-2 / K-1
-#Tcmb = 2.73 #Kelvin
-
-###total_obs_time = float(sys.argv[1]) #in years
-
-
-#params
-paramfile = 'params.ini'
 
 # read and store param dict
 param_dict = misc.get_param_dict(paramfile)
@@ -67,6 +69,8 @@ param_dict = misc.get_param_dict(paramfile)
 if not os.path.exists(param_dict['data_folder']):
     #param_dict['data_folder'] = '/data/spt/sri-data48/git/DRAFT/data/'
     param_dict['data_folder'] = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'data' )
+if 'cl_gal_folder' in param_dict and not os.path.exists(param_dict['cl_gal_folder']):
+    param_dict['cl_gal_folder'] = os.path.join( os.path.dirname(os.path.abspath(__file__)), param_dict['cl_gal_folder'] )
 
 el = np.arange(param_dict['lmax'])
 
@@ -111,12 +115,17 @@ if include_gal:
     bands_without_gal_sims = [f for f in freqarr if f not in gal_sim_bands]
     if len(bands_without_gal_sims) > 0:
         raise ValueError('-include_gal 1 is only supported for bands %s, but expname %s also has %s. Rerun with -include_gal 0.' % (gal_sim_bands, expname, bands_without_gal_sims))
+    if which_gal_mask not in [0, 1, 2]:
+        raise ValueError('-which_gal_mask must be one of %s, got %s' % ([0, 1, 2], which_gal_mask))
+
 
 freqcalib_fac = None
 null_comp = None
 TParr = ['T', 'P']
 which_spec_arr = ['TT', 'EE']
 reduce_cib_power = None
+if total_obs_time <= 0:
+    raise ValueError('-total_obs_time must be positive, got %g' % (total_obs_time))
 total_obs_time_default = 7. ###10. #years
 if expname.find('s4_all_chile_config_lat_') > -1: #20250504
     total_obs_time_default = 10.
@@ -264,7 +273,6 @@ print('Delta T =', noisearr_T)
 print('Delta P =', noisearr_P)
 #print(beamarr)
 print('\n')
-###sys.exit()
 
 
 #collect beam and noise into a dic; elknee and alpha into a dic
@@ -344,9 +352,9 @@ for TPcntr, TP in enumerate( TParr ):
                 nl = 1. / ( (1./nl) + (1./nl_s4_wide) )
 
                 if (0):#freq1 == 93:# and freq2 == 145:
-                    loglog(el, nl_s4_ultradeep, color='black', label='S4-Ultra deep'); loglog(el, nl_s4_wide, color='red', label='S4-Wide');
-                    loglog(el, nl, color='darkgreen', label='S4');
-                    title('%s: (%s, %s)' % (TP, freq1, freq2)); legend(loc=3); show()
+                    plt.loglog(el, nl_s4_ultradeep, color='black', label='S4-Ultra deep'); plt.loglog(el, nl_s4_wide, color='red', label='S4-Wide');
+                    plt.loglog(el, nl, color='darkgreen', label='S4');
+                    plt.title('%s: (%s, %s)' % (TP, freq1, freq2)); plt.legend(loc=3); plt.show()
 
             nl_dic[TP][(freq1, freq2)] = nl
 
@@ -359,14 +367,14 @@ bl_dic = misc.get_beam_dic(freqarr, beam_noise_dic['T'], param_dict['lmax'])
 print(bl_dic.keys())
 if (0):
     for freq in freqarr:
-        plot(bl_dic[freq], label=freq)
-    legend(loc=1)
+        plt.plot(bl_dic[freq], label=freq)
+    plt.legend(loc=1)
 
 if (0):
     use_dls = True
     beam_decon = True
     color_arr = ['navy', 'blue', 'teal', 'darkgreen', 'olive', 'goldenrod', 'orangered', 'darkred', 'maroon']
-    ax = subplot(111, yscale='log')
+    ax = plt.subplot(111, yscale='log')
     for fcntr, freq in enumerate( freqarr ):
         currnl = nl_dic['T'][(freq, freq)]*bl_dic[freq]**2.
         #currnl = nl_dic['P'][(freq, freq)]*bl_dic[freq]**2.
@@ -380,23 +388,23 @@ if (0):
 
         if use_dls:
             dl_fac = el * (el+1)/2/np.pi
-            plot(el, dl_fac * currnl, label='%s GHz ' % (freq), ls='-', color=color_arr[fcntr % len(color_arr)])
+            plt.plot(el, dl_fac * currnl, label='%s GHz ' % (freq), ls='-', color=color_arr[fcntr % len(color_arr)])
         else:
-            plot(el, currnl, label=r'%s GHz (%.2f $\mu$K-arcmin)' % (freq, noise_uk_arcmin), ls='-', color=color_arr[fcntr % len(color_arr)])
-        #plot(nl_dic_actual['T'][(freq, freq)], lw=2., color=colordic[freq])
-    legend(loc=1)
+            plt.plot(el, currnl, label=r'%s GHz (%.2f $\mu$K-arcmin)' % (freq, noise_uk_arcmin), ls='-', color=color_arr[fcntr % len(color_arr)])
+        #plt.plot(nl_dic_actual['T'][(freq, freq)], lw=2., color=colordic[freq])
+    plt.legend(loc=1)
     if not use_dls:
-        xlim(0, 5000); ylim(1e-8, 1.)
-        ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize=14)
+        plt.xlim(0, 5000); plt.ylim(1e-8, 1.)
+        plt.ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize=14)
     else:
-        ylabel(r'$\ell(\ell+1)/(2\pi)$ N$_{\ell}$ [$\mu$K$^{2}$]', fontsize=14)
-        xlim(0, 5000); ylim(.1, 1e5)
-    xlabel(r'Multipole $\ell$', fontsize=14)
+        plt.ylabel(r'$\ell(\ell+1)/(2\pi)$ N$_{\ell}$ [$\mu$K$^{2}$]', fontsize=14)
+        plt.xlim(0, 5000); plt.ylim(.1, 1e5)
+    plt.xlabel(r'Multipole $\ell$', fontsize=14)
     expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer').replace('_', r'\_')
     ##expname_str = 'S4-Wide'
-    title(r'%s' % (expname_str), fontsize=14)
+    plt.title(r'%s' % (expname_str), fontsize=14)
     ##savefig('s4_wide_nl.png', dpi= 200.); sys.exit()
-    show(); sys.exit()
+    plt.show(); sys.exit()
 
 
 #get the CMB, noise, and foreground covriance
@@ -421,7 +429,6 @@ for which_spec in which_spec_arr:
     ###print(which_spec, cl_dic[which_spec])
 print(cl_dic.keys())
 print(el)
-###sys.exit()
 op_dic_for_fg_noise = {}
 op_dic_for_fg_noise['fg_cl_dic'] = fg_cl_dic
 op_dic_for_fg_noise['nl_dic'] = nl_dic
