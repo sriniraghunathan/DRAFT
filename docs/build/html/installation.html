@@ -8,14 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installation &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -42,23 +42,26 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#from-source">From source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#verifying-the-installation">Verifying the installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-the-code">Getting the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-it">Running it</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#verifying-the-checkout">Verifying the checkout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#planned-importable-api">Planned importable API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -78,7 +81,6 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Installation</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -88,41 +90,64 @@
              
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<p>DRAFT is used by cloning the repository and running the driver from the
+repository root. There is no installable package <em>yet</em> (see <a class="reference internal" href="#planned-importable-api">Planned importable
+API</a> below).</p>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Python &gt;= 3.6</p></li>
-<li><p>numpy, scipy, matplotlib</p></li>
-<li><p>pyparsing &gt;= 2.0.2</p></li>
+<li><p>Python 3.12+.</p></li>
+<li><p>numpy, scipy, matplotlib.</p></li>
 </ul>
-<p>Optional (depending on the analysis):</p>
+<p>Optional:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://camb.readthedocs.io/">CAMB</a> – CMB power spectra and
-derivatives for Fisher forecasting.</p></li>
-<li><p><a class="reference external" href="https://pysm3.readthedocs.io/">pySM3</a> – Galactic dust and
-synchrotron simulations.</p></li>
-<li><p>healpy – HEALPix map handling.</p></li>
+<li><p>healpy, needed only by <a class="reference internal" href="misc.html#misc.healpix_rotate_coords" title="misc.healpix_rotate_coords"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.healpix_rotate_coords()</span></code></a>, which imports it
+lazily and raises <code class="docutils literal notranslate"><span class="pre">ImportError</span></code> if it is missing. The component
+separation pipeline does not use it.</p></li>
 </ul>
+<p>The galactic foreground spectra are read from precomputed pySM3 outputs shipped
+under <code class="docutils literal notranslate"><span class="pre">data/</span></code>, so pySM3 itself is not required. The delensing and
+Fisher-matrix stages are performed by two companion codes with their own
+requirements, listed in <a class="reference internal" href="modules.html"><span class="doc">API reference</span></a>.</p>
 </section>
-<section id="from-source">
-<h2>From source<a class="headerlink" href="#from-source" title="Link to this heading"></a></h2>
-<p>Clone the repository and install with pip:</p>
+<section id="getting-the-code">
+<h2>Getting the code<a class="headerlink" href="#getting-the-code" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sriniraghunathan/DRAFT.git
 <span class="nb">cd</span><span class="w"> </span>DRAFT
-pip<span class="w"> </span>install<span class="w"> </span>.
-</pre></div>
-</div>
-<p>For development (editable install):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib
 </pre></div>
 </div>
 </section>
-<section id="verifying-the-installation">
-<h2>Verifying the installation<a class="headerlink" href="#verifying-the-installation" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">DRAFT</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">DRAFT</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+<section id="running-it">
+<h2>Running it<a class="headerlink" href="#running-it" title="Link to this heading"></a></h2>
+<p>All commands are run from the repository root, since the modules are currently
+imported by name rather than as an installed package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-include_gal<span class="w"> </span><span class="m">1</span><span class="w"> </span>-which_gal_mask<span class="w"> </span><span class="m">2</span><span class="w"> </span>-final_comp<span class="w"> </span>cmb
 </pre></div>
 </div>
+<p>See <a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a> for the available arguments and <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a> for the
+output format.</p>
+</section>
+<section id="verifying-the-checkout">
+<h2>Verifying the checkout<a class="headerlink" href="#verifying-the-checkout" title="Link to this heading"></a></h2>
+<p>The driver’s help output lists every argument and requires no data:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>--help
+</pre></div>
+</div>
+<p>To check that the modules import, from the repository root:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;modules&#39;</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">exp_specs</span><span class="o">,</span><span class="w"> </span><span class="nn">foregrounds</span><span class="o">,</span><span class="w"> </span><span class="nn">ilc</span><span class="o">,</span><span class="w"> </span><span class="nn">misc</span>
+</pre></div>
+</div>
+</section>
+<section id="planned-importable-api">
+<h2>Planned importable API<a class="headerlink" href="#planned-importable-api" title="Link to this heading"></a></h2>
+<p>A small importable API is planned, initially unstable, e.g. with names
+potentially changing initially. The released product files are however
+treated as stable. Until then, <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> does not work.
+<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> is incomplete. (To be added.)</p>
 </section>
 </section>
 

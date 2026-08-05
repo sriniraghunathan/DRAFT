@@ -6,21 +6,22 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Products &mdash; DRAFT 1.0 documentation</title>
+  <title>Data and products &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="References" href="references.html" />
-    <link rel="prev" title="exp_specs module" href="exp_specs.html" /> 
+    <link rel="prev" title="flatsky module" href="flatsky.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,18 +43,26 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Products</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data and products</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#input-data">Input data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#released-products">Released products</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filename-grammar">Filename grammar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-format">File format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reading-the-products">Reading the products</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -71,9 +80,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Data Products</li>
+      <li class="breadcrumb-item active">Data and products</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/products.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -81,31 +89,259 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="data-products">
-<h1>Data Products<a class="headerlink" href="#data-products" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">products/</span></code> directory of the repository contains pre-computed
-results, including:</p>
-<ul class="simple">
-<li><p><strong>ILC residual curves</strong> for the supported experiment configurations:</p>
-<ul>
-<li><p>S4-Wide (Chilean LAT) – PBDR noise specs (Oct 2023).</p></li>
-<li><p>S4-Ultra deep (South Pole LAT) – PBDR noise specs (Oct 2023).</p></li>
-<li><p>S4-Wide (Chilean LAT) – achieved (best possible) performance.</p></li>
-</ul>
-</li>
-<li><p><strong>Lensing noise curves</strong> for the above configurations.</p></li>
-<li><p><strong>Galactic foreground masks</strong> (Planck Galactic masks with the CMB-S4
-footprint applied).</p></li>
-</ul>
-<p>Use the <code class="docutils literal notranslate"><span class="pre">read_ilc_residuals.py</span></code> and <code class="docutils literal notranslate"><span class="pre">read_lensing_noise.py</span></code> scripts
-to load these products.</p>
+  <section id="data-and-products">
+<h1>Data and products<a class="headerlink" href="#data-and-products" title="Link to this heading"></a></h1>
+<p>The repository ships both the input data that the pipeline reads, and the ILC
+residual products and lensing noise curves for a range of experimental
+configurations that have been pre-computed. Inputs are contained in <code class="docutils literal notranslate"><span class="pre">data/</span></code>
+and the released products can be accessed under <code class="docutils literal notranslate"><span class="pre">products/</span></code>.</p>
+<section id="input-data">
+<h2>Input data<a class="headerlink" href="#input-data" title="Link to this heading"></a></h2>
+<p><strong>Fiducial cosmology.</strong> <code class="docutils literal notranslate"><span class="pre">data/output_planck_r_0.0_2015_cosmo_lensedCls.dat</span></code>
+holds the lensed CMB power spectra used as the fiducial signal. The parameter
+values, the step sizes for the numerical derivatives and the foreground
+configuration are read from <code class="docutils literal notranslate"><span class="pre">params.ini</span></code> at the repository root.</p>
+<p><strong>Galactic spectra.</strong> <code class="docutils literal notranslate"><span class="pre">data/galactic/</span></code> holds the dust and synchrotron power
+spectra as precomputed pySM3 outputs (based on <a class="reference external" href="https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run">these simulations</a>),
+evaluated on the masked sky.
+<a class="reference external" href="https://so-pysm-models.readthedocs.io/en/latest/">PySM 3</a> itself is not run
+by this repository.</p>
+<p><strong>Extragalactic templates.</strong> <code class="docutils literal notranslate"><span class="pre">data/george_plot_bestfit_line.sav</span></code> contains
+the South Pole Telescope best-fit extragalactic foreground power spectra from
+George et al. (2015), which are the amplitudes and frequency scalings applied in
+<a class="reference internal" href="foregrounds.html#module-foregrounds" title="foregrounds"><code class="xref py py-mod docutils literal notranslate"><span class="pre">foregrounds</span></code></a>. Five further template files are shipped, but not used in
+the current pipeline:
+<code class="docutils literal notranslate"><span class="pre">data/dl_shaw_tsz_s10_153ghz_norm1_fake12000.txt</span></code> and
+<code class="docutils literal notranslate"><span class="pre">data/cl_tsz_148_batt.dat</span></code> for the thermal Sunyaev-Zel’dovich effect,
+<code class="docutils literal notranslate"><span class="pre">data/dl_ksz_CSFplusPATCHY_13sep2011_norm1_fake12000.txt</span></code> for the kinematic
+Sunyaev-Zel’dovich effect, <code class="docutils literal notranslate"><span class="pre">data/dl_cib_1halo_norm1_12000.txt</span></code> and
+<code class="docutils literal notranslate"><span class="pre">data/dl_cib_2halo_norm1_12000.txt</span></code> for the cosmic infrared background.</p>
+<p><strong>Survey noise levels.</strong>
+<code class="docutils literal notranslate"><span class="pre">data/cmbs4_chile_opt_survey_patch_noise_levels.npy</span></code> holds the per-patch
+white-noise levels for the CMB-S4 Chile-only revised configuration, tabulated
+in §2.4 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>. All other configurations have their specifications coded
+directly in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>.</p>
+<p><strong>Figures.</strong> <code class="docutils literal notranslate"><span class="pre">data/planck_gal_fg_masks_with_cmbs4_footprint.png</span></code> shows the
+galactic masks with the CMB-S4 footprint applied, and
+<code class="docutils literal notranslate"><span class="pre">data/s4_wide_specs_pbdr.png</span></code> and <code class="docutils literal notranslate"><span class="pre">data/s4_ultradeep_specs_pbdr.png</span></code> show
+the instrument and noise specifications of the conceptual design. The masks
+themselves are currently not included.</p>
+</section>
+<section id="released-products">
+<h2>Released products<a class="headerlink" href="#released-products" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">products/</span></code> contains three trees, produced at different times and with
+different configurations. Each holds ILC residual power spectra as <code class="docutils literal notranslate"><span class="pre">.npy</span></code>
+files, with lensing-noise curves alongside them where available. Products from
+the same experiment can appear in more than one tree, with the later generation
+superseding the earlier one where they overlap.</p>
+<section id="cmb-s4">
+<h3>CMB-S4<a class="headerlink" href="#cmb-s4" title="Link to this heading"></a></h3>
+<p class="rubric">products/202310xx_PBDR_config/</p>
+<p>The two-site conceptual design of §2.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>, referred to in the
+repository as the preliminary baseline design or PBDR. Contains
+<code class="docutils literal notranslate"><span class="pre">s4deepv3r025_202310xx_pbdr_config</span></code> for the CMB-S4 Ultra-deep survey at the
+South Pole, <code class="docutils literal notranslate"><span class="pre">s4wide_202310xx_pbdr_config</span></code> for the CMB-S4 Wide survey in
+Chile, and <code class="docutils literal notranslate"><span class="pre">s4wide_achieved_performance_pbdr_202312xx</span></code> for a variant of the
+latter with noise depths scaled from achieved performance.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">s4wide_202310xx_pbdr_config</span></code>, the tree also provides a scan over
+integration time, <code class="docutils literal notranslate"><span class="pre">for1years</span></code> through <code class="docutils literal notranslate"><span class="pre">for10years</span></code>. In addition,
+<code class="docutils literal notranslate"><span class="pre">lmax_12000/</span></code> repeats the same configurations to a higher maximum multipole,
+with the results being identical over the shared multipole range. <code class="docutils literal notranslate"><span class="pre">s4wide/</span></code>
+is the pre-PBDR baseline, which differs from <code class="docutils literal notranslate"><span class="pre">s4wide_202310xx_pbdr_config</span></code>
+only in the 27 and 39 GHz white-noise levels. <code class="docutils literal notranslate"><span class="pre">202303xx/</span></code> is an earlier
+generation of the same configuration and is superseded by its parent directory.</p>
+<p class="rubric">products/s4_all_chile_config/</p>
+<p>The Chile-only revised configuration of §2.4 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>. While two subtrees
+are currently included, <code class="docutils literal notranslate"><span class="pre">report/lmax_6500/</span></code> is the authoritative branch. It
+scans the survey year from <code class="docutils literal notranslate"><span class="pre">---year1.0</span></code> to <code class="docutils literal notranslate"><span class="pre">---year15.0</span></code>. <code class="docutils literal notranslate"><span class="pre">lmax_6500/</span></code>
+contains an earlier generation covering the same survey and patch combinations,
+but with its noise in polarization incorrectly being the same as in
+temperature. The <code class="docutils literal notranslate"><span class="pre">20250530_wrong_1_over_f_definitions/</span></code> subdirectory holds a
+superseded set computed with different atmospheric-noise definitions (currently
+only retained for reference and should not be used).</p>
+<p class="rubric">products/20220726/</p>
+<p>The earliest tree, with its <code class="docutils literal notranslate"><span class="pre">s4wide</span></code> and <code class="docutils literal notranslate"><span class="pre">s4deepv3r025</span></code> being superseded by
+the PBDR tree. It also contains an <code class="docutils literal notranslate"><span class="pre">lmax_10000/</span></code> variant, lensing-noise
+curves and the plotting scripts that produced <code class="docutils literal notranslate"><span class="pre">ilc_residuals.png</span></code> <em>[with the
+latter being moved soon]</em>.</p>
+<p class="rubric">Coverage of the paper’s configurations</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 66.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Configuration</p></th>
+<th class="head"><p>Released products</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>§2.1 Common specifications, including Planck</p></td>
+<td><p>No standalone products; only used in forecasting</p></td>
+</tr>
+<tr class="row-odd"><td><p>§2.2 Two-site conceptual design</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§2.3 South-Pole-only alternative</p></td>
+<td><p>none <em>[yet]</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>§2.4 Chile-only revised configuration</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">products/s4_all_chile_config/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>§2.5 Cosmic-variance-limited survey</p></td>
+<td><p>none (no ILC performed)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Within the revised configuration, the three survey components of §2.4 map onto
+the product names as follows: <code class="docutils literal notranslate"><span class="pre">lat_wide---patch&lt;N&gt;+advanced_so_goal</span></code> covers
+the sky where the CMB-S4 Hybrid wide survey and the SO-like large-aperture
+telescope overlap, <code class="docutils literal notranslate"><span class="pre">lat_delensing---patch&lt;N&gt;</span></code> is the CMB-S4 Hybrid Delensing
+survey, which has no SO combination, and <code class="docutils literal notranslate"><span class="pre">advanced_so_goal</span></code> alone covers the
+sky observed by the SO-like telescope but by neither CMB-S4 survey. Products
+exist for patches 1 to 4, of which the paper uses patches 1 and 2.</p>
+<p>Three further survey variants are released: <code class="docutils literal notranslate"><span class="pre">lat_wide_dc0</span></code> corresponds to
+calculations based on the CMB-S4 Data Challenge 0 (DC 0), <code class="docutils literal notranslate"><span class="pre">lat_wide_phase2</span></code>
+is from a contingency-driven expansion phase of the CMB-S4 project that was
+considered during its design phase and the configuration of <code class="docutils literal notranslate"><span class="pre">lat_roman</span></code> is
+related to the Nancy Grace Roman Space Telescope. The supported names are
+listed in full in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>.</p>
+</section>
+<section id="simons-observatory">
+<h3>Simons Observatory<a class="headerlink" href="#simons-observatory" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">products/20220726/</span></code> holds ILC residuals and lensing-noise curves for the
+<code class="docutils literal notranslate"><span class="pre">sobaseline</span></code> and <code class="docutils literal notranslate"><span class="pre">sogoal</span></code> configurations, computed over the same six
+frequency bands as the CMB-S4 products.</p>
+<p><code class="docutils literal notranslate"><span class="pre">products/s4_all_chile_config/</span></code> holds products for the upgraded
+<code class="docutils literal notranslate"><span class="pre">advanced_so_baseline</span></code> and <code class="docutils literal notranslate"><span class="pre">advanced_so_goal</span></code> configurations. The
+<code class="docutils literal notranslate"><span class="pre">report/lmax_6500/</span></code> subtree scans the survey year from <code class="docutils literal notranslate"><span class="pre">---year1.0</span></code> to
+<code class="docutils literal notranslate"><span class="pre">---year15.0</span></code>.</p>
+</section>
+<section id="south-pole-telescope">
+<h3>South Pole Telescope<a class="headerlink" href="#south-pole-telescope" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">products/20220726/</span></code> holds ILC residuals and lensing-noise curves for
+<code class="docutils literal notranslate"><span class="pre">spt3g</span></code>. These combine three frequency bands and carry the <code class="docutils literal notranslate"><span class="pre">nocorrnoise</span></code>
+token, i.e. they were computed without correlated atmospheric noise between
+bands. <code class="docutils literal notranslate"><span class="pre">products/s4_all_chile_config/lmax_6500/</span></code> additionally holds
+<code class="docutils literal notranslate"><span class="pre">spt3g_plus_spt3g+_WG2</span></code>, which is an SPT-3G and SPT-3G+ combination.</p>
+</section>
+</section>
+<section id="filename-grammar">
+<h2>Filename grammar<a class="headerlink" href="#filename-grammar" title="Link to this heading"></a></h2>
+<p>Product files are named</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&lt;expname&gt;_ilc_galaxy&lt;0|1&gt;_&lt;bands&gt;_&lt;spectra&gt;[_galmask&lt;N&gt;][_AZ|_CU][_withtszxcib]_lmax&lt;L&gt;_for&lt;M&gt;years.npy
+</pre></div>
+</div>
+<p>with the following tokens:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;expname&gt;</span></code></dt><dd><p>The experiment configuration, as accepted by <code class="docutils literal notranslate"><span class="pre">-expname</span></code>. The grammar,
+including the <code class="docutils literal notranslate"><span class="pre">---patch&lt;N&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">+advanced_so_*</span></code>
+suffixes, is documented in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">galaxy0</span></code> / <code class="docutils literal notranslate"><span class="pre">galaxy1</span></code></dt><dd><p>Galactic foregrounds excluded or included.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;bands&gt;</span></code></dt><dd><p>Band centres in GHz, joined by hyphens, in the order used for the
+covariance and the weights.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;spectra&gt;</span></code></dt><dd><p>The calculated spectra, <code class="docutils literal notranslate"><span class="pre">TT-EE</span></code> for every released product.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">galmask&lt;N&gt;</span></code></dt><dd><p>Galactic mask, present only when <code class="docutils literal notranslate"><span class="pre">galaxy1</span></code>. <code class="docutils literal notranslate"><span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">2</span></code> select
+the Planck GAL070, GAL080 and GAL090 masks intersected with the CMB-S4
+footprint.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_AZ</span></code> / <code class="docutils literal notranslate"><span class="pre">_CU</span></code></dt><dd><p>Which set of galactic simulations was used. The driver writes <code class="docutils literal notranslate"><span class="pre">_CU</span></code> when
+the simulation folder path contains <code class="docutils literal notranslate"><span class="pre">CUmilta</span></code> and <code class="docutils literal notranslate"><span class="pre">_AZ</span></code> otherwise, i.e.
+<code class="docutils literal notranslate"><span class="pre">_AZ</span></code> is the default.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_withtszxcib</span></code></dt><dd><p>The tSZ-CIB correlation was included. Absent by default.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">lmax&lt;L&gt;</span></code></dt><dd><p>Maximum multipole. Note that the array runs from <span class="math notranslate nohighlight">\(\ell = 0\)</span> to
+<span class="math notranslate nohighlight">\(\ell = L - 1\)</span>, so <code class="docutils literal notranslate"><span class="pre">lmax6500</span></code> gives 6500 entries ending at 6499.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">for&lt;M&gt;years</span></code></dt><dd><p>Integration time in years.</p>
+</dd>
+</dl>
+<p>Two further tokens appear on some files: <code class="docutils literal notranslate"><span class="pre">nocorrnoise</span></code> for SPT configurations
+computed without correlated atmospheric noise and <code class="docutils literal notranslate"><span class="pre">nulled_&lt;component&gt;</span></code> for
+constrained ILC products in which a component was nulled.</p>
+<p>Note: Survey duration is encoded in two different ways. In
+<code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/</span></code>, it is the <code class="docutils literal notranslate"><span class="pre">for&lt;T&gt;years</span></code> token in the
+filename. In <code class="docutils literal notranslate"><span class="pre">products/s4_all_chile_config/report/</span></code> it is the <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code>
+token inside the experiment name, with the <code class="docutils literal notranslate"><span class="pre">for&lt;T&gt;years</span></code> token not reflecting
+the depth, but the total survey duration from which the <code class="docutils literal notranslate"><span class="pre">year&lt;Y&gt;</span></code> noise
+levels were derived by rescaling with <span class="math notranslate nohighlight">\(\sqrt{T/Y}\)</span>.</p>
+</section>
+<section id="file-format">
+<h2>File format<a class="headerlink" href="#file-format" title="Link to this heading"></a></h2>
+<p>Each <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file holds a single pickled dictionary with eleven keys.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">el</span></code></dt><dd><p>Multipole array, shape <code class="docutils literal notranslate"><span class="pre">(lmax,)</span></code>, running from 0 to <code class="docutils literal notranslate"><span class="pre">lmax</span> <span class="pre">-</span> <span class="pre">1</span></code>. The array
+index equals the multipole.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cl_residual</span></code></dt><dd><p>Dictionary keyed <code class="docutils literal notranslate"><span class="pre">'TT'</span></code> and <code class="docutils literal notranslate"><span class="pre">'EE'</span></code>, each a 1-D array over <code class="docutils literal notranslate"><span class="pre">el</span></code> giving
+the residual power <span class="math notranslate nohighlight">\(C_\ell^\mathrm{res}\)</span> after component separation.
+These are <span class="math notranslate nohighlight">\(C_\ell\)</span>, not <span class="math notranslate nohighlight">\(D_\ell\)</span>, in units of μK².</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">weights</span></code></dt><dd><p>Dictionary keyed <code class="docutils literal notranslate"><span class="pre">'TT'</span></code> and <code class="docutils literal notranslate"><span class="pre">'EE'</span></code>, each of shape <code class="docutils literal notranslate"><span class="pre">(n_bands,</span> <span class="pre">lmax)</span></code>.
+The ILC weights are dimensionless.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">fg_res_dic</span></code></dt><dd><p>Dictionary keyed <code class="docutils literal notranslate"><span class="pre">'TT'</span></code> and <code class="docutils literal notranslate"><span class="pre">'EE'</span></code>, each a dictionary over the
+individual components <code class="docutils literal notranslate"><span class="pre">cib</span></code>, <code class="docutils literal notranslate"><span class="pre">galdust</span></code>, <code class="docutils literal notranslate"><span class="pre">galsync</span></code>, <code class="docutils literal notranslate"><span class="pre">noise</span></code>,
+<code class="docutils literal notranslate"><span class="pre">radio</span></code> and <code class="docutils literal notranslate"><span class="pre">tsz</span></code>, giving their separate contributions to the residual.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">beam_noise_dic</span></code></dt><dd><p>Dictionary keyed <code class="docutils literal notranslate"><span class="pre">'T'</span></code> and <code class="docutils literal notranslate"><span class="pre">'P'</span></code>, mapping band frequency to
+<code class="docutils literal notranslate"><span class="pre">[beam_fwhm_arcmin,</span> <span class="pre">white_noise_level]</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">elknee_dic</span></code></dt><dd><p>Dictionary keyed <code class="docutils literal notranslate"><span class="pre">'T'</span></code> and <code class="docutils literal notranslate"><span class="pre">'P'</span></code>, mapping band frequency to the
+atmospheric (1/f) noise parameters <code class="docutils literal notranslate"><span class="pre">[elknee,</span> <span class="pre">alphaknee]</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">fsky_val</span></code></dt><dd><p>Sky fraction of the mask used.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">which_gal_mask</span></code></dt><dd><p>Galactic mask index, matching the <code class="docutils literal notranslate"><span class="pre">galmask&lt;N&gt;</span></code> token.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">param_dict</span></code></dt><dd><p>The parameter dictionary read from <code class="docutils literal notranslate"><span class="pre">params.ini</span></code>, including the foreground
+configuration and the paths of the galactic simulation files.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cl_multiplier_dic</span></code></dt><dd><p>Component rescaling factors for a partial ILC. Empty in the released
+products, which use the standard minimum-variance form.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">freqcalib_fac</span></code></dt><dd><p>Per-band calibration factors. <code class="docutils literal notranslate"><span class="pre">None</span></code> in the released products.</p>
+</dd>
+</dl>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">cl_residual</span></code> is exactly zero below <span class="math notranslate nohighlight">\(\ell = 11\)</span>, i.e. the
+usable range is <span class="math notranslate nohighlight">\(11 \le \ell &lt;\)</span> <code class="docutils literal notranslate"><span class="pre">lmax</span></code>.</p>
+</section>
+<section id="reading-the-products">
+<h2>Reading the products<a class="headerlink" href="#reading-the-products" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/read_ilc_residuals.py</span></code> and
+<code class="docutils literal notranslate"><span class="pre">read_lensing_noise.py</span></code> load a single file and plot it, and
+<code class="docutils literal notranslate"><span class="pre">make_ascii.py</span></code> writes the plain-text exports. All three take the filename
+from a variable at the top of the script rather than from the command line.
+<code class="docutils literal notranslate"><span class="pre">products/20220726/</span></code> contains its own plotting scripts, which glob the
+current directory and must therefore be run from inside it.
+<em>[A ``load_product()`` function in a new module, superseding these scripts and
+applicable to all three trees, is to be added.]</em></p>
+<p>Loading a product directly requires both <code class="docutils literal notranslate"><span class="pre">allow_pickle</span></code> and the <code class="docutils literal notranslate"><span class="pre">latin1</span></code>
+encoding, the latter a compatibility setting for pickles written under
+Python 2:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">res_dic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="n">el</span> <span class="o">=</span> <span class="n">res_dic</span><span class="p">[</span><span class="s1">&#39;el&#39;</span><span class="p">]</span>
+<span class="n">cl_residual</span> <span class="o">=</span> <span class="n">res_dic</span><span class="p">[</span><span class="s1">&#39;cl_residual&#39;</span><span class="p">][</span><span class="s1">&#39;TT&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>In addition, some plain-text exports accompany a subset of the products under
+<code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/</span></code>. They cover ILC residuals for <code class="docutils literal notranslate"><span class="pre">galaxy0</span></code>
+configurations and some lensing-noise curves.</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="exp_specs.html" class="btn btn-neutral float-left" title="exp_specs module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="flatsky.html" class="btn btn-neutral float-left" title="flatsky module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

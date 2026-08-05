@@ -1,0 +1,216 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adding an experiment &mdash; DRAFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API reference" href="modules.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DRAFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Adding an experiment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#required-information">Required information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#worked-example">Worked example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-your-own">Adding your own</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#things-to-watch-for">Things to watch for</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DRAFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Adding an experiment</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adding-an-experiment">
+<h1>Adding an experiment<a class="headerlink" href="#adding-an-experiment" title="Link to this heading"></a></h1>
+<p>Experiment configurations are defined in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>, a
+single dispatch on <code class="docutils literal notranslate"><span class="pre">expname</span></code> that returns the per-band beams, white-noise
+levels and atmospheric-noise parameters. Adding a configuration means adding
+one branch to that dispatch, with no other changes in the pipeline necessary.</p>
+<section id="required-information">
+<h2>Required information<a class="headerlink" href="#required-information" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">specs_dic</span></code></dt><dd><p>The specifications, keyed by band centre in GHz. Each value is the
+seven-element list
+<code class="docutils literal notranslate"><span class="pre">[beam_fwhm,</span> <span class="pre">delta_T,</span> <span class="pre">elknee_T,</span> <span class="pre">alphaknee_T,</span> <span class="pre">delta_P,</span> <span class="pre">elknee_P,</span> <span class="pre">alphaknee_P]</span></code>,
+with the beam full-width at half-maximum in arcmin and the white-noise
+levels in μK arcmin. Setting <code class="docutils literal notranslate"><span class="pre">elknee</span></code> to <code class="docutils literal notranslate"><span class="pre">-1</span></code> switches off the
+atmospheric (1/f) noise term for that band and spectrum.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">corr_noise</span></code>, <code class="docutils literal notranslate"><span class="pre">rho</span></code>, <code class="docutils literal notranslate"><span class="pre">corr_noise_bands</span></code></dt><dd><p>Whether atmospheric noise is correlated between bands, the correlation
+coefficient and for each band the list of bands it is correlated with. For
+an uncorrelated configuration, set <code class="docutils literal notranslate"><span class="pre">corr_noise</span> <span class="pre">=</span> <span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">=</span> <span class="pre">0.</span></code> and map
+every band to itself alone.</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">Nred_dic</span></code> is initialized to an empty dictionary before the dispatch and only
+needs setting for configurations that model red noise explicitly, which at
+present is the Simons Observatory family.</p>
+</section>
+<section id="worked-example">
+<h2>Worked example<a class="headerlink" href="#worked-example" title="Link to this heading"></a></h2>
+<p>The Planck branch is the simplest in the file and shows the shape of a
+self-contained configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="n">expname</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;planck&#39;</span><span class="p">:</span>
+    <span class="c1">#Planck instrumental noise, from Table 1 of Allison et al. 2015 (arXiv:1509.07471).</span>
+    <span class="n">no_pol_noise</span> <span class="o">=</span> <span class="mf">1e4</span>  <span class="c1">#μK-arcmin</span>
+    <span class="n">specs_dic</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1">#freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P]</span>
+    <span class="mi">30</span><span class="p">:</span>  <span class="p">[</span><span class="mf">33.</span><span class="p">,</span> <span class="mf">145.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">no_pol_noise</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+    <span class="mi">44</span><span class="p">:</span>  <span class="p">[</span><span class="mf">23.</span><span class="p">,</span> <span class="mf">149.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">no_pol_noise</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+    <span class="mi">70</span><span class="p">:</span>  <span class="p">[</span><span class="mf">14.</span><span class="p">,</span> <span class="mf">137.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">450.</span><span class="p">,</span>         <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+    <span class="mi">100</span><span class="p">:</span> <span class="p">[</span><span class="mf">10.</span><span class="p">,</span>  <span class="mf">65.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">103.</span><span class="p">,</span>         <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+    <span class="mi">143</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.</span><span class="p">,</span>   <span class="mf">43.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">81.</span><span class="p">,</span>          <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+    <span class="mi">217</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.</span><span class="p">,</span>   <span class="mf">66.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">134.</span><span class="p">,</span>         <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+    <span class="mi">353</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.</span><span class="p">,</span>  <span class="mf">200.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">406.</span><span class="p">,</span>         <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="n">corr_noise</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">corr_noise_bands</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="n">specs_dic</span><span class="p">:</span>
+        <span class="n">corr_noise_bands</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nu</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Two conventions are visible here. Atmospheric noise is switched off in every
+band with <code class="docutils literal notranslate"><span class="pre">elknee</span> <span class="pre">=</span> <span class="pre">-1</span></code>, since it is not relevant for a satellite, and the
+two channels without quoted polarization sensitivity are given a deliberately
+large <code class="docutils literal notranslate"><span class="pre">delta_P</span></code> of <span class="math notranslate nohighlight">\(10^4\)</span> μK arcmin, so that the ILC down-weights them
+in polarization rather than excluding them.</p>
+</section>
+<section id="adding-your-own">
+<h2>Adding your own<a class="headerlink" href="#adding-your-own" title="Link to this heading"></a></h2>
+<p>Insert an <code class="docutils literal notranslate"><span class="pre">elif</span></code> branch before the final <code class="docutils literal notranslate"><span class="pre">else</span></code> that raises for an
+unrecognized name, following the pattern above, then run it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>mytelescope<span class="w"> </span>-interactive_mode<span class="w"> </span><span class="m">0</span>
+</pre></div>
+</div>
+<p>The white-noise levels are printed per band, so a first check is that the
+printed <code class="docutils literal notranslate"><span class="pre">Delta</span> <span class="pre">T</span></code> and <code class="docutils literal notranslate"><span class="pre">Delta</span> <span class="pre">P</span></code> are what you intended after any
+observing-time rescaling.</p>
+</section>
+<section id="things-to-watch-for">
+<h2>Things to watch for<a class="headerlink" href="#things-to-watch-for" title="Link to this heading"></a></h2>
+<p><strong>Dispatch is by substring and order matters.</strong> The families are tested in the
+order given in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a> and each test is a substring
+match, so a name containing <code class="docutils literal notranslate"><span class="pre">s4</span></code>, <code class="docutils literal notranslate"><span class="pre">atlast</span></code>, <code class="docutils literal notranslate"><span class="pre">advanced_so</span></code> or <code class="docutils literal notranslate"><span class="pre">spt</span></code>
+anywhere is routed to that family before your branch is reached. Choose a name
+that contains none of them unless you intend that routing.</p>
+<p><strong>The observing-time token in the output filename is also gated on</strong> <code class="docutils literal notranslate"><span class="pre">s4</span></code>.
+For a name that does not contain it, <code class="docutils literal notranslate"><span class="pre">-total_obs_time</span></code> rescales the noise
+levels correctly but the filename records no <code class="docutils literal notranslate"><span class="pre">for&lt;M&gt;years</span></code> token, so two runs
+of the same configuration with different observing times write to the same path
+and the second silently overwrites the first. Until this is fixed, either
+include <code class="docutils literal notranslate"><span class="pre">s4</span></code> in the name or move each result before rerunning.</p>
+<p><strong>Galactic foregrounds need the standard bands.</strong> <code class="docutils literal notranslate"><span class="pre">-include_gal</span> <span class="pre">1</span></code> requires
+the frequency bands of the configuration to be 27, 39, 93, 145, 225 and 278 GHz
+because the precomputed simulations exist only for those. Any other set raises
+a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> naming the bands that are missing.</p>
+<p><strong>Check that your branch is reachable.</strong> The dispatch is long and several parts
+of the code may be unreachable or are overwritten. After adding a branch,
+confirm the printed noise levels match your input.</p>
+<p><em>[Longer term, the specifications are to be moved out of the dispatch into a data
+file or per-experiment dictionaries, so that adding a configuration does not
+require editing a long chain.]</em></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="API reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Srini Raghunathan.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

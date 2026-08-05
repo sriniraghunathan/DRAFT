@@ -2,8 +2,8 @@ r"""
 Compute ILC noise and foreground residuals for a CMB experiment configuration.
 
 This is the driver for the component separation stage of DRAFT.
-It collects per-band beams and white-noise levels for a named experiment configuration, builds the analytic multi-frequency covariance of the CMB, foregrounds and instrumental noise, performs the internal linear combination, and writes the resulting residual power spectra to a ``.npy`` product file.
-The Fisher forecasting and foreground bias stages of DRAFT consume those product files and are not part of this module.
+It collects per-band beams and white-noise levels for a named experiment configuration, builds the analytic multi-frequency covariance of the CMB including foregrounds and instrumental noise, performs the internal linear combination (ILC), and outputs or writes the resulting residual power spectra to a ``.npy`` product file.
+The Fisher forecasting and foreground bias stages of DRAFT consume those outputs or product files and are not part of this module.
 
 Run from the repository root::
 
@@ -49,12 +49,12 @@ GAL_SIM_BANDS = [27, 39, 93, 145, 225, 278]  #hardcoded for now; the relevant ``
 """
 Bands in GHz covered by the galactic dust and synchrotron simulations under ``data/galactic/``.
 """
- 
+
 GAL_MASK_INDICES = [0, 1, 2]  #hardcoded for now, as above.
 """
 Galactic mask indices carried by those simulations, indexing ``fsky_arr``.
 """
- 
+
 TP_ARR = ['T', 'P']
 """
 Temperature and polarization labels, in the order ``Nred_dic`` indexes them.
@@ -83,24 +83,20 @@ def parse_args(argv=None):
         Parsed options. The attribute names match the keyword arguments of :func:`run_ilc`.
     """
 
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-expname', dest='expname', action='store', help='expname', type=str, required=True)
-    parser.add_argument('-total_obs_time', dest='total_obs_time', action='store', help='total_obs_time in years', type=float, default=7.0)
-    parser.add_argument('-include_gal', dest='include_gal', action='store', help='include_gal', type=int, default=0)
-    parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='which_gal_mask', type=int, default=2)
-    parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='interactive_mode', type=int, default=1)  #diagnostic plots only; see plot_noise_spectra
-    parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='save_fg_res_and_weights', type=int, default=1)
-    parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='s4_so_joint_configs', type=int, default=0)
-    parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scaledsobaseline', action='store', help='include_fulls4scaledsobaseline', type=int, default=0)
-
-    #20230530 - scale noise levels of bands
-    parser.add_argument('-noise_scalings_for_bands', dest='noise_scalings_for_bands', action='store', help='noise_scalings_for_bands', nargs='+', type=float, default=None)
-
-    #20230531 - option to get CMB or y
-    parser.add_argument('-final_comp', dest='final_comp', action='store', help='final_comp', type=str, default='cmb', choices=COMP_CHOICES)
-    parser.add_argument('-null_comp', dest='null_comp', action='store', help='null_comp', nargs='+', type=str, default=None, choices=COMP_CHOICES)
-    parser.add_argument('-paramfile', dest='paramfile', action='store', help='paramfile', type=str, default=PARAMFILE)
-    parser.add_argument('-debug', dest='debug', action='store', help='debug', type=int, default=0)  #print intermediate dictionary keys
+    parser = argparse.ArgumentParser(description='Compute ILC noise and foreground residuals for a CMB experiment configuration.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-expname', dest='expname', action='store', help='Experiment configuration to compute, for example s4wide_202310xx_pbdr_config. See exp_specs.get_exp_specs for the supported names and the expname grammar.', type=str, required=True)
+    parser.add_argument('-total_obs_time', dest='total_obs_time', action='store', help='Observing time in years.', type=float, default=7.0)
+    parser.add_argument('-include_gal', dest='include_gal', action='store', help='Include galactic dust and synchrotron foregrounds (0 or 1).', type=int, default=0)
+    parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='Galactic mask: 0, 1 or 2 selects the Planck GAL070, GAL080 or GAL090 mask intersected with the survey footprint. Ignored when -include_gal is 0.', type=int, default=2)
+    parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='Show diagnostic plots of the beam and noise spectra (0 or 1).', type=int, default=1)  #diagnostic plots only; see plot_noise_spectra
+    parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='Store the per-component foreground residuals and the ILC weights in the output file (0 or 1).', type=int, default=1)
+    parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='Mark the run as a joint CMB-S4 and Simons Observatory configuration in the output path (0 or 1).', type=int, default=0)
+    parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scaledsobaseline', action='store', help='Combine in the scaled SO-baseline noise (0 or 1).', type=int, default=0)
+    parser.add_argument('-noise_scalings_for_bands', dest='noise_scalings_for_bands', action='store', help='Multiplicative white-noise scaling per band, one value per frequency in band order.', nargs='+', type=float, default=None)
+    parser.add_argument('-final_comp', dest='final_comp', action='store', help='Component the ILC preserves with unit response.', type=str, default='cmb', choices=COMP_CHOICES)
+    parser.add_argument('-null_comp', dest='null_comp', action='store', help='Component or components to null with a constrained ILC.', nargs='+', type=str, default=None, choices=COMP_CHOICES)
+    parser.add_argument('-paramfile', dest='paramfile', action='store', help='Parameter file to read.', type=str, default=PARAMFILE)
+    parser.add_argument('-debug', dest='debug', action='store', help='Print intermediate dictionary keys and progress (0 or 1).', type=int, default=0)
 
     return parser.parse_args(argv)
 

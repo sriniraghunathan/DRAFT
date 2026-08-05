@@ -1,7 +1,7 @@
-ilc module
-==========
+flatsky module
+==============
 
-.. automodule:: ilc
+.. automodule:: flatsky
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,0 +1,640 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>foregrounds module &mdash; DRAFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="get_ilc_residuals module" href="get_ilc_residuals.html" />
+    <link rel="prev" title="exp_specs module" href="exp_specs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DRAFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#forecasting">Forecasting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DRAFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API reference</a></li>
+      <li class="breadcrumb-item active">foregrounds module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-foregrounds">
+<span id="foregrounds-module"></span><h1>foregrounds module<a class="headerlink" href="#module-foregrounds" title="Link to this heading"></a></h1>
+<p>Foreground power spectra supporting the ILC noise and residual calculation in get_ilc_residuals.py.</p>
+<p>Precise measurements of the CMB damping tail at multipoles <span class="math notranslate nohighlight">\(\ell \gtrsim 1000\)</span> are essential for constraining <span class="math notranslate nohighlight">\(N_\mathrm{eff}\)</span>, but this is also the regime where astrophysical foreground emission becomes increasingly significant relative to the primary CMB signal.
+Extragalactic sources dominate at small angular scales, while galactic emission is the primary contaminant at large angular scales and near the galactic plane.
+The foreground contamination in polarization is comparatively smaller than in temperature at the angular scales and frequencies relevant for primary damping-tail science.
+The resulting auto- and cross-frequency spectra enter the multi-frequency covariance used in the internal linear combination of <a class="reference internal" href="ilc.html#module-ilc" title="ilc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ilc</span></code></a>.
+See also §3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a> for additional information and details.</p>
+<p>The module is grouped into four sections:</p>
+<ul class="simple">
+<li><p>Unit conversions and spectral functions: <code class="docutils literal notranslate"><span class="pre">coth</span></code>, <code class="docutils literal notranslate"><span class="pre">dl_to_cl</span></code>, <code class="docutils literal notranslate"><span class="pre">get_BnuT</span></code>, <code class="docutils literal notranslate"><span class="pre">get_dB_dT</span></code>, <code class="docutils literal notranslate"><span class="pre">compton_y_to_delta_Tcmb</span></code></p></li>
+<li><p>Power-law fitting: <code class="docutils literal notranslate"><span class="pre">power_law</span></code>, <code class="docutils literal notranslate"><span class="pre">perform_power_law_fit</span></code>, <code class="docutils literal notranslate"><span class="pre">smooth_cib_spectra</span></code></p></li>
+<li><p>Galactic foregrounds: <code class="docutils literal notranslate"><span class="pre">scale_cl_dust_galactic</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_dust_galactic</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_galactic</span></code></p></li>
+<li><p>Extragalactic foregrounds: <code class="docutils literal notranslate"><span class="pre">get_foreground_power_spt</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_dust_cib</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_cl_dust_cib</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_tsz</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_tsz_cib</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_radio</span></code></p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">get_BnuT</span></code>, <code class="docutils literal notranslate"><span class="pre">get_dB_dT</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_galactic</span></code>, <code class="docutils literal notranslate"><span class="pre">get_foreground_power_spt</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_dust_cib</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_tsz</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cl_tsz_cib</span></code> and <code class="docutils literal notranslate"><span class="pre">get_cl_radio</span></code> are called by <code class="docutils literal notranslate"><span class="pre">ilc.py</span></code>.
+<code class="docutils literal notranslate"><span class="pre">scale_cl_dust_cib</span></code>, <code class="docutils literal notranslate"><span class="pre">smooth_cib_spectra</span></code> and <code class="docutils literal notranslate"><span class="pre">get_cl_dust_galactic</span></code> are standalone utilities that are currently not used elsewhere in this repository.
+The remaining routines are internal helpers.</p>
+<p><strong>Galactic foregrounds.</strong>
+The dominant galactic signals at the relevant frequencies are thermal dust emission and synchrotron radiation.
+Thermal dust arises from interstellar grains heated by the interstellar radiation field, is described by a modified blackbody spectrum, rises towards higher frequencies and is brightest towards the galactic plane where the dust column density is largest.
+Synchrotron radiation is emitted by cosmic-ray electrons spiralling in the galactic magnetic field and follows a power law that falls steeply towards higher frequencies, so that it dominates the lowest bands.
+The subdominant free-free and anomalous-microwave-emission components are neglected.
+Both components are read from map-based PySM 3 simulations rather than computed here, with the spectra evaluated on the masked sky region and the simulation files named in the parameter dictionary.
+Since those simulations carry no galactic <span class="math notranslate nohighlight">\(TE\)</span>, the correlation is constructed as <span class="math notranslate nohighlight">\(C_\ell^{TE} = \rho_{TE} \sqrt{C_\ell^{TT} C_\ell^{EE}}\)</span> (see §3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+<p><strong>Extragalactic foregrounds.</strong>
+The dominant extragalactic components are the thermal and kinematic Sunyaev-Zel’dovich effects, the cosmic infrared background and emission from radio galaxies.
+The tSZ signal is sourced by inverse Compton scattering of CMB photons off the hot electrons in the intracluster medium and the kSZ effect by the Doppler shift due to the peculiar motion of galaxy clusters. Both follow a common template.
+CIB emission from dusty star-forming galaxies is decomposed into a Poisson contribution from individually unresolved sources and a spatially clustered contribution, with the frequency dependence of both described by a modified blackbody spectrum.
+Radio galaxy emission, which dominates at lower frequencies, is modelled as a Poisson power spectrum whose power-law frequency scaling falls towards higher frequencies, with a clustering contribution not being included.
+The tSZ-CIB correlation is available through <code class="docutils literal notranslate"><span class="pre">get_cl_tsz_cib</span></code> (but is not included in the forecasts of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).
+The brightest individual point sources and galaxy clusters are assumed to be detected and masked, so the spectra modelled here are those of the unresolved sources that remain.
+That masking is captured directly at the power-spectrum level through the amplitudes of the templates rather than by injecting sources into simulated maps.
+Amplitudes and frequency scalings follow the parameterization based on measurements by the South Pole Telescope (see §3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+<p><strong>Conventions.</strong>
+Power spectra are in units of μK² unless stated otherwise.
+Frequencies are in GHz throughout.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.coth">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">coth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.coth" title="Link to this definition"></a></dt>
+<dd><p>Hyperbolic cotangent:</p>
+<div class="math notranslate nohighlight">
+\[\coth x = \frac{e^x + e^{-x}}{e^x - e^{-x}}, .\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>array_like</em>) – Argument.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>coth</strong> (<em>ndarray</em>) – <span class="math notranslate nohighlight">\(\coth x\)</span>, same shape as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.dl_to_cl">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">dl_to_cl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dl_fac</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.dl_to_cl" title="Link to this definition"></a></dt>
+<dd><p>Convert <span class="math notranslate nohighlight">\(D_\ell\)</span> to <span class="math notranslate nohighlight">\(C_\ell\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[C_\ell = \frac{2\pi}{\ell(\ell+1)} D_\ell\, .\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dl</strong> (<em>array_like</em>) – Power spectrum <span class="math notranslate nohighlight">\(D_\ell\)</span>.</p></li>
+<li><p><strong>dl_fac</strong> (<em>array_like</em>) – Conversion factor <span class="math notranslate nohighlight">\(\ell(\ell+1)/(2\pi)\)</span>, same shape as <code class="docutils literal notranslate"><span class="pre">dl</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cl</strong> (<em>ndarray</em>) – Power spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span>, same shape as <code class="docutils literal notranslate"><span class="pre">dl</span></code>.
+Entries where <code class="docutils literal notranslate"><span class="pre">dl_fac</span></code> is zero are set to zero instead of dividing, so <span class="math notranslate nohighlight">\(\ell = 0\)</span> is safe.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_BnuT">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_BnuT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.725</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_BnuT" title="Link to this definition"></a></dt>
+<dd><p>Planck blackbody spectrum:</p>
+<div class="math notranslate nohighlight">
+\[B_\nu(T) = \frac{2 h \nu^3}{c^2} \frac{1}{e^x - 1} , \qquad x = \frac{h \nu}{k_\mathrm{B} T}\, .\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> (<em>float</em>) – Frequency in GHz.</p></li>
+<li><p><strong>temp</strong> (<em>float</em><em>, </em><em>optional</em>) – Temperature in K. Default is 2.725.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>bnu</strong> (<em>float</em>) – Blackbody intensity in <span class="math notranslate nohighlight">\(\mathrm{W}\,\mathrm{m}^{-2}\,\mathrm{Hz}^{-1}\,\mathrm{sr}^{-1}\)</span>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">nu</span></code> is not positive, or is at or above <span class="math notranslate nohighlight">\(10^4\)</span> and so is presumably in Hz rather than GHz.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_dB_dT">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_dB_dT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.725</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_dB_dT" title="Link to this definition"></a></dt>
+<dd><p>Derivative of the blackbody spectrum with respect to temperature:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\mathrm{d}B_\nu}{\mathrm{d}T} \propto \frac{x^4 e^x}{(e^x - 1)^2}\, , \qquad x = \frac{h \nu}{k_\mathrm{B} T}\, ,\]</div>
+<p>up to a constant that cancels in the flux to temperature ratios used throughout this module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> (<em>float</em>) – Frequency in GHz.</p></li>
+<li><p><strong>nu0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz. If given, the ratio of the value at <code class="docutils literal notranslate"><span class="pre">nu</span></code> to the value at <code class="docutils literal notranslate"><span class="pre">nu0</span></code> is returned instead. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>temp</strong> (<em>float</em><em>, </em><em>optional</em>) – Temperature in K. Default is 2.725.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>dBdT</strong> (<em>float</em>) – <span class="math notranslate nohighlight">\(\mathrm{d}B_\nu/\mathrm{d}T\)</span> in arbitrary units, or the dimensionless ratio to its value at <code class="docutils literal notranslate"><span class="pre">nu0</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">nu</span></code> or <code class="docutils literal notranslate"><span class="pre">nu0</span></code> is not positive, or is at or above <span class="math notranslate nohighlight">\(10^4\)</span> and so is presumably in Hz rather than GHz.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.compton_y_to_delta_Tcmb">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">compton_y_to_delta_Tcmb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tcmb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.73</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.compton_y_to_delta_Tcmb" title="Link to this definition"></a></dt>
+<dd><p>Convert Compton-y to a CMB temperature fluctuation.</p>
+<p>The thermal SZ spectral function in the non-relativistic limit is</p>
+<div class="math notranslate nohighlight">
+\[g(x) = x \coth(x/2) - 4\, , \qquad x = \frac{h \nu}{k_\mathrm{B} T_\mathrm{CMB}}\, .\]</div>
+<p>This function returns <span class="math notranslate nohighlight">\(T_\mathrm{CMB} \langle g \rangle\)</span>, so that <span class="math notranslate nohighlight">\(\Delta T = y\)</span> times the returned value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq</strong> (<em>float</em>) – Frequency in GHz.</p></li>
+<li><p><strong>freq_max</strong> (<em>float</em><em>, </em><em>optional</em>) – Upper end of a frequency band. If given, <span class="math notranslate nohighlight">\(g\)</span> is averaged across the band rather than evaluated at a single frequency.  Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>. (Currently not usable.)</p></li>
+<li><p><strong>Tcmb</strong> (<em>float</em><em>, </em><em>optional</em>) – CMB temperature in K. Default is 2.73.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>delta_tcmb</strong> (<em>float</em>) – Conversion factor from Compton-y to <span class="math notranslate nohighlight">\(\Delta T_\mathrm{CMB}\)</span>, in the units of <code class="docutils literal notranslate"><span class="pre">Tcmb</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">freq</span></code> or <code class="docutils literal notranslate"><span class="pre">freq_max</span></code> is not positive, or is at or above <span class="math notranslate nohighlight">\(10^4\)</span> and so is presumably in Hz rather than GHz.</p></li>
+<li><p><strong>NotImplementedError</strong> – If <code class="docutils literal notranslate"><span class="pre">freq_max</span></code> is given. Band averaging is not implemented.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.power_law">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">power_law</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ell_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.power_law" title="Link to this definition"></a></dt>
+<dd><p>Power law in multipole <span class="math notranslate nohighlight">\(\ell\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[A \left( \frac{\ell}{\ell_\mathrm{norm}} \right)^{\!\alpha} .\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ell</strong> (<em>array_like</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>A</strong> (<em>float</em>) – Amplitude at <span class="math notranslate nohighlight">\(\ell = \ell_\mathrm{norm}\)</span>.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Power-law index <span class="math notranslate nohighlight">\(\alpha\)</span>.</p></li>
+<li><p><strong>ell_norm</strong> (<em>float</em><em>, </em><em>optional</em>) – Multipole at which the amplitude is defined. Default is 80.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fit</strong> (<em>ndarray</em>) – Power law evaluated at <code class="docutils literal notranslate"><span class="pre">ell</span></code>, with non-finite entries set to zero. For negative <code class="docutils literal notranslate"><span class="pre">alpha</span></code> this includes <span class="math notranslate nohighlight">\(\ell = 0\)</span>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.perform_power_law_fit">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">perform_power_law_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ell_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.perform_power_law_fit" title="Link to this definition"></a></dt>
+<dd><p>Fit a power law to a power spectrum.</p>
+<p><span class="math notranslate nohighlight">\(D_\ell\)</span> is fitted with <a class="reference internal" href="#foregrounds.power_law" title="foregrounds.power_law"><code class="xref py py-func docutils literal notranslate"><span class="pre">power_law()</span></code></a> over a deliberately narrow range: the amplitude is bounded to within 5 per cent of the measured <span class="math notranslate nohighlight">\(D_\ell\)</span> at <code class="docutils literal notranslate"><span class="pre">ell_norm</span></code> and the index to <span class="math notranslate nohighlight">\(-0.3 \pm 0.1\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl</strong> (<em>ndarray</em>) – Power spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span>, same shape as <code class="docutils literal notranslate"><span class="pre">el</span></code>.</p></li>
+<li><p><strong>ell_norm</strong> (<em>float</em><em>, </em><em>optional</em>) – Multipole at which the fitted amplitude is defined. Must be present in <code class="docutils literal notranslate"><span class="pre">el</span></code>. Default is 80.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cl_fit</strong> (<em>ndarray</em>) – Fitted spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span> on the input multipoles, with non-finite entries set to zero.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">ell_norm</span></code> is not present in <code class="docutils literal notranslate"><span class="pre">el</span></code>, or if <span class="math notranslate nohighlight">\(D_\ell\)</span> at <code class="docutils literal notranslate"><span class="pre">ell_norm</span></code> is not positive.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.smooth_cib_spectra">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">smooth_cib_spectra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_el</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el_knee_guess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.smooth_cib_spectra" title="Link to this definition"></a></dt>
+<dd><p>Smooth a CIB spectrum with a Poisson plus clustered fit.</p>
+<p>Multipoles above <code class="docutils literal notranslate"><span class="pre">min_el</span></code> are fitted by least squares with</p>
+<div class="math notranslate nohighlight">
+\[C_\ell = A \left[ 1 + \left( \frac{\ell_\mathrm{knee}}{\ell} \right)^{\!\alpha} \right]\]</div>
+<p>and the fit is interpolated back onto the input multipoles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl</strong> (<em>array_like</em>) – Power spectrum to smooth, same shape as <code class="docutils literal notranslate"><span class="pre">el</span></code>.</p></li>
+<li><p><strong>min_el</strong> (<em>float</em><em>, </em><em>optional</em>) – Multipoles at or below this value are excluded from the fit and set to zero in the output. Default is 200.</p></li>
+<li><p><strong>el_knee_guess</strong> (<em>float</em><em>, </em><em>optional</em>) – Initial guess for <span class="math notranslate nohighlight">\(\ell_\mathrm{knee}\)</span>. Also the lower multipole bound used to estimate the initial Poisson level. Default is 2000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cl_fit</strong> (<em>ndarray</em>) – Smoothed spectrum on the input multipoles, zero outside the fitted range.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no multipole exceeds <code class="docutils literal notranslate"><span class="pre">el_knee_guess</span></code>, in which case the Poisson level cannot be estimated.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If the fitted knee multipole comes out negative, the initial guess is returned instead of the fit.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.scale_cl_dust_galactic">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">scale_cl_dust_galactic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">278.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tdust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_dust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.6</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.scale_cl_dust_galactic" title="Link to this definition"></a></dt>
+<dd><p>Rescale a galactic dust spectrum to a pair of frequencies.</p>
+<p>The modified blackbody scaling of <a class="reference internal" href="#foregrounds.get_cl_dust_galactic" title="foregrounds.get_cl_dust_galactic"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cl_dust_galactic()</span></code></a> is applied with no change of multipole shape:</p>
+<div class="math notranslate nohighlight">
+\[C_\ell^{\nu_1 \nu_2} = C_\ell^{\nu_0 \nu_0} \epsilon_{\nu_1 \nu_2} \frac{\eta_{\nu_1} \eta_{\nu_2}}{\eta_{\nu_0}^2}\, , \qquad \eta_\nu = \nu^{\beta_\mathrm{d}} B_\nu(T_\mathrm{d})\, .\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cl</strong> (<em>array_like</em>) – Dust spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span> at <code class="docutils literal notranslate"><span class="pre">freq0</span></code>.</p></li>
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequency of the first channel in GHz.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em><em>, </em><em>optional</em>) – Frequency of the second channel in GHz. Default is <code class="docutils literal notranslate"><span class="pre">freq1</span></code>.</p></li>
+<li><p><strong>freq0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz. Default is 278.</p></li>
+<li><p><strong>Tdust</strong> (<em>float</em><em>, </em><em>optional</em>) – Dust temperature <span class="math notranslate nohighlight">\(T_\mathrm{d}\)</span> in K. Default is 19.6.</p></li>
+<li><p><strong>beta_dust</strong> (<em>float</em><em>, </em><em>optional</em>) – Dust spectral index <span class="math notranslate nohighlight">\(\beta_\mathrm{d}\)</span>. Default is 1.6.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cl_dust</strong> (<em>ndarray</em>) – Rescaled spectrum, same shape as <code class="docutils literal notranslate"><span class="pre">cl</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_cl_dust_galactic">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_cl_dust_galactic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">353.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el_slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.58</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tdust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Adust_freq0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_dust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_dl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_cl_dust_galactic" title="Link to this definition"></a></dt>
+<dd><p>Analytic galactic dust power spectrum.</p>
+<p>A power law in multipole with a modified blackbody frequency scaling,</p>
+<div class="math notranslate nohighlight">
+\[D_\ell^{\nu_1 \nu_2} = A_{\nu_0} \epsilon_{\nu_1 \nu_2} \frac{\eta_{\nu_1} \eta_{\nu_2}}{\eta_{\nu_0}^2} \left( \frac{\ell}{\ell_\mathrm{norm}} \right)^{\!\mathrm{el\_slope}} .\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequency of the first channel in GHz.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em><em>, </em><em>optional</em>) – Frequency of the second channel in GHz. Default is <code class="docutils literal notranslate"><span class="pre">freq1</span></code>.</p></li>
+<li><p><strong>freq0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz. Default is 353.</p></li>
+<li><p><strong>el_norm</strong> (<em>float</em><em>, </em><em>optional</em>) – Multipole at which the amplitude is defined. Default is 80.</p></li>
+<li><p><strong>el_slope</strong> (<em>float</em><em>, </em><em>optional</em>) – Power-law slope of <span class="math notranslate nohighlight">\(D_\ell\)</span>. Default is -0.58.</p></li>
+<li><p><strong>Tdust</strong> (<em>float</em><em>, </em><em>optional</em>) – Dust temperature in K. Default is 19.6.</p></li>
+<li><p><strong>Adust_freq0</strong> (<em>float</em><em>, </em><em>optional</em>) – Amplitude <span class="math notranslate nohighlight">\(A_{\nu_0}\)</span> of <span class="math notranslate nohighlight">\(D_\ell\)</span> at <code class="docutils literal notranslate"><span class="pre">el_norm</span></code> and <code class="docutils literal notranslate"><span class="pre">freq0</span></code>, in μK². Default is 4.3.</p></li>
+<li><p><strong>spec_index_dust</strong> (<em>float</em><em>, </em><em>optional</em>) – Dust spectral index. Default is 1.6.</p></li>
+<li><p><strong>return_dl</strong> (<em>int</em><em>, </em><em>optional</em>) – If non-zero, return <span class="math notranslate nohighlight">\(D_\ell\)</span> instead of <span class="math notranslate nohighlight">\(C_\ell\)</span>. Default is 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cl_dust</strong> (<em>ndarray</em>) – Dust spectrum, <span class="math notranslate nohighlight">\(C_\ell\)</span> by default or <span class="math notranslate nohighlight">\(D_\ell\)</span> when <code class="docutils literal notranslate"><span class="pre">return_dl</span></code> is set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_cl_galactic">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_cl_galactic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_gal_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_power_law_fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_sed_scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0_for_sed_scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">278</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ell_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tdust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_dust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.54</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_cl_galactic" title="Link to this definition"></a></dt>
+<dd><p>Galactic foreground power spectrum from the PySM simulations.</p>
+<p>The spectra are read from the simulation file named in <code class="docutils literal notranslate"><span class="pre">param_dict</span></code>, and selected by galactic mask and spectrum type.
+For dust with <code class="docutils literal notranslate"><span class="pre">use_sed_scaling</span></code> set, the auto-spectrum at 278 GHz is rescaled to the requested pair of frequencies with <a class="reference internal" href="#foregrounds.scale_cl_dust_galactic" title="foregrounds.scale_cl_dust_galactic"><code class="xref py py-func docutils literal notranslate"><span class="pre">scale_cl_dust_galactic()</span></code></a>, rather than using the simulated spectrum for that pair.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary, as returned by <code class="docutils literal notranslate"><span class="pre">misc.get_param_dict</span></code>.
+Must contain the file name for the requested component (<code class="docutils literal notranslate"><span class="pre">cl_gal_dic_dust_fname</span></code>, <code class="docutils literal notranslate"><span class="pre">cl_gal_dic_sync_fname</span></code> or <code class="docutils literal notranslate"><span class="pre">cl_gal_dic_freefree_fname</span></code>), and may contain <code class="docutils literal notranslate"><span class="pre">cl_gal_folder</span></code> and <code class="docutils literal notranslate"><span class="pre">which_gal_mask</span></code>.</p></li>
+<li><p><strong>component</strong> (<em>str</em>) – Galactic component, one of <code class="docutils literal notranslate"><span class="pre">'dust'</span></code>, <code class="docutils literal notranslate"><span class="pre">'sync'</span></code> or <code class="docutils literal notranslate"><span class="pre">'freefree'</span></code>.</p></li>
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequencies of the two channels in GHz. Each is mapped onto the nearest simulated band internally.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – Frequencies of the two channels in GHz. Each is mapped onto the nearest simulated band internally.</p></li>
+<li><p><strong>which_spec</strong> (<em>str</em>) – Spectrum to return, one of <code class="docutils literal notranslate"><span class="pre">'TT'</span></code>, <code class="docutils literal notranslate"><span class="pre">'EE'</span></code>, <code class="docutils literal notranslate"><span class="pre">'BB'</span></code>, <code class="docutils literal notranslate"><span class="pre">'TE'</span></code>, <code class="docutils literal notranslate"><span class="pre">'EB'</span></code> or <code class="docutils literal notranslate"><span class="pre">'TB'</span></code>.</p></li>
+<li><p><strong>which_gal_mask</strong> (<em>int</em><em>, </em><em>optional</em>) – Index of the galactic mask. Default is 0, but <code class="docutils literal notranslate"><span class="pre">param_dict['which_gal_mask']</span></code> takes precedence when present, and a conflicting value given here is ignored with a warning. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>bl_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Beam window functions <span class="math notranslate nohighlight">\(B_\ell\)</span> keyed by frequency. If given, the spectrum is beam deconvolved. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multipoles onto which the result is interpolated. If omitted, the simulation multipoles are returned. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>use_power_law_fit</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the spectrum is replaced by the power-law fit of <a class="reference internal" href="#foregrounds.perform_power_law_fit" title="foregrounds.perform_power_law_fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">perform_power_law_fit()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>use_sed_scaling</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, dust spectra are obtained by rescaling the 278 GHz auto-spectrum. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>freq0_for_sed_scaling</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz for the SED scaling. Currently ignored: the function hardcodes 278 GHz and warns if a different value is passed. Default is 278.</p></li>
+<li><p><strong>ell_norm</strong> (<em>float</em><em>, </em><em>optional</em>) – Multipole at which the power-law fit is normalized. Default is 80.</p></li>
+<li><p><strong>Tdust</strong> (<em>float</em><em>, </em><em>optional</em>) – Galactic dust temperature in K. Default is 20.</p></li>
+<li><p><strong>beta_dust</strong> (<em>float</em><em>, </em><em>optional</em>) – Galactic dust spectral index. Default is 1.54.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el_gal</strong> (<em>ndarray</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl_gal</strong> (<em>ndarray</em>) – Galactic power spectrum.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">component</span></code> is not one of the supported components.</p></li>
+<li><p><strong>KeyError</strong> – If either frequency is outside the simulated bands or if the requested band pair is absent from the file in both orderings.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – If <code class="docutils literal notranslate"><span class="pre">freq0_for_sed_scaling</span></code> differs from 278 or if <code class="docutils literal notranslate"><span class="pre">which_gal_mask</span></code> conflicts with the value in <code class="docutils literal notranslate"><span class="pre">param_dict</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Synchrotron and free-free are never SED scaled, so those spectra always come from the simulations at the nearest simulated band.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_foreground_power_spt">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_foreground_power_spt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uk'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_foreground_power_spt" title="Link to this definition"></a></dt>
+<dd><p>Best-fit foreground power spectra from George et al. (2015).</p>
+<p>The spectra are read from an IDL save file produced by Christian Reichardt, converted from <span class="math notranslate nohighlight">\(D_\ell\)</span> to <span class="math notranslate nohighlight">\(C_\ell\)</span> and padded with zeros down to <span class="math notranslate nohighlight">\(\ell = 0\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component</strong> (<em>str</em>) – Foreground component, one of <code class="docutils literal notranslate"><span class="pre">'all'</span></code>, <code class="docutils literal notranslate"><span class="pre">'tSZ'</span></code>, <code class="docutils literal notranslate"><span class="pre">'kSZ'</span></code>, <code class="docutils literal notranslate"><span class="pre">'DG-Cl'</span></code>, <code class="docutils literal notranslate"><span class="pre">'DG-Po'</span></code>, <code class="docutils literal notranslate"><span class="pre">'RG'</span></code>, <code class="docutils literal notranslate"><span class="pre">'tSZ-CIB'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Total'</span></code> or <code class="docutils literal notranslate"><span class="pre">'CMB'</span></code>.
+<code class="docutils literal notranslate"><span class="pre">'all'</span></code> sums the tSZ, kSZ, clustered CIB, Poisson CIB and radio terms.</p></li>
+<li><p><strong>freq1</strong> (<em>int</em><em>, </em><em>optional</em>) – Frequency band in GHz. A value of 90 is treated as 95. Default is 150.</p></li>
+<li><p><strong>freq2</strong> (<em>int</em><em>, </em><em>optional</em>) – Second frequency band in GHz, for a cross-spectrum. Default is <code class="docutils literal notranslate"><span class="pre">freq1</span></code>.
+The pair is sorted internally, so the order of the two frequencies does not matter.</p></li>
+<li><p><strong>units</strong> (<em>str</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">'uK'</span></code> for μK² or <code class="docutils literal notranslate"><span class="pre">'K'</span></code> for K². Default is <code class="docutils literal notranslate"><span class="pre">'uK'</span></code>.</p></li>
+<li><p><strong>lmax</strong> (<em>int</em><em>, </em><em>optional</em>) – If given, the output is truncated to <span class="math notranslate nohighlight">\(\ell &lt;\)</span> <code class="docutils literal notranslate"><span class="pre">lmax</span></code>.  Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>, starting at zero.</p></li>
+<li><p><strong>spec</strong> (<em>ndarray</em>) – Power spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span> of <code class="docutils literal notranslate"><span class="pre">component</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">component</span></code> is not one of the listed components, or if the frequency pair is not one of the six covered by the fit: (95, 95), (95, 150), (95, 220), (150, 150), (150, 220) and (220, 220).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_cl_dust_cib">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_cl_dust_cib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fg_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'george15'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_dg_po</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.428</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_dg_clus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.3099999999999996</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tcib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_cib_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_cl_dust_cib" title="Link to this definition"></a></dt>
+<dd><p>Cosmic infrared background power spectra (Poisson and clustered).</p>
+<p>The George et al. 2015 spectra at <code class="docutils literal notranslate"><span class="pre">freq0</span></code> are anchored at <span class="math notranslate nohighlight">\(\ell = 3000\)</span> and scaled to the requested pair of frequencies with a modified blackbody,</p>
+<div class="math notranslate nohighlight">
+\[\eta_\nu = \nu^\beta B_\nu(T_\mathrm{CIB})\, ,\]</div>
+<p>and converted from flux to CMB temperature units with <span class="math notranslate nohighlight">\(\epsilon_{\nu_1 \nu_2} = (\mathrm{d}B/\mathrm{d}T|_{\nu_0})^2 / (\mathrm{d}B/\mathrm{d}T|_{\nu_1} \mathrm{d}B/\mathrm{d}T|_{\nu_2})\)</span>.
+The Poisson term then follows <span class="math notranslate nohighlight">\(D_\ell \propto \ell^2\)</span> and the clustered term <span class="math notranslate nohighlight">\(D_\ell \propto \ell^{0.8}\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>fg_model</strong> (<em>str</em><em>, </em><em>optional</em>) – Foreground model, <code class="docutils literal notranslate"><span class="pre">'george15'</span></code> or <code class="docutils literal notranslate"><span class="pre">'reichardt21'</span></code>. Both use the same template here. Default is <code class="docutils literal notranslate"><span class="pre">'george15'</span></code>.</p></li>
+<li><p><strong>freq0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz at which the template is normalized. Default is 150.</p></li>
+<li><p><strong>spec_index_dg_po</strong> (<em>float</em><em>, </em><em>optional</em>) – Modified blackbody spectral index <span class="math notranslate nohighlight">\(\beta\)</span> of the Poisson term. Default is <code class="docutils literal notranslate"><span class="pre">1.505</span> <span class="pre">-</span> <span class="pre">0.077</span></code>.</p></li>
+<li><p><strong>spec_index_dg_clus</strong> (<em>float</em><em>, </em><em>optional</em>) – Modified blackbody spectral index <span class="math notranslate nohighlight">\(\beta\)</span> of the clustered term. Default is <code class="docutils literal notranslate"><span class="pre">2.51</span> <span class="pre">-</span> <span class="pre">0.2</span></code>.</p></li>
+<li><p><strong>Tcib</strong> (<em>float</em><em>, </em><em>optional</em>) – CIB dust temperature in K. Default is 20.</p></li>
+<li><p><strong>reduce_cib_power</strong> (<em>float</em><em>, </em><em>optional</em>) – If given, the <code class="docutils literal notranslate"><span class="pre">freq0</span></code> CIB power is divided by this factor before scaling. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl_dg_po</strong> (<em>ndarray</em>) – Poisson CIB spectrum.</p></li>
+<li><p><strong>cl_dg_clus</strong> (<em>ndarray</em>) – Clustered CIB spectrum.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">fg_model</span></code> is not one of the supported models.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.scale_cl_dust_cib">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">scale_cl_dust_cib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_dust_freq0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tcib</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el_slope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.scale_cl_dust_cib" title="Link to this definition"></a></dt>
+<dd><p>Rescale a dust power spectrum from one frequency to a pair of frequencies.</p>
+<p>The input spectrum at <code class="docutils literal notranslate"><span class="pre">freq0</span></code> is anchored at <code class="docutils literal notranslate"><span class="pre">el_norm</span></code>, scaled with the modified blackbody of <a class="reference internal" href="#foregrounds.get_cl_dust_cib" title="foregrounds.get_cl_dust_cib"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cl_dust_cib()</span></code></a> and given the shape <span class="math notranslate nohighlight">\(D_\ell \propto \ell^{\mathrm{el\_slope}}\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl_dust_freq0</strong> (<em>array_like</em>) – Dust spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span> at <code class="docutils literal notranslate"><span class="pre">freq0</span></code>, same shape as <code class="docutils literal notranslate"><span class="pre">el</span></code>.</p></li>
+<li><p><strong>freq0</strong> (<em>float</em>) – Reference frequency in GHz.</p></li>
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>beta</strong> (<em>float</em>) – Modified blackbody spectral index.</p></li>
+<li><p><strong>Tcib</strong> (<em>float</em>) – Dust temperature in K.</p></li>
+<li><p><strong>el_slope</strong> (<em>float</em>) – Power-law slope of <span class="math notranslate nohighlight">\(D_\ell\)</span>.</p></li>
+<li><p><strong>el_norm</strong> (<em>float</em><em>, </em><em>optional</em>) – Multipole at which the input spectrum is anchored. Must be present in <code class="docutils literal notranslate"><span class="pre">el</span></code>. Default is 3000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments, unchanged from the input.</p></li>
+<li><p><strong>cl_dust</strong> (<em>ndarray</em>) – Rescaled spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span>.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>IndexError</strong> – If <code class="docutils literal notranslate"><span class="pre">el_norm</span></code> is not present in <code class="docutils literal notranslate"><span class="pre">el</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_cl_tsz">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_cl_tsz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fg_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'george15'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_tsz_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_cl_tsz" title="Link to this definition"></a></dt>
+<dd><p>Thermal Sunyaev-Zel’dovich power spectrum.</p>
+<p>The template at <code class="docutils literal notranslate"><span class="pre">freq0</span></code> is scaled by the ratio of tSZ spectral functions,</p>
+<div class="math notranslate nohighlight">
+\[C_\ell^{\nu_1 \nu_2} = C_\ell^{\nu_0 \nu_0} \frac{g(\nu_1) g(\nu_2)}{g(\nu_0)^2}\, ,\]</div>
+<p>with <span class="math notranslate nohighlight">\(g\)</span> as returned by <a class="reference internal" href="#foregrounds.compton_y_to_delta_Tcmb" title="foregrounds.compton_y_to_delta_Tcmb"><code class="xref py py-func docutils literal notranslate"><span class="pre">compton_y_to_delta_Tcmb()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz. Default is 150.</p></li>
+<li><p><strong>fg_model</strong> (<em>str</em><em>, </em><em>optional</em>) – Foreground model, <code class="docutils literal notranslate"><span class="pre">'george15'</span></code> or <code class="docutils literal notranslate"><span class="pre">'reichardt21'</span></code>. Both use the same template here. Default is <code class="docutils literal notranslate"><span class="pre">'george15'</span></code>.</p></li>
+<li><p><strong>reduce_tsz_power</strong> (<em>float</em><em>, </em><em>optional</em>) – If given, the scaled spectrum is divided by this factor. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl_tsz</strong> (<em>ndarray</em>) – tSZ power spectrum.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">fg_model</span></code> is not one of the supported models.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_cl_tsz_cib">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_cl_tsz_cib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fg_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'george15'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_dg_po</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.428</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_dg_clus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.3099999999999996</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tcib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_cib_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_tsz_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_cl_tsz_cib" title="Link to this definition"></a></dt>
+<dd><p>Correlated thermal SZ and CIB power spectrum:</p>
+<div class="math notranslate nohighlight">
+\[C_\ell^{\mathrm{tSZ} \times \mathrm{CIB}} = -\rho \left( \sqrt{C_\ell^{\mathrm{tSZ}, \nu_1 \nu_1} C_\ell^{\mathrm{CIB}, \nu_2 \nu_2}} + \sqrt{C_\ell^{\mathrm{tSZ}, \nu_2 \nu_2} C_\ell^{\mathrm{CIB}, \nu_1 \nu_1}} \right) .\]</div>
+<p>The correlation coefficient <span class="math notranslate nohighlight">\(\rho\)</span> is 0.1 for <code class="docutils literal notranslate"><span class="pre">'george15'</span></code> and 0.078 for <code class="docutils literal notranslate"><span class="pre">'reichardt21'</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz. Default is 150.</p></li>
+<li><p><strong>fg_model</strong> (<em>str</em><em>, </em><em>optional</em>) – Foreground model, <code class="docutils literal notranslate"><span class="pre">'george15'</span></code> or <code class="docutils literal notranslate"><span class="pre">'reichardt21'</span></code>. Only <span class="math notranslate nohighlight">\(\rho\)</span> differs between them. Default is <code class="docutils literal notranslate"><span class="pre">'george15'</span></code>.</p></li>
+<li><p><strong>spec_index_dg_po</strong> (<em>float</em><em>, </em><em>optional</em>) – Modified blackbody spectral indices of the Poisson and clustered CIB terms. Default is <code class="docutils literal notranslate"><span class="pre">1.505</span> <span class="pre">-</span> <span class="pre">0.077</span></code> and  <code class="docutils literal notranslate"><span class="pre">2.51</span> <span class="pre">-</span> <span class="pre">0.2</span></code>.</p></li>
+<li><p><strong>spec_index_dg_clus</strong> (<em>float</em><em>, </em><em>optional</em>) – Modified blackbody spectral indices of the Poisson and clustered CIB terms. Default is <code class="docutils literal notranslate"><span class="pre">1.505</span> <span class="pre">-</span> <span class="pre">0.077</span></code> and  <code class="docutils literal notranslate"><span class="pre">2.51</span> <span class="pre">-</span> <span class="pre">0.2</span></code>.</p></li>
+<li><p><strong>Tcib</strong> (<em>float</em><em>, </em><em>optional</em>) – CIB dust temperature in K. Default is 20.</p></li>
+<li><p><strong>cl_cib_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – CIB auto-spectra keyed by <code class="docutils literal notranslate"><span class="pre">(freq,</span> <span class="pre">freq)</span></code>, each an <code class="docutils literal notranslate"><span class="pre">(el,</span> <span class="pre">cl)</span></code> pair.
+If given, these replace the spectra that would otherwise come from <a class="reference internal" href="#foregrounds.get_cl_dust_cib" title="foregrounds.get_cl_dust_cib"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cl_dust_cib()</span></code></a>.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>reduce_tsz_power</strong> (<em>float</em><em>, </em><em>optional</em>) – If given, both tSZ auto-spectra are divided by this factor. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl_tsz_cib</strong> (<em>ndarray</em>) – Correlated tSZ x CIB spectrum.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">fg_model</span></code> is not one of the supported models.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="foregrounds.get_cl_radio">
+<span class="sig-prename descclassname"><span class="pre">foregrounds.</span></span><span class="sig-name descname"><span class="pre">get_cl_radio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fg_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'george15'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_rg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_highfreq_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_radio_power_150</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#foregrounds.get_cl_radio" title="Link to this definition"></a></dt>
+<dd><p>Radio galaxy power spectrum.</p>
+<p>The template at <code class="docutils literal notranslate"><span class="pre">freq0</span></code> is anchored at <span class="math notranslate nohighlight">\(\ell = 3000\)</span> and scaled as a power law in frequency,</p>
+<div class="math notranslate nohighlight">
+\[D_\ell^{\nu_1 \nu_2} = D_{3000}^{\nu_0 \nu_0} \epsilon_{\nu_1 \nu_2} \left( \frac{\nu_1 \nu_2}{\nu_0^2} \right)^{\!\alpha_\mathrm{rg}} \left( \frac{\ell}{3000} \right)^{\!2} ,\]</div>
+<p>with <span class="math notranslate nohighlight">\(\epsilon_{\nu_1 \nu_2}\)</span> the flux to CMB temperature conversion defined in <a class="reference internal" href="#foregrounds.get_cl_dust_cib" title="foregrounds.get_cl_dust_cib"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cl_dust_cib()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq1</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – Frequencies of the two channels in GHz.</p></li>
+<li><p><strong>freq0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz. Default is 150.</p></li>
+<li><p><strong>fg_model</strong> (<em>str</em><em>, </em><em>optional</em>) – Foreground model. Only <code class="docutils literal notranslate"><span class="pre">'george15'</span></code> is implemented here. Default is <code class="docutils literal notranslate"><span class="pre">'george15'</span></code>.</p></li>
+<li><p><strong>spec_index_rg</strong> (<em>float</em><em>, </em><em>optional</em>) – Radio spectral index <span class="math notranslate nohighlight">\(\alpha_\mathrm{rg}\)</span>. Default is -0.9.</p></li>
+<li><p><strong>null_highfreq_radio</strong> (<em>int</em><em>, </em><em>optional</em>) – If non-zero, the spectrum is set to zero when either frequency exceeds 230 GHz. Default is 1.</p></li>
+<li><p><strong>reduce_radio_power_150</strong> (<em>float</em><em>, </em><em>optional</em>) – If given, the template is divided by this factor before scaling. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl_rg</strong> (<em>ndarray</em>) – Radio galaxy power spectrum.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">fg_model</span></code> is not <code class="docutils literal notranslate"><span class="pre">'george15'</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="exp_specs.html" class="btn btn-neutral float-left" title="exp_specs module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="get_ilc_residuals.html" class="btn btn-neutral float-right" title="get_ilc_residuals module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Srini Raghunathan.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

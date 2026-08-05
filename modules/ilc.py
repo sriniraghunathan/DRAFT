@@ -1,6 +1,9 @@
 r"""
 Internal linear combination (ILC) of multi-frequency CMB data supporting the residual calculation in get_ilc_residuals.py.
 
+The multi-frequency CMB observations are combined into a single estimate of the CMB signal using a harmonic-space internal linear combination.
+The ILC exploits the known frequency independence of the CMB signal (in thermodynamic temperature units), together with the distinct frequency dependence of the foregrounds, to construct an optimal estimate by linearly combining the maps from all available frequency channels, while down-weighting modes that are dominated by foreground emission or instrumental noise.
+
 The module is grouped into four sections:
 
 * Covariance: ``get_analytic_covariance``
@@ -8,28 +11,52 @@ The module is grouped into four sections:
 * Covariance assembly: ``get_teb_spec_combination``, ``create_clmat``, ``get_clinv``, ``corr_from_cov``
 * ILC residuals: ``residual_power``
 
-Three variants are supported.
-A standard ILC minimizes the variance subject to unit response for the required component.
-A constrained ILC additionally nulls one or more other components, selected with the ``null_comp`` argument of ``residual_power``.
-A partial ILC suppresses a component by a chosen factor rather than nulling it, selected with the ``cl_multiplier_dic`` argument of ``get_analytic_covariance``.
-
 ``get_analytic_covariance``, ``residual_power`` and ``create_clmat`` are called by ``get_ilc_residuals.py``.
 ``corr_from_cov`` is a standalone utility that is currently not used elsewhere in this repository.
 The remaining routines are internal helpers.
 
-A single ILC is specified by a frequency response vector :math:`a_\nu` for the component to be recovered and a band-band covariance :math:`C_{\nu\nu'}(\ell)`.
-The weights that minimize the variance while returning the component with unit response are
+In harmonic space, the ILC estimate of the CMB signal at multipole :math:`\ell` is
 
 .. math::
+    S_\ell = \sum_{i=1}^{N_f} w_\ell^i\, M_\ell^i\, ,
 
-    w_\nu(\ell) = \frac{\sum_{\nu'} C^{-1}_{\nu\nu'}(\ell)\, a_{\nu'}}{\sum_{\nu\nu'} a_\nu C^{-1}_{\nu\nu'}(\ell)\, a_{\nu'}}\, ,
+where :math:`M_\ell^i` is the harmonic-space representation of the observed map in frequency channel :math:`i` and the sum runs over all :math:`N_f` frequency channels.
+The multipole-dependent weights :math:`w_\ell^i` are determined by minimizing the total variance of :math:`S_\ell` subject to the constraint that the CMB signal is preserved, with the option to additionally null or suppress the frequency response of one or more other sky components.
+The spectral energy distributions of all components included in the solution are collected into a matrix :math:`\mathcal{F} = [A_s, B_{f_1}, C_{f_2}, \ldots]_{N_f \times N_c}`, where :math:`N_c` is the number of components.
+The first column :math:`A_s` is the target signal and :math:`B_{f_1}, C_{f_2}, \ldots` are the :math:`N_c - 1` undesired (foreground) components.
+For the CMB, the target signal is frequency independent, so :math:`A_s = A_\mathrm{CMB} = [1, 1, \ldots, 1]`.
+The constrained-ILC weights then take the form
 
-and the residual power left in the ILC map is the denominator of that expression inverted.
-``get_analytic_covariance`` builds :math:`C_{\nu\nu'}`, ``get_acap`` builds :math:`a_\nu` and ``residual_power`` combines them.
+.. math::
+    w_\ell = \mathbf{C}_\ell^{-1} \mathcal{F} \left( \mathcal{F}^\mathrm{T} \mathbf{C}_\ell^{-1} \mathcal{F} \right)^{\!-1} U\, ,
 
-Power spectra are in units of :math:`\mathrm{\mu K}^2` and frequencies are in GHz.
+where the constraint vector :math:`U = [1, 0, \ldots, 0]` has length :math:`N_c` and selects :math:`A_\mathrm{CMB}` as the preserved component.
+The :math:`N_f \times N_f` covariance matrix :math:`\mathbf{C}_\ell` of the noise and foreground power at multipole :math:`\ell` is constructed from the auto- and cross-frequency power spectra of the instrumental noise and of the galactic and extragalactic foreground components, after computing them on the masked sky.
+
+In the limit where no additional components are nulled, :math:`\mathcal{F}` reduces to the :math:`N_f \times 1` frequency response vector :math:`A_\mathrm{CMB}` and the weights simplify to the standard minimum-variance form,
+
+.. math::
+    w_\ell^\mathrm{MV} = \frac{\mathbf{C}_\ell^{-1} A_\mathrm{CMB}}{A_\mathrm{CMB}^\mathrm{T} \mathbf{C}_\ell^{-1} A_\mathrm{CMB}}\, .
+
+The corresponding residual power spectrum after component separation is
+
+.. math::
+    C_\ell^\mathrm{res} = \left( A_\mathrm{CMB}^\mathrm{T} \mathbf{C}_\ell^{-1} A_\mathrm{CMB} \right)^{-1}\, ,
+
+which represents the effective noise that includes residuals from both the experimental noise and the foreground signals in the component-separated CMB map.
+
+The framework defines four forms of the ILC:
+
+* Standard minimum-variance ILC minimizes the variance subject to unit response for the required component. This is the form used for the forecasts in the accompanying paper (arXiv:2608.XXXXX).
+* Constrained ILC additionally nulls the frequency response of one or more other sky components, selected with the ``null_comp`` argument of ``residual_power``.
+* Partial ILC suppresses the targeted component by artificially rescaling the covariance of that component rather than imposing an explicit nulling constraint, selected with the ``cl_multiplier_dic`` argument of ``get_analytic_covariance``. This is useful when the frequency response of an unwanted component is not known a priori or cannot be captured by a single spectral energy distribution, as is the case for the cosmic infrared background.
+* Cross-ILC constructs two separate constrained-ILC maps that null different sky components and estimates the CMB power spectrum from their cross-correlation. *[To be ported.]*
+
+``get_analytic_covariance`` builds :math:`\mathbf{C}_\ell`, ``get_acap`` builds :math:`A_\mathrm{CMB}` and ``residual_power`` combines them.
+Power spectra are in units of μK² and frequencies are in GHz.
 Band ordering follows the ``freqarr`` supplied by the caller: ``get_acap``, ``create_clmat`` and the returned weights are all indexed in that order, so ``freqarr``, ``freqcalib_fac`` and the covariance must be consistent.
 Component names follow the spelling used in the returned foreground dictionary, namely ``cib`` for the cosmic infrared background and ``galdust``/``galsync`` for the galactic terms.
+Various parameter values and data locations are taken from ``param_dict``, which is populated from ``params.ini``.
 """
 
 import re
@@ -67,15 +94,15 @@ def get_analytic_covariance(
         force_cl_dic=None
         ):
     r"""
-    Signal and noise covariance :math:`C_{\nu\nu'}(\ell)` across a set of frequency bands.
+    Signal and noise covariance :math:`\mathbf{C}_\ell` across a set of frequency bands.
 
     The covariance combines the CMB, the extragalactic and galactic foregrounds, and the instrumental noise:
 
     .. math::
 
-        C_{\nu\nu'}(\ell) = C_\ell^\mathrm{CMB} + C_\ell^\mathrm{kSZ} + C_{\ell,\nu\nu'}^\mathrm{tSZ}
-        + C_{\ell,\nu\nu'}^\mathrm{radio} + C_{\ell,\nu\nu'}^\mathrm{CIB}
-        + C_{\ell,\nu\nu'}^{\mathrm{tSZ} \times \mathrm{CIB}} + C_{\ell,\nu\nu'}^\mathrm{gal} + N_\ell^{\nu\nu'}\, ,
+        C_{\ell, ij} = C_\ell^\mathrm{CMB} + C_\ell^\mathrm{kSZ} + C_{\ell, ij}^\mathrm{tSZ}
+        + C_{\ell, ij}^\mathrm{radio} + C_{\ell, ij}^\mathrm{CIB}
+        + C_{\ell, ij}^{\mathrm{tSZ} \times \mathrm{CIB}} + C_{\ell, ij}^\mathrm{gal} + N_{\ell, ij}\, ,
 
     where the CMB and kSZ terms are frequency independent in thermodynamic units.
     Individual terms can be excluded with ``ignore_fg``, which is how the component being recovered is kept out of the covariance, or rescaled with ``cl_multiplier_dic`` for a partial ILC.
@@ -90,49 +117,49 @@ def get_analytic_covariance(
         Frequency bands in GHz. The returned dictionary is keyed by pairs drawn from this list and the ordering is the one used throughout the ILC.
     el : array_like, optional
         Multipole moments :math:`\ell`, which must start at zero.
-        Default ``None``, in which case the multipoles of the SPT foreground templates are used.
+        Default is ``None``, in which case the multipoles of the SPT foreground templates are used.
     nl_dic : dict, optional
         Noise power spectra, keyed either by band or by band pair. A band pair that is absent is taken to have zero cross-band noise.
-        Each entry must cover at least the requested multipoles. Default ``None``, i.e. a noise-free covariance.
+        Each entry must cover at least the requested multipoles. Default is ``None``, i.e. a noise-free covariance.
     bl_dic : dict, optional
-        Beam transfer functions :math:`B_\ell` keyed by band, used only to correct the galactic templates, which carry the S4 beams. Default ``None``.
+        Beam transfer functions :math:`B_\ell` keyed by band, used only to correct the galactic templates, which carry the S4 beams. Default is ``None``.
     ignore_fg : list, optional
         Components to leave out of the covariance, drawn from ``cmb``, ``tsz``, ``y``, ``ksz``, ``radio``, ``cib``, ``noise`` and ``tsz_cib``.
         Requesting ``cmb`` also removes the kSZ. Default is an empty list.
     which_spec : str, optional
-        Spectrum to compute, one of ``'TT'``, ``'EE'`` or ``'TE'``. Default ``'TT'``.
+        Spectrum to compute, one of ``'TT'``, ``'EE'`` or ``'TE'``. Default is ``'TT'``.
     pol_frac_per_cent_dust : float, optional
-        Polarization fraction of the CIB. Default 0.02.
+        Polarization fraction of the CIB. Default is 0.02.
     pol_frac_per_cent_radio : float, optional
-        Polarization fraction of the radio sources. Default 0.03.
+        Polarization fraction of the radio sources. Default is 0.03.
     pol_frac_per_cent_tsz : float, optional
-        Polarization fraction of the tSZ. Default 0.
+        Polarization fraction of the tSZ. Default is 0.
     pol_frac_per_cent_ksz : float, optional
-        Polarization fraction of the kSZ. Default 0.
+        Polarization fraction of the kSZ. Default is 0.
     include_gal : bool, optional
-        Include galactic dust and synchrotron from the PySM simulations. Default 0.
+        Include galactic dust and synchrotron from the PySM simulations. Default is 0.
     cib_corr_coeffs : dict, optional
         CIB decorrelation coefficients keyed by band pair, applied to the cross-band CIB power.
         Every off-diagonal pair must be present if the dictionary is supplied at all.
-        Default ``None``, i.e. fully correlated.
+        Default is ``None``, i.e. fully correlated.
     null_highfreq_radio : bool, optional
-        Null the radio power above the high-frequency threshold of :func:`foregrounds.get_cl_radio`. Default 1.
+        Null the radio power above the high-frequency threshold of :func:`foregrounds.get_cl_radio`. Default is 1.
     reduce_radio_power_150 : float, optional
-        Rescale the radio power at 150 GHz by this factor. Default ``None``.
+        Rescale the radio power at 150 GHz by this factor. Default is ``None``.
     reduce_tsz_power : float, optional
-        Rescale the tSZ power by this factor. Default ``None``.
+        Rescale the tSZ power by this factor. Default is ``None``.
     reduce_cib_power : float, optional
-        Rescale the CIB power by this factor. Default ``None``.
+        Rescale the CIB power by this factor. Default is ``None``.
     remove_cib_decorr : bool, optional
-        Replace the cross-band CIB with the geometric mean of the two auto-spectra, which removes the decorrelation built into the template. Overrides ``cib_corr_coeffs``. Default 0.
+        Replace the cross-band CIB with the geometric mean of the two auto-spectra, which removes the decorrelation built into the template. Overrides ``cib_corr_coeffs``. Default is 0.
     cl_multiplier_dic : dict, optional
         Factors by which individual components are rescaled in the covariance for a partial ILC.
-        Keys are drawn from ``cmb``, ``ksz``, ``tsz``, ``radio``, ``cib``, ``tsz_cib``, ``galdust``, ``galsync`` and ``noise``. Default ``None``.
+        Keys are drawn from ``cmb``, ``ksz``, ``tsz``, ``radio``, ``cib``, ``tsz_cib``, ``galdust``, ``galsync`` and ``noise``. Default is ``None``.
     return_fg_spectra : bool, optional
-        Also return the individual component spectra. Default ``True``.
+        Also return the individual component spectra. Default is ``True``.
     force_cl_dic : dict, optional
         Spectra supplied by the caller which override the internally computed ones.
-        Recognized keys are ``cmb``, ``ksz``, ``y``, ``tsz``, ``cib``, ``tsz_cib`` or ``cib_tsz``, and ``rad`` or ``radio``. Default ``None``.
+        Recognized keys are ``cmb``, ``ksz``, ``y``, ``tsz``, ``cib``, ``tsz_cib`` or ``cib_tsz``, and ``rad`` or ``radio``. Default is ``None``.
 
     Returns
     -------
@@ -154,7 +181,7 @@ def get_analytic_covariance(
     ``cib`` denotes the cosmic infrared background throughout, whereas ``galdust`` denotes galactic dust.
     Note that :func:`foregrounds.get_cl_galactic` uses ``dust`` for the latter.
 
-    Noise that has been amplified by beam deconvolution is clipped at :math:`5 \times 10^4\,\mathrm{\mu K}^2` to limit the dynamic range of the covariance.
+    Noise that has been amplified by beam deconvolution is clipped at :math:`5 \times 10^4`\ μK² to limit the dynamic range of the covariance.
     The galactic terms are currently not clipped, so at multipoles where the beam correction of a large-beam channel diverges the covariance can still become badly conditioned.
     """
 
@@ -450,7 +477,7 @@ def get_analytic_covariance(
 
 def get_cib_freq_dep(nu, Tcib=20., beta=1.505):  ##Tcmb=2.7255,  #Tcmb was unused
     r"""
-    Frequency dependence of the CIB as a modified blackbody.
+    Frequency dependence of the CIB as a modified blackbody:
 
     .. math::
 
@@ -463,9 +490,9 @@ def get_cib_freq_dep(nu, Tcib=20., beta=1.505):  ##Tcmb=2.7255,  #Tcmb was unuse
     nu : float
         Frequency in GHz.
     Tcib : float, optional
-        Dust temperature :math:`T_\mathrm{CIB}` in K. Default 20.
+        Dust temperature :math:`T_\mathrm{CIB}` in K. Default is 20.
     beta : float, optional
-        Emissivity index :math:`\beta`. Default 1.505, the Poisson CIB value; the clustered component uses 2.505.
+        Emissivity index :math:`\beta`. Default is 1.505, the Poisson CIB value; the clustered component uses 2.505.
 
     Returns
     -------
@@ -488,7 +515,7 @@ def get_cib_freq_dep(nu, Tcib=20., beta=1.505):  ##Tcmb=2.7255,  #Tcmb was unuse
 
 def get_radio_freq_dep(nu, nu0=150., spec_index_rg=-0.76, null_highfreq_radio=True, highfreq_radio_threshold=230):
     r"""
-    Frequency dependence of radio sources as a power law.
+    Frequency dependence of radio sources as a power law:
 
     .. math::
 
@@ -501,13 +528,13 @@ def get_radio_freq_dep(nu, nu0=150., spec_index_rg=-0.76, null_highfreq_radio=Tr
     nu : float
         Frequency in GHz.
     nu0 : float, optional
-        Reference frequency in GHz. Default 150.
+        Reference frequency in GHz. Default is 150.
     spec_index_rg : float, optional
-        Radio spectral index :math:`\alpha`. Default -0.76.
+        Radio spectral index :math:`\alpha`. Default is -0.76.
     null_highfreq_radio : bool, optional
-        Return zero above ``highfreq_radio_threshold``, where the radio contribution is negligible. Default ``True``.
+        Return zero above ``highfreq_radio_threshold``, where the radio contribution is negligible. Default is ``True``.
     highfreq_radio_threshold : float, optional
-        Threshold in GHz for the above. Default 230.
+        Threshold in GHz for the above. Default is 230.
 
     Returns
     -------
@@ -535,22 +562,22 @@ def get_radio_freq_dep(nu, nu0=150., spec_index_rg=-0.76, null_highfreq_radio=Tr
 
 def get_acap(freqarr, final_comp='cmb', freqcalib_fac=None, nspecs=1, spec_index_rg=-0.76):
     r"""
-    Frequency response :math:`a_\nu` of a sky component across a set of bands.
+    Frequency response :math:`A_s` of a sky component across a set of bands.
 
     The response is the factor by which the component appears in each band relative to the reference, in the same thermodynamic units as the maps, multiplied by any calibration factor:
 
     .. math::
 
-        a_\nu = f(\nu) \, g_\nu\, ,
+        A_i = f(\nu_i) \, g_i\, ,
 
-    with :math:`f` the spectral dependence of the component and :math:`g_\nu` the calibration factor.
+    with :math:`f` the spectral dependence of the component, :math:`\nu_i` the frequency of band :math:`i` and :math:`g_i` the calibration factor.
 
     Parameters
     ----------
     freqarr : array_like
         Frequency bands in GHz. The response is returned in this order, which must match the band ordering used to build the covariance.
     final_comp : str, optional
-        Component whose response is required. Default ``'cmb'``. One of
+        Component whose response is required. Default is ``'cmb'``. One of
 
         * ``'cmb'``, unit response in every band,
         * ``'tsz'`` or ``'y'``, the thermal SZ spectral function from :func:`foregrounds.compton_y_to_delta_Tcmb`,
@@ -561,12 +588,12 @@ def get_acap(freqarr, final_comp='cmb', freqcalib_fac=None, nspecs=1, spec_index
 
     freqcalib_fac : array_like, optional
         Multiplicative gain of each band, in the same order as ``freqarr``, by which the assumed response is scaled.
-        Default ``None``, which is equivalent to unity in every band.
+        Default is ``None``, which is equivalent to unity in every band.
     nspecs : int, optional
         Number of map components entering the ILC jointly, as returned by :func:`get_teb_spec_combination`.
-        Default 1, i.e. temperature or polarization alone.
+        Default is 1, i.e. temperature or polarization alone.
     spec_index_rg : float, optional
-        Radio spectral index, used only when ``final_comp`` is ``'radio'``. Default -0.76.
+        Radio spectral index, used only when ``final_comp`` is ``'radio'``. Default is -0.76.
 
     Returns
     -------
@@ -720,12 +747,12 @@ def create_clmat(freqarr, elcnt, cl_dic):
     r"""
     Band-band covariance matrix at one multipole.
 
-    For a single map component, the matrix is :math:`C_{\nu\nu'}(\ell)` over the requested bands.
+    For a single map component, the matrix is :math:`\mathbf{C}_\ell` over the requested bands.
     For a joint temperature and polarization ILC, it is the block matrix
 
     .. math::
 
-        \begin{pmatrix} C^{TT}_{\nu\nu'} & C^{TE}_{\nu\nu'} \\ C^{TE}_{\nu\nu'} & C^{EE}_{\nu\nu'} \end{pmatrix}
+        \begin{pmatrix} C^{TT}_{ij} & C^{TE}_{ij} \\ C^{TE}_{ij} & C^{EE}_{ij} \end{pmatrix}
 
     of size ``nspecs * len(freqarr)`` on a side.
 
@@ -797,7 +824,7 @@ def get_clinv(freqarr, elcnt, cl_dic, return_clmat=False):
     cl_dic : dict
         Auto- and cross-spectra at all :math:`\ell` keyed by spectrum name and then by band pair.
     return_clmat : bool, optional
-        Also return the covariance itself, which is convenient for debugging. Default ``False``.
+        Also return the covariance itself, which is convenient for debugging. Default is ``False``.
 
     Returns
     -------
@@ -831,11 +858,11 @@ def get_clinv(freqarr, elcnt, cl_dic, return_clmat=False):
 
 def corr_from_cov(covmat):
     r"""
-    Correlation matrix corresponding to a covariance matrix.
+    Correlation matrix corresponding to a covariance matrix:
 
     .. math::
 
-        R_{ij} = \frac{C_{ij}}{\sqrt{C_{ii} C_{jj}}}
+        R_{ij} = \frac{C_{ij}}{\sqrt{C_{ii} C_{jj}}}\, .
 
     Parameters
     ----------
@@ -882,17 +909,18 @@ def residual_power(
     r"""
     Residual power and weights of an ILC.
 
-    For a standard ILC, the weights and the residual power follow from the covariance :math:`C_{\nu\nu'}` and the frequency response :math:`a_\nu` of the component being recovered:
+    For a standard ILC, the weights and the residual power follow from the covariance :math:`\mathbf{C}_\ell` and the frequency response :math:`A_s` of the component being recovered:
 
     .. math::
 
-        w_\nu = \frac{\sum_{\nu'} C^{-1}_{\nu\nu'} a_{\nu'}}{\sum_{\nu\nu'} a_\nu C^{-1}_{\nu\nu'} a_{\nu'}} \, , \qquad C_\ell^\mathrm{res} = \left( \sum_{\nu\nu'} a_\nu C^{-1}_{\nu\nu'} a_{\nu'} \right)^{\!-1} .
+        w_\ell = \frac{\mathbf{C}_\ell^{-1} A_s}{A_s^\mathrm{T} \mathbf{C}_\ell^{-1} A_s} \, , \qquad C_\ell^\mathrm{res} = \left( A_s^\mathrm{T} \mathbf{C}_\ell^{-1} A_s \right)^{\!-1} .
 
-    When ``null_comp`` is given, a constrained ILC is performed instead. Here, :math:`G` is the matrix whose columns are the response of the component to be recovered followed by those of the components to be nulled, and :math:`e_1` is the first unit vector,
+    When ``null_comp`` is given, a constrained ILC is performed instead.
+    Here, :math:`\mathcal{F}` is the matrix whose columns are the response of the component to be recovered followed by those of the components to be nulled, and :math:`U = [1, 0, \ldots, 0]` is the constraint vector,
 
     .. math::
 
-        w = C^{-1} G \left( G^T C^{-1} G \right)^{-1} e_1 \, ,
+        w_\ell = \mathbf{C}_\ell^{-1} \mathcal{F} \left( \mathcal{F}^\mathrm{T} \mathbf{C}_\ell^{-1} \mathcal{F} \right)^{\!-1} U \, ,
 
     which returns the required component with unit response while nulling the others.
 
@@ -907,20 +935,20 @@ def residual_power(
     cl_dic : dict
         Auto- and cross-spectra at all :math:`\ell` keyed by spectrum name and then by band pair, as returned by :func:`get_analytic_covariance`.
     final_comp : str, optional
-        Component to be recovered. Default ``'cmb'``.
+        Component to be recovered. Default is ``'cmb'``.
         Options are 'cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise' and 'tsz_cib'.
     null_comp : str or list of str, optional
-        Component or components to be nulled, which selects a constrained ILC. Default ``None``.
+        Component or components to be nulled, which selects a constrained ILC. Default is ``None``.
         Options are the same as for ``final_comp``.
     spec_index_rg : float, optional
-        Radio spectral index, passed to :func:`get_acap` and used only for radio components. Default -0.76.
+        Radio spectral index, passed to :func:`get_acap` and used only for radio components. Default is -0.76.
     freqcalib_fac : array_like, optional
         Multiplicative gain of each band, in the same order as ``freqarr``, by which the assumed response is scaled.
-        Default ``None``, which is equivalent to unity in every band.
+        Default is ``None``, which is equivalent to unity in every band.
     lmin : int, optional
-        Multipoles at or below this value are skipped and their residual left at zero. Default 10.
+        Multipoles at or below this value are skipped and their residual left at zero. Default is 10.
     return_weights : bool, optional
-        Also return the weights. Default ``True``.
+        Also return the weights. Default is ``True``.
 
     Returns
     -------
@@ -945,7 +973,9 @@ def residual_power(
     """
 
     #assert final_comp in ['cmb', 'tsz', 'y', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']
-    possible_comps = ['cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise', 'tsz_cib']
+    #possible_comps = ['cmb', 'tsz', 'y', 'ksz', 'radio', 'cib', 'noise', 'tsz_cib']
+    #Note: 'ksz', 'noise' and 'tsz_cib' were previously accepted here and then failed inside get_acap; 'ksz' should be straight-forward to implement, though
+    possible_comps = ['cmb', 'tsz', 'y', 'radio', 'cib']
     if final_comp not in possible_comps:
         raise ValueError('final_comp must be one of %s, got %s' % (possible_comps, final_comp))
     #assert null_comp in [None, 'cmb', 'tsz', 'y', 'ksz', 'radio', 'dust', 'noise', 'tsz_cib']

@@ -8,18 +8,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>References &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Data Products" href="products.html" /> 
+    <link rel="prev" title="Data and products" href="products.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,22 +41,23 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">References</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#foreground-models">Foreground models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#delensing">Delensing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fisher-bias-formalism">Fisher bias formalism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-cite">How to cite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forecasting">Forecasting</a></li>
 </ul>
 </li>
 </ul>
@@ -77,7 +78,6 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">References</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/references.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -87,29 +87,163 @@
              
   <section id="references">
 <h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
-<section id="foreground-models">
-<h2>Foreground models<a class="headerlink" href="#foreground-models" title="Link to this heading"></a></h2>
+<section id="how-to-cite">
+<h2>How to cite<a class="headerlink" href="#how-to-cite" title="Link to this heading"></a></h2>
+<p>If you use DRAFT or the released data products, please cite the tool together
+with the paper describing the pipeline and the forecasts:</p>
 <ul class="simple">
-<li><p>George et al. 2015, <em>A measurement of secondary cosmic microwave
-background anisotropies from the 2500-square-degree SPT-SZ survey</em>,
-arXiv:1408.3161.</p></li>
-<li><p>Reichardt et al. 2020, <em>An improved measurement of the secondary
-cosmic microwave background anisotropies from the SPT-SZ + SPTpol
-surveys</em>, arXiv:2002.06197.</p></li>
+<li><p>S. Raghunathan, J. Meyers, C. Trendafilova &amp; B. Wallisch (2026),
+<em>DRAFT: CMB-S4 Dark Radiation Anisotropy Flowdown Team Tool</em>,
+<a class="reference external" href="https://github.com/sriniraghunathan/DRAFT">https://github.com/sriniraghunathan/DRAFT</a> (2026).</p></li>
+<li><p>C. Trendafilova, S. Raghunathan, B. Wallisch, J. Meyers et al.,
+<em>Sensitivity of Next-Generation CMB Surveys to Neutrinos and Other Light
+Relics</em>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>.</p></li>
+</ul>
+<p>Depending on your use of DRAFT, also consider citing the following:</p>
+<ul class="simple">
+<li><p>A. Zonca et al. (2021a) and A. Zonca et al. (2021b)
+for the galactic-foreground simulations,</p></li>
+<li><p>E. George et al. (2015) and C. Reichardt et al. (2021)
+for the extragalactic-foreground templates,</p></li>
+<li><p>S. Raghunathan &amp; Y. Omori (2023)
+for the internal linear combination,</p></li>
+<li><p>D. Blas et al. (2011), D. Green et al. (2017), S. Hotinli et al. (2021a)
+and S. Hotinli et al. (2022)
+when using <a class="reference external" href="https://github.com/selimhotinli/class_delens">CLASS_delens</a>
+for the delensed power spectra,</p></li>
+<li><p>S. Hotinli et al. (2021b) and S. Hotinli et al. (2022)
+when employing <a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a>
+for the Fisher-matrix calculations.</p></li>
 </ul>
 </section>
-<section id="delensing">
-<h2>Delensing<a class="headerlink" href="#delensing" title="Link to this heading"></a></h2>
+<section id="component-separation">
+<h2>Component separation<a class="headerlink" href="#component-separation" title="Link to this heading"></a></h2>
+<p class="rubric">Sky masking</p>
 <ul class="simple">
-<li><p>Green, Meyers &amp; van Engelen 2016, arXiv:1609.08143.</p></li>
+<li><p>R. Adam et al. (Planck Collaboration),
+<em>Planck 2015 Results. I. Overview of Products and Scientific Results</em>,
+<a class="reference external" href="https://doi.org/10.1051/0004-6361/201527101">Astron. Astrophys. 594 (2016) A1</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1502.01582">arXiv:1502.01582</a> [astro-ph.CO].</p></li>
+</ul>
+<p class="rubric">Galactic foregrounds</p>
+<ul class="simple">
+<li><p>B. Thorne, J. Dunkley, D. Alonso &amp; S. Naess,
+<em>The Python Sky Model: Software for Simulating the Galactic Microwave Sky</em>,
+<a class="reference external" href="https://doi.org/10.1093/mnras/stx949">Mon. Not. Roy. Astron. Soc. 469 (2017) 2821</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1608.02841">arXiv:1608.02841</a> [astro-ph.CO].</p></li>
+<li><p>Y. Akrami et al. (Planck Collaboration),
+<em>Planck 2018 Results. XI. Polarized Dust Foregrounds</em>,
+<a class="reference external" href="https://doi.org/10.1051/0004-6361/201832618">Astron. Astrophys. 641 (2020) A11</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1801.04945">arXiv:1801.04945</a> [astro-ph.GA].</p></li>
+<li><p>A. Zonca et al. (CMB-S4 Collaboration),
+<em>Map-Based Simulations for CMB-S4 (Design Tool Run)</em>,
+<a class="reference external" href="https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run">https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run</a> (2021a).</p></li>
+<li><p>A. Zonca, B. Thorne, N. Krachmalnicoff &amp; J. Borrill,
+<em>The Python Sky Model 3 Software</em>,
+<a class="reference external" href="https://doi.org/10.21105/joss.03783">J. Open Source Softw. 6 (2021b) 3783</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2108.01444">arXiv:2108.01444</a> [astro-ph.IM].</p></li>
+<li><p>A. Zonca et al.,
+<em>Documentation of the PySM Simulations for the Simons Observatory</em>,
+<a class="reference external" href="https://so-pysm-models.readthedocs.io/en/latest/index.html">https://so-pysm-models.readthedocs.io/en/latest/index.html</a> (2022).</p></li>
+</ul>
+<p class="rubric">Extragalactic foregrounds</p>
+<ul class="simple">
+<li><p>L. Shaw, D. Nagai, S. Bhattacharya &amp; E. Lau,
+<em>Impact of Cluster Physics on the Sunyaev-Zel’dovich Power Spectrum</em>,
+<a class="reference external" href="https://doi.org/10.1088/0004-637X/725/2/1452">Astrophys. J. 725 (2010) 1452</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1006.1945">arXiv:1006.1945</a> [astro-ph.CO].</p></li>
+<li><p>E. George et al.,
+<em>A Measurement of Secondary Cosmic Microwave Background Anisotropies from the 2500 deg² SPT-SZ Survey</em>,
+<a class="reference external" href="https://doi.org/10.1088/0004-637X/799/2/177">Astrophys. J. 799 (2015) 177</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1408.3161">arXiv:1408.3161</a> [astro-ph.CO].</p></li>
+<li><p>C. Reichardt et al. (SPT Collaboration),
+<em>An Improved Measurement of the Secondary Cosmic Microwave Background Anisotropies from the SPT-SZ + SPTpol Surveys</em>,
+<a class="reference external" href="https://doi.org/10.3847/1538-4357/abd407">Astrophys. J. 908 (2021) 199</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2002.06197">arXiv:2002.06197</a> [astro-ph.CO].</p></li>
+</ul>
+<p class="rubric">Internal linear combination</p>
+<ul class="simple">
+<li><p>M. Tegmark &amp; G. Efstathiou,
+<em>A Method for Subtracting Foregrounds from Multi-Frequency CMB Sky Maps</em>,
+<a class="reference external" href="https://doi.org/10.1093/mnras/281.4.1297">Mon. Not. Roy. Astron. Soc. 281 (1996) 1297</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/astro-ph/9507009">arXiv:astro-ph/9507009</a>.</p></li>
+<li><p>J.-F. Cardoso, M. Le Jeune, J. Delabrouille, M. Betoule &amp; G. Patanchon,
+<em>Component Separation with Flexible Models – Application to Multi-Channel Astrophysical Observations</em>,
+<a class="reference external" href="https://doi.org/10.1109/JSTSP.2008.2005346">IEEE J. Sel. Top. Signal Process. 2 (2008) 735</a>.</p></li>
+<li><p>M. Remazeilles, J. Delabrouille &amp; J.-F. Cardoso,
+<em>CMB and SZ Effect Separation with Constrained Internal Linear Combinations</em>,
+<a class="reference external" href="https://doi.org/10.1111/j.1365-2966.2010.17624.x">Mon. Not. Roy. Astron. Soc. 410 (2011) 2481</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1006.5599">arXiv:1006.5599</a> [astro-ph.CO].</p></li>
+<li><p>P. A. R. Ade et al. (Planck Collaboration),
+<em>Planck 2013 Results. XII. Diffuse Component Separation</em>,
+<a class="reference external" href="https://doi.org/10.1051/0004-6361/201321580">Astron. Astrophys. 571 (2014) A12</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1303.5072">arXiv:1303.5072</a> [astro-ph.CO].</p></li>
+<li><p>L. Bleem et al. (SPT-SZ Collaboration),
+<em>CMB/kSZ and Compton-y Maps from 2500 deg² of SPT-SZ and Planck Survey Data</em>,
+<a class="reference external" href="https://doi.org/10.3847/1538-4365/ac35e9">Astrophys. J. Suppl. Ser. 258 (2022) 36</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2102.05033">arXiv:2102.05033</a> [astro-ph.CO].</p></li>
+<li><p>S. Raghunathan &amp; Y. Omori,
+<em>A Cross-Internal Linear Combination Approach to Probe the Secondary CMB Anisotropies: Kinematic Sunyaev-Zel’dovich Effect and CMB Lensing</em>,
+<a class="reference external" href="https://doi.org/10.3847/1538-4357/ace0c6">Astrophys. J. 954 (2023) 83</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2304.09166">arXiv:2304.09166</a> [astro-ph.CO].</p></li>
 </ul>
 </section>
-<section id="fisher-bias-formalism">
-<h2>Fisher bias formalism<a class="headerlink" href="#fisher-bias-formalism" title="Link to this heading"></a></h2>
+<section id="forecasting">
+<h2>Forecasting<a class="headerlink" href="#forecasting" title="Link to this heading"></a></h2>
+<p>The delensing and Fisher-matrix stages are performed by the two companion codes
+<a class="reference external" href="https://github.com/selimhotinli/class_delens">CLASS_delens</a> and
+<a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a>.
+<em>[A module driving both from within this repository is in preparation.]</em></p>
+<p class="rubric">Delensing</p>
 <ul class="simple">
-<li><p>Huterer &amp; Takada 2004, arXiv:astro-ph/0412142.</p></li>
-<li><p>Loverde, Hui &amp; Gaztanaga 2006, arXiv:astro-ph/0611539.</p></li>
-<li><p>Amara &amp; Refregier 2007, arXiv:0710.5171.</p></li>
+<li><p>D. Blas, J. Lesgourgues &amp; T. Tram,
+<em>The Cosmic Linear Anisotropy Solving System (CLASS) II: Approximation Schemes</em>,
+<a class="reference external" href="https://doi.org/10.1088/1475-7516/2011/07/034">JCAP 07 (2011) 034</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1104.2933">arXiv:1104.2933</a> [astro-ph.CO].</p></li>
+<li><p>D. Green, J. Meyers &amp; A. van Engelen,
+<em>CMB Delensing beyond the B Modes</em>,
+<a class="reference external" href="https://doi.org/10.1088/1475-7516/2017/12/005">JCAP 12 (2017) 005</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/1609.08143">arXiv:1609.08143</a> [astro-ph.CO].</p></li>
+<li><p>S. Hotinli, J. Meyers, C. Trendafilova, D. Green &amp; A. van Engelen,
+<em>CLASS_delens: Delensing Module for the CLASS Code</em>,
+<a class="reference external" href="https://github.com/selimhotinli/class_delens">https://github.com/selimhotinli/class_delens</a> (2021a).</p></li>
+<li><p>S. Hotinli, J. Meyers, C. Trendafilova, D. Green &amp; A. van Engelen,
+<em>The Benefits of CMB Delensing</em>,
+<a class="reference external" href="https://doi.org/10.1088/1475-7516/2022/04/020">JCAP 04 (2022) 020</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2111.15036">arXiv:2111.15036</a> [astro-ph.CO].</p></li>
+</ul>
+<p class="rubric">Fisher forecasts</p>
+<ul class="simple">
+<li><p>S. Hotinli, J. Meyers, C. Trendafilova, D. Green &amp; A. van Engelen,
+<em>The Benefits of CMB Delensing</em>,
+<a class="reference external" href="https://doi.org/10.1088/1475-7516/2022/04/020">JCAP 04 (2022) 020</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2111.15036">arXiv:2111.15036</a> [astro-ph.CO].</p></li>
+<li><p>S. Hotinli, J. Meyers, C. Trendafilova, D. Green &amp; A. van Engelen,
+<em>FisherLens: Fisher Forecasting Code for CLASS_delens</em>,
+<a class="reference external" href="https://github.com/ctrendafilova/FisherLens">https://github.com/ctrendafilova/FisherLens</a> (2021b).</p></li>
+<li><p>J. Ryan, B. Stevenson, C. Trendafilova &amp; J. Meyers,
+<em>Beyond Fisher Forecasting for Cosmology</em>,
+<a class="reference external" href="https://doi.org/10.1103/PhysRevD.107.103506">Phys. Rev. D 107 (2023) 103506</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2211.06534">arXiv:2211.06534</a> [astro-ph.CO].</p></li>
+</ul>
+<p class="rubric">Foreground biases</p>
+<ul class="simple">
+<li><p>D. Huterer &amp; M. Takada,
+<em>Calibrating the Non-Linear Matter Power Spectrum: Requirements for Future Weak Lensing Surveys</em>,
+<a class="reference external" href="https://doi.org/10.1016/j.astropartphys.2005.02.006">Astropart. Phys. 23 (2005) 369</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/astro-ph/0412142">arXiv:astro-ph/0412142</a>.</p></li>
+<li><p>M. Loverde, L. Hui &amp; E. Gaztanaga,
+<em>Magnification-Temperature Correlation: The Dark Side of ISW Measurements</em>,
+<a class="reference external" href="https://doi.org/10.1103/PhysRevD.75.043519">Phys. Rev. D 75 (2007) 043519</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/astro-ph/0611539">arXiv:astro-ph/0611539</a>.</p></li>
+<li><p>A. Amara &amp; A. Réfrégier,
+<em>Systematic Bias in Cosmic Shear: Beyond the Fisher Matrix</em>,
+<a class="reference external" href="https://doi.org/10.1111/j.1365-2966.2008.13880.x">Mon. Not. Roy. Astron. Soc. 391 (2008) 228</a>,
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/0710.5171">arXiv:0710.5171</a> [astro-ph].</p></li>
+<li><p>S. Hotinli, J. Meyers, C. Trendafilova, D. Green &amp; A. van Engelen,
+<em>FisherLens: Fisher Forecasting Code for CLASS_delens</em>,
+<a class="reference external" href="https://github.com/ctrendafilova/FisherLens">https://github.com/ctrendafilova/FisherLens</a> (2021).</p></li>
 </ul>
 </section>
 </section>
@@ -118,7 +252,7 @@ surveys</em>, arXiv:2002.06197.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="products.html" class="btn btn-neutral float-left" title="Data Products" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="products.html" class="btn btn-neutral float-left" title="Data and products" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

@@ -8,14 +8,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DRAFT: Dark Radiation Anisotropy Flowdown Team tool &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -41,18 +42,19 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -72,7 +74,6 @@
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">DRAFT: Dark Radiation Anisotropy Flowdown Team tool</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -82,71 +83,136 @@
              
   <section id="draft-dark-radiation-anisotropy-flowdown-team-tool">
 <h1>DRAFT: Dark Radiation Anisotropy Flowdown Team tool<a class="headerlink" href="#draft-dark-radiation-anisotropy-flowdown-team-tool" title="Link to this heading"></a></h1>
-<p><strong>DRAFT</strong> is the CMB-S4 Dark Radiation Anisotropy Flowdown Team tool for
-component separation and cosmological forecasting.</p>
-<p>The code:</p>
-<ul class="simple">
-<li><p>Optimally combines data from different frequency bands using noise and
-foreground signals via internal linear combination (ILC), supporting
-standard, constrained, and partial ILC.</p></li>
-<li><p>Combines delensed CMB spectra and lensing spectra to forecast
-cosmological parameter constraints using the Fisher formalism.</p></li>
-<li><p>Estimates biases in cosmological parameters due to residual foregrounds,
-also using the Fisher formalism.</p></li>
-</ul>
-<section id="foreground-modelling">
-<h2>Foreground modelling<a class="headerlink" href="#foreground-modelling" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><strong>Extragalactic foregrounds:</strong> Radio, CIB, tSZ, and kSZ power spectra
-from SPT measurements (George et al. 2015, arXiv:1408.3161;
-Reichardt et al. 2020, arXiv:2002.06197). Default polarisation
-fractions: CIB = 2%, Radio = 3%, tSZ/kSZ = 0 (configurable).</p></li>
-<li><p><strong>Galactic foregrounds:</strong> Dust and synchrotron power spectra obtained
-from pySM3 simulations.</p></li>
-</ul>
+<p>The <strong>DRAFT</strong> (Dark Radiation Anisotropy Flowdown Team Tool) tool provides an
+end-to-end forecasting pipeline for cosmic microwave background (CMB)
+experiments, from experimental specifications to projected constraints on
+cosmological parameters. It was developed within the Maps-to-Power-Spectra
+analysis working group of the CMB-S4 collaboration and is described in §3.4 of
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>. This code is however not specific to CMB-S4, but can be applied
+directly to other CMB survey designs, and the experiment library already covers
+configurations for Planck, the South Pole Telescope, the Simons Observatory,
+CMB-HD and AtLAST alongside the CMB-S4 surveys.</p>
+<p>The pipeline targets damping-tail science, where precise measurements at
+multipoles <span class="math notranslate nohighlight">\(\ell \gtrsim 1000\)</span> carry the constraining power but
+astrophysical foreground emission also becomes significant relative to the
+primary signal and where gravitational lensing broadens the acoustic peaks.
+Foreground modeling, component separation and delensing are therefore all needed
+to extract the available information. A leading example is the effective number
+of relativistic species, <span class="math notranslate nohighlight">\(N_\mathrm{eff}\)</span>, whose sensitivity is driven by
+the damping tail and the acoustic peaks.</p>
+<section id="pipeline">
+<h2>Pipeline<a class="headerlink" href="#pipeline" title="Link to this heading"></a></h2>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="_images/pipeline.png"><img alt="Schematic overview of the DRAFT pipeline, from inputs through sky preparation, component separation and forecasting to outputs." src="_images/pipeline.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Schematic overview of DRAFT and the pipeline it implements, from the
+instrumental and astrophysical inputs to the projected sensitivity to
+cosmological parameters. (Reproduced from <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>.)</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p><strong>Inputs.</strong> The fiducial cosmology together with the parameter step sizes for the
+numerical derivatives, the Planck information entering through
+inverse-variance combination of its noise, the galactic dust and synchrotron
+models, taken from <a class="reference external" href="https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run">map-based simulations</a>
+generated with <a class="reference external" href="https://so-pysm-models.readthedocs.io/en/latest/">PySM 3</a>,
+the extragalactic templates for the thermal and kinematic Sunyaev-Zel’dovich
+effects, the cosmic infrared background and radio galaxies, following a
+parameterization based on South Pole Telescope measurements, and the
+experimental specifications of the survey configurations under consideration.
+See <a class="reference internal" href="modules.html"><span class="doc">API reference</span></a> for the modules that supply each of these (and
+Sections 2 and 3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+<p><strong>Sky preparation.</strong> The survey footprint is combined with a galactic mask to
+remove the most contaminated regions of the sky, which component separation can
+only partially clean (§3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+<p><strong>Component separation.</strong> The multi-frequency covariance
+<span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> of the noise and foreground spectra is assembled from
+the auto- and cross-frequency spectra, and an internal linear combination
+optimally combines the frequency bands to extract the required component while
+down-weighting modes dominated by foregrounds or instrumental noise. The
+standard minimum-variance, constrained and partial variants are supported
+<em>[cross-ILC to be ported]</em>, leaving the residual power spectra
+<span class="math notranslate nohighlight">\(C_\ell^\mathrm{res}\)</span> (§3.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+<p><strong>Forecasting.</strong> The post-ILC noise spectra are passed to
+<a class="reference external" href="https://github.com/selimhotinli/class_delens">CLASS_delens</a>, which computes
+the theoretical CMB spectra and performs the iterative delensing. The delensed
+spectra and the lensing-reconstruction noise are then combined in a
+Fisher-matrix forecast performed by
+<a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a> to obtain projected
+constraints on the cosmological parameters. The same formalism can also be used
+to estimate the biases induced in those parameters by residual foregrounds
+(§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).
+<em>[A module driving both codes from within this repository is in preparation.]</em></p>
+<p><strong>Outputs.</strong> The ILC residuals, the lensing-reconstruction noise, the Fisher
+matrix <span class="math notranslate nohighlight">\(F_{\alpha\beta}\)</span> and the projected uncertainties on the
+cosmological parameters, in particular <span class="math notranslate nohighlight">\(\sigma(N_\mathrm{eff})\)</span>.</p>
+<p>The component separation stage is already implemented in this repository, with
+the two forecasting parts currently being implemented. The intermediate ILC
+residual spectra are released for a range of survey configurations and can
+therefore also be used as inputs to other forecasting frameworks, as described
+in <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a>.</p>
+</section>
+<section id="where-to-go-next">
+<h2>Where to go next<a class="headerlink" href="#where-to-go-next" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> covers the requirements and how to run the driver,
+<a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a> the available arguments, <a class="reference internal" href="modules.html"><span class="doc">API reference</span></a> the API organized by
+pipeline stage, <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a> the input data, the released data products and their file
+format, and <a class="reference internal" href="references.html"><span class="doc">References</span></a> the literature underlying the models and methods.</p>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#from-source">From source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-installation">Verifying the installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#getting-the-code">Getting the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#running-it">Running it</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-checkout">Verifying the checkout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#planned-importable-api">Planned importable API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#computing-ilc-residuals">Computing ILC residuals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#first-ilc-run">First ILC run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-options">Common options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#from-python">From Python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#reading-the-results">Reading the results</a></li>
 </ul>
 </li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html">ilc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html">misc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp_specs.html">exp_specs module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="new_experiment.html#required-information">Required information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new_experiment.html#worked-example">Worked example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new_experiment.html#adding-your-own">Adding your own</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new_experiment.html#things-to-watch-for">Things to watch for</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#forecasting">Forecasting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 </div>
 </section>
-</section>
-<section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<section id="indices">
+<h2>Indices<a class="headerlink" href="#indices" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a> – all documented functions and terms.</p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a> – the module index.</p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a> – full-text search.</p></li>
 </ul>
+</section>
 </section>
 
 

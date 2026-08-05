@@ -11,7 +11,7 @@ The module is grouped into four sections:
 ``cl_to_cl2d`` is referenced by ``misc.get_beam_dic``, which calls it only when its ``make_2d`` option is set.
 The remaining routines are standalone utilities that are currently not used elsewhere in this repository.
 
-A flat-sky patch is described by ``mapparams = [nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the number of pixels along each axis and ``dx`` and ``dy`` are the pixel sizes in arcminutes.
+A flat-sky patch is described by ``mapparams = [nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the number of pixels along each axis and ``dx`` and ``dy`` are the pixel sizes in arcmin.
 Multipoles follow the flat-sky convention :math:`\ell = \sqrt{\ell_x^2 + \ell_y^2}`, with the 2-D Fourier grid supplied by ``get_lxly``.
 Power spectra carry whatever units the input ``cl`` is given in and maps carry its square root.
 """
@@ -28,7 +28,7 @@ def get_lxly(mapparams):
     Parameters
     ----------
     mapparams : list
-        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the pixel counts along each axis and ``dx`` and ``dy`` are the pixel sizes in arcminutes.
+        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the pixel counts along each axis and ``dx`` and ``dy`` are the pixel sizes in arcmin.
         ``nx`` and ``ny`` must be integers.
 
     Returns
@@ -90,7 +90,7 @@ def cl_to_cl2d(el, cl, mapparams):
     cl : array_like
         Power spectrum :math:`C_\ell`, the same length as ``el``.
     mapparams : list
-        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the pixel counts along each axis and ``dx`` and ``dy`` are the pixel sizes in arcminutes.
+        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the pixel counts along each axis and ``dx`` and ``dy`` are the pixel sizes in arcmin.
         ``nx`` and ``ny`` must be integers. A float pixel count, which is what a plain :class:`numpy.ndarray` of ``mapparams`` produces, raises inside :func:`numpy.fft.fftfreq`.
 
     Returns
@@ -132,7 +132,7 @@ def get_lpf_hpf(mapparams, lmin_lmax, filter_type=0):
     lmin_lmax : float or sequence of float
         Cutoff multipole. Must be a single value for ``filter_type`` 0 or 1, and an ``(lmin, lmax)`` pair for ``filter_type`` 2.
     filter_type : int, optional
-        ``0`` for low pass, ``1`` for high pass and ``2`` for band pass. Default 0.
+        ``0`` for low pass, ``1`` for high pass and ``2`` for band pass. Default is 0.
 
     Returns
     -------
@@ -186,7 +186,7 @@ def wiener_filter(mapparams, cl_signal, cl_noise, el=None):
     cl_noise : array_like
         Noise power spectrum :math:`C_\ell^\mathrm{N}`, the same length as ``cl_signal``.
     el : array_like, optional
-        Multipoles at which both spectra are defined. Defaults to ``np.arange(len(cl_signal))``.
+        Multipoles at which both spectra are defined. Default is ``np.arange(len(cl_signal))``.
 
     Returns
     -------
@@ -234,7 +234,7 @@ def convert_eb_qu(map1, map2, mapparams, eb_to_qu=1):
     mapparams : list
         Flat-sky map geometry ``[nx, ny, dx, dy]``.
     eb_to_qu : int, optional
-        If non-zero, rotate E/B to Q/U. Otherwise rotate Q/U to E/B. Default 1.
+        If non-zero, rotate E/B to Q/U. Otherwise rotate Q/U to E/B. Default is 1.
 
     Returns
     -------
@@ -273,7 +273,7 @@ def cl2map(mapparams, cl, el=None):
     cl : array_like
         Power spectrum :math:`C_\ell` to realize.
     el : array_like, optional
-        Multipoles at which ``cl`` is defined. Defaults to ``np.arange(len(cl))``.
+        Multipoles at which ``cl`` is defined. Default is ``np.arange(len(cl))``.
 
     Returns
     -------
@@ -333,13 +333,13 @@ def make_gaussian_realization(mapparams, el, cl, cl2=None, cl12=None, bl=None, q
     cl : array_like
         Auto spectrum of the first field, :math:`C_\ell^{11}`.
     cl2 : array_like, optional
-        Auto spectrum of the second field, :math:`C_\ell^{22}`. Supplying it selects the correlated branch, which also requires ``cl12``.
+        Auto spectrum of the second field, :math:`C_\ell^{22}`. Supplying it selects the correlated branch, which also requires ``cl12``. Default is ``None``.
     cl12 : array_like, optional
-        Cross spectrum of the two fields, :math:`C_\ell^{12}`. Required when ``cl2`` is given.
+        Cross spectrum of the two fields, :math:`C_\ell^{12}`. Required when ``cl2`` is given. Default is ``None``.
     bl : array_like, optional
-        Beam transfer function :math:`B_\ell`, either 1-D over ``el`` or already on the 2-D grid, applied to the output.
+        Beam transfer function :math:`B_\ell`, either 1-D over ``el`` or already on the 2-D grid, applied to the output. Default is ``None``.
     qu_or_eb : {'qu', 'eb'}, optional
-        Whether to return T, Q, U or T, E, B. Only has an effect in the correlated branch. Default ``'qu'``.
+        Whether to return T, Q, U or T, E, B. Only has an effect in the correlated branch. Default is ``'qu'``.
 
     Returns
     -------
@@ -449,13 +449,13 @@ def radial_profile(z, xy=None, bin_size=1., minbin=0., maxbin=10., to_arcmins=1)
     z : array_like
         Field to profile, real or complex. Must be 2-D when ``xy`` is not given.
     xy : tuple of ndarray, optional
-        Coordinate grids ``(x, y)``, each the same shape as ``z``. Defaults to :func:`numpy.indices`, i.e. pixel indices.
+        Coordinate grids ``(x, y)``, each the same shape as ``z``. Default is :func:`numpy.indices`, i.e. pixel indices.
     bin_size : float, optional
-        Width of the radial bins, in the units of ``xy``. Default 1.
+        Width of the radial bins, in the units of ``xy``. Default is 1.
     minbin, maxbin : float, optional
-        Lowest and highest radius of the binning. Defaults 0 and 10.
+        Lowest and highest radius of the binning. Defaults are 0 and 10.
     to_arcmins : int, optional
-        If non-zero, multiply the radius by 60 before binning, i.e. convert degrees to arcminutes. Default 1.
+        If non-zero, multiply the radius by 60 before binning, i.e. convert degrees to arcmin. Default is 1.
 
     Returns
     -------
@@ -520,7 +520,7 @@ def map2cl(mapparams, flatskymap1, flatskymap2=None, binsize=None, minbin=100, m
 
     .. math::
 
-        \hat{C}_\ell = \frac{\mathrm{d}x^2}{n_x n_y} \left\langle \tilde{m}_1 \tilde{m}_2^* \right\rangle_\ell ,
+        \hat{C}_\ell = \frac{\mathrm{d}x^2}{n_x n_y} \left\langle \tilde{m}_1 \tilde{m}_2^* \right\rangle_\ell\, ,
 
     where :math:`\mathrm{d}x` is in radians and :math:`\tilde{m}` is the unnormalized discrete transform.
 
@@ -531,15 +531,15 @@ def map2cl(mapparams, flatskymap1, flatskymap2=None, binsize=None, minbin=100, m
     flatskymap1 : array_like
         First map, of shape ``(ny, nx)``.
     flatskymap2 : array_like, optional
-        Second map, of the same shape. If given, the cross spectrum is returned in place of the auto spectrum.
+        Second map, of the same shape. If given, the cross spectrum is returned in place of the auto spectrum. Default is ``None``.
     binsize : float, optional
-        Width of the :math:`\ell` bins. Defaults to the :math:`\ell_x` grid spacing, i.e. along the second axis.
+        Width of the :math:`\ell` bins. Default is the :math:`\ell_x` grid spacing, i.e. along the second axis.
     minbin, maxbin : float, optional
-        Lowest and highest :math:`\ell` of the binning. Defaults 100 and 10000.
+        Lowest and highest :math:`\ell` of the binning. Defaults are 100 and 10000.
     mask : array_like, optional
-        Window that the caller has already applied to the maps. Only its mean is used to rescale the spectrum. The maps are not multiplied by it here.
+        Window that the caller has already applied to the maps. Only its mean is used to rescale the spectrum. The maps are not multiplied by it here. Default is ``None``.
     filter_2d : array_like, optional
-        Filter already applied to the maps, of shape ``(ny, nx)``. Its radial profile is divided out of the spectrum.
+        Filter already applied to the maps, of shape ``(ny, nx)``. Its radial profile is divided out of the spectrum. Default is ``None``.
 
     Returns
     -------

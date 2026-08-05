@@ -8,18 +8,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quickstart &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Reference" href="modules.html" />
+    <link rel="next" title="Adding an experiment" href="new_experiment.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
 </head>
 
@@ -42,22 +42,25 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#computing-ilc-residuals">Computing ILC residuals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#first-ilc-run">First ILC run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-options">Common options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#from-python">From Python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reading-the-results">Reading the results</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -77,7 +80,6 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Quickstart</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -87,44 +89,103 @@
              
   <section id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h1>
-<section id="computing-ilc-residuals">
-<h2>Computing ILC residuals<a class="headerlink" href="#computing-ilc-residuals" title="Link to this heading"></a></h2>
-<p>The main entry point computes ILC residual curves for a given experiment
-configuration. For example, for the S4-Wide (Chilean LAT) PBDR
-configuration, including Galactic foregrounds:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-include_gal<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-which_gal_mask<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-final_comp<span class="w"> </span>cmb
+<p>DRAFT is run from the repository root. Each run computes the ILC residual power
+spectra for one experiment configuration and writes them to a product file. See
+<a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> for the requirements.</p>
+<section id="first-ilc-run">
+<h2>First ILC run<a class="headerlink" href="#first-ilc-run" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config
 </pre></div>
 </div>
-<p>Key arguments:</p>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">-expname</span></code></dt><dd><p>Name of the experiment configuration (frequency bands, beams, and
-noise levels), e.g. <code class="docutils literal notranslate"><span class="pre">s4wide_202310xx_pbdr_config</span></code>.</p>
-</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">-include_gal</span></code></dt><dd><p>Whether to include Galactic foregrounds (<code class="docutils literal notranslate"><span class="pre">1</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">0</span></code>).</p>
-</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">-which_gal_mask</span></code></dt><dd><p>Index of the Galactic foreground mask to use.</p>
-</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">-final_comp</span></code></dt><dd><p>The component to recover with the ILC, e.g. <code class="docutils literal notranslate"><span class="pre">cmb</span></code>.</p>
-</dd>
-</dl>
+<p>This performs a minimum-variance CMB ILC for the CMB-S4 Wide survey of the
+preliminary baseline/conceptual design, without galactic foregrounds, over the
+default seven years of observation. The white-noise levels are printed for each
+band, the product is written under <code class="docutils literal notranslate"><span class="pre">results/</span></code> and its path is printed at the
+end.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-expname</span></code> is the only required argument; everything else has a default.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>--help
+</pre></div>
+</div>
+<p>lists every argument together with its current default and is the reference for
+the exhaustive list. The sections below cover when to depart from the defaults.</p>
+</section>
+<section id="common-options">
+<h2>Common options<a class="headerlink" href="#common-options" title="Link to this heading"></a></h2>
+<p><strong>Choosing an experiment.</strong> <code class="docutils literal notranslate"><span class="pre">-expname</span></code> selects the frequency bands, beams,
+white-noise levels and atmospheric noise. The supported names and the grammar
+for the <code class="docutils literal notranslate"><span class="pre">---patch&lt;N&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">+advanced_so_*</span></code> suffixes are
+documented in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>. The configurations, for which
+results have already been released, are described in <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a>.</p>
+<p><strong>Galactic foregrounds.</strong> <code class="docutils literal notranslate"><span class="pre">-include_gal</span> <span class="pre">1</span></code> adds galactic dust and
+synchrotron, read from the precomputed simulations under <code class="docutils literal notranslate"><span class="pre">data/galactic/</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">-which_gal_mask</span></code> then selects the mask: <code class="docutils literal notranslate"><span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">2</span></code> for the
+Planck GAL070, GAL080 and GAL090 masks intersected with the survey footprint.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-include_gal<span class="w"> </span><span class="m">1</span><span class="w"> </span>-which_gal_mask<span class="w"> </span><span class="m">2</span>
+</pre></div>
+</div>
+<p>Because the galactic simulations are only available for a fixed set of bands,
+<code class="docutils literal notranslate"><span class="pre">-include_gal</span> <span class="pre">1</span></code> requires a configuration whose bands are 27, 39, 93, 145,
+225 and 278 GHz. Any other configuration raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> naming the
+offending bands rather than failing later in the computation.</p>
+<p><strong>What the ILC recovers.</strong> <code class="docutils literal notranslate"><span class="pre">-final_comp</span></code> chooses the component preserved with
+unit response, one of <code class="docutils literal notranslate"><span class="pre">cmb</span></code>, <code class="docutils literal notranslate"><span class="pre">tsz</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">radio</span></code> or <code class="docutils literal notranslate"><span class="pre">cib</span></code>. The
+general default for standard calculations and forecasts is <code class="docutils literal notranslate"><span class="pre">cmb''.</span> <span class="pre">Adding</span>
+<span class="pre">``-null_comp</span></code> performs a constrained ILC that additionally nulls one or more
+other components:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-final_comp<span class="w"> </span>cmb<span class="w"> </span>-null_comp<span class="w"> </span>tsz
+</pre></div>
+</div>
+<p>Several components can be nulled at once by listing them,
+<code class="docutils literal notranslate"><span class="pre">-null_comp</span> <span class="pre">tsz</span> <span class="pre">cib</span></code>. Nulling is recorded in the output filename, so
+constrained and standard runs of the same configuration do not overwrite one
+another.</p>
+<p><strong>Survey duration.</strong> <code class="docutils literal notranslate"><span class="pre">-total_obs_time</span></code> sets the observing time in years and
+the white-noise levels are rescaled from the baseline of the configuration
+accordingly. Experiment names carrying a <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code> suffix already encode
+an observing time, so combining the two raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> rather than
+applying the scaling twice.</p>
+<p><strong>Per-band noise scaling.</strong> <code class="docutils literal notranslate"><span class="pre">-noise_scalings_for_bands</span></code> multiplies the
+white-noise level of each band by a given factor, one value per band in band
+order, which is useful for exploring sensitivity to individual channels.</p>
+<p><strong>Diagnostics and bookkeeping.</strong> <code class="docutils literal notranslate"><span class="pre">-interactive_mode</span> <span class="pre">0</span></code> suppresses the
+diagnostic plots of the beam and noise spectra, which is what you want when
+running non-interactively. <code class="docutils literal notranslate"><span class="pre">-save_fg_res_and_weights</span> <span class="pre">0</span></code> omits the
+per-component residuals and the ILC weights from the product file.
+<code class="docutils literal notranslate"><span class="pre">-debug</span> <span class="pre">1</span></code> prints intermediate dictionary keys and progress. <code class="docutils literal notranslate"><span class="pre">-paramfile</span></code>
+points at an alternative parameter file in place of <code class="docutils literal notranslate"><span class="pre">params.ini</span></code>.</p>
+</section>
+<section id="from-python">
+<h2>From Python<a class="headerlink" href="#from-python" title="Link to this heading"></a></h2>
+<p>The same calculation is available to other scripts through
+<a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.run_ilc()</span></code></a>, which takes the command line options as
+keyword arguments and returns the product dictionary together with the path it
+would be written to. The driver puts <code class="docutils literal notranslate"><span class="pre">modules/</span></code> on <code class="docutils literal notranslate"><span class="pre">sys.path</span></code> itself, so no
+further setup is needed when working from the repository root:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">get_ilc_residuals</span>
+
+<span class="n">opdic</span><span class="p">,</span> <span class="n">opfname</span> <span class="o">=</span> <span class="n">get_ilc_residuals</span><span class="o">.</span><span class="n">run_ilc</span><span class="p">(</span>
+    <span class="s1">&#39;s4wide_202310xx_pbdr_config&#39;</span><span class="p">,</span> <span class="n">include_gal</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">which_gal_mask</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">el</span> <span class="o">=</span> <span class="n">opdic</span><span class="p">[</span><span class="s1">&#39;el&#39;</span><span class="p">]</span>
+<span class="n">cl_residual</span> <span class="o">=</span> <span class="n">opdic</span><span class="p">[</span><span class="s1">&#39;cl_residual&#39;</span><span class="p">][</span><span class="s1">&#39;TT&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Four options are available only this way, with no command line equivalent:
+<code class="docutils literal notranslate"><span class="pre">which_spec_arr</span></code> to solve for spectra other than <code class="docutils literal notranslate"><span class="pre">TT</span></code> and <code class="docutils literal notranslate"><span class="pre">EE</span></code>,
+<code class="docutils literal notranslate"><span class="pre">cl_multiplier_dic</span></code> to rescale a component’s spectrum and so perform a
+partial ILC, <code class="docutils literal notranslate"><span class="pre">freqcalib_fac</span></code> to apply a per-band gain, and <code class="docutils literal notranslate"><span class="pre">save</span></code> to return
+the result without writing a file.</p>
 </section>
 <section id="reading-the-results">
 <h2>Reading the results<a class="headerlink" href="#reading-the-results" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">read_ilc_residuals.py</span></code> to read the ILC residual curves.</p></li>
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">read_lensing_noise.py</span></code> to read the lensing noise curves.</p></li>
-</ul>
-<p>Supported experiment configurations include:</p>
-<ul class="simple">
-<li><p><strong>S4-Wide (Chilean LAT)</strong> – latest PBDR noise specs (Oct 2023).</p></li>
-<li><p><strong>S4-Ultra deep (South Pole LAT)</strong> – latest PBDR noise specs (Oct 2023).</p></li>
-<li><p><strong>S4-Wide (Chilean LAT) achieved performance</strong> – best achievable
-performance.</p></li>
-</ul>
+<p>Products are written under <code class="docutils literal notranslate"><span class="pre">results/</span></code> in a directory tree that records the
+experiment, the mask and the spectra combined. The filename grammar and the
+contents of the product dictionary are documented in <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a>. The
+released products come with reader scripts,
+<code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/read_ilc_residuals.py</span></code> for the ILC residuals
+and <code class="docutils literal notranslate"><span class="pre">read_lensing_noise.py</span></code> for the lensing-noise curves.</p>
 </section>
 </section>
 
@@ -133,7 +194,7 @@ performance.</p></li>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="modules.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="new_experiment.html" class="btn btn-neutral float-right" title="Adding an experiment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

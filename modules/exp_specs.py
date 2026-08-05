@@ -1,15 +1,15 @@
 """
 Instrument specifications for the experiment configurations supported by get_ilc_residuals.py.
 
-The module exposes a single function, ``get_exp_specs``, which maps an experiment name onto the per-band beams, white-noise levels and atmospheric-noise parameters from which the noise power spectra are built in ``misc.get_nl``.
+The module exposes a single function, ``get_exp_specs``, which maps an experiment name onto the per-band beams, white-noise levels and atmospheric (1/f) noise parameters from which the noise power spectra are built in ``misc.get_nl``.
 
 Seven experiment families are covered:
 
-* CMB-S4: the CMB-S4 Wide and CMB-S4 Ultra-deep variants, the preliminary baseline/conceptual design, and the Chile-only revised configurations, which may be combined with an SO-like LAT,
+* CMB-S4: CMB-S4 Wide and CMB-S4 Ultra-deep surveys, preliminary baseline/conceptual design, and Chile-only revised configurations, which may be combined with an SO-like LAT,
 * CMB-HD,
 * AtLAST,
-* Advanced Simons Observatory,
-* Simons Observatory, baseline and goal,
+* Advanced Simons Observatory: baseline and goal,
+* Simons Observatory: baseline and goal,
 * South Pole Telescope: SPT-SZ, SPTpol and SPT-3G,
 * Planck.
 
@@ -35,7 +35,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
     r"""
     Beams, noise levels and atmospheric-noise parameters for one experiment configuration.
 
-    Each frequency band is described by a beam full-width at half-maximum :math:`\theta_b` in arcminutes, a white-noise level :math:`\Delta_X` in :math:`\mathrm{\mu K}\,\mathrm{arcmin}` for temperature and polarization (:math:`X = T, P`), and the low-frequency (1/f)/atmospheric parameters :math:`\ell_\mathrm{knee}` and :math:`\alpha_\mathrm{knee}` entering
+    Each frequency band is described by a beam full-width at half-maximum :math:`\theta_b` in arcmin, a white-noise level :math:`\Delta_X` in μK arcmin for temperature and polarization (:math:`X = T, P`), and the low-frequency (1/f)/atmospheric parameters :math:`\ell_\mathrm{knee}` and :math:`\alpha_\mathrm{knee}` entering
 
     .. math::
 
@@ -67,15 +67,15 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
         The tests are applied in the order above and are substring matches, so a name containing ``s4``, ``atlast``, ``advanced_so`` or ``spt`` anywhere is routed to that family.
         CMB-S4 and CMB-HD share a single dispatch test, so a name matching both is given the CMB-HD specifications.
     corr_noise_for_spt : int, optional
-        Whether the SPT bands carry correlated atmospheric noise. Ignored by every other family, whose correlated-noise setting is fixed in the source. Default 1.
+        Whether the SPT bands carry correlated atmospheric noise. Ignored by every other family, whose correlated-noise setting is fixed in the source. Default is 1.
     remove_atm : int, optional
-        If non-zero, switch off the atmospheric term by setting :math:`\ell_\mathrm{knee}` to ``-1`` and :math:`\alpha_\mathrm{knee}` to zero. Honored only by the Simons Observatory and South Pole Telescope families. Default 0.
+        If non-zero, switch off the atmospheric term by setting :math:`\ell_\mathrm{knee}` to ``-1`` and :math:`\alpha_\mathrm{knee}` to zero. Honored only by the Simons Observatory and South Pole Telescope families. Default is 0.
 
     Returns
     -------
     specs_dic : dict
-        Per-band specifications, keyed by frequency band centre in GHz.
-        Each value is the seven-element list ``[beam_fwhm, delta_T, elknee_T, alphaknee_T, delta_P, elknee_P, alphaknee_P]``, with the beam in arcminutes and both noise levels in :math:`\mathrm{\mu K}\,\mathrm{arcmin}`.
+        Per-band specifications, keyed by frequency band center in GHz.
+        Each value is the seven-element list ``[beam_fwhm, delta_T, elknee_T, alphaknee_T, delta_P, elknee_P, alphaknee_P]``, with the beam in arcmin and both noise levels in μK arcmin.
     corr_noise_bands : dict
         For each band, the list of bands its atmospheric noise is correlated with.
         A band mapped to itself alone has no correlated partner, so the corresponding cross-band noise is zero.
@@ -84,7 +84,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
     corr_noise : int
         Whether correlated atmospheric noise is modelled for this configuration.
     Nred_dic : dict
-        Red-noise amplitudes in :math:`\mathrm{\mu K}^2\,\mathrm{s}`, keyed by band, each a ``[Nred_T, Nred_P]`` pair in which ``-1`` disables the treatment.
+        Red-noise amplitudes in μK² s, keyed by band, each a ``[Nred_T, Nred_P]`` pair in which ``-1`` disables the treatment.
         Empty except for the Simons Observatory family.
 
     Raises
@@ -650,7 +650,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
         278: [beam_278, white_noise_T_278, elknee_T_278, alphaknee_T_278, white_noise_P_278, elknee_P_278, alphaknee_P_278],
         }
 
-        #uK^2 seconds.
+        #μK^2 seconds.
         Nred_dic[27] = [100., -1.]
         Nred_dic[39] = [39., -1.]
         Nred_dic[93] = [230., -1.]
@@ -868,7 +868,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
         #Planck instrumental noise, from Table 1 of Allison et al. 2015 (arXiv:1509.07471).
         #Low-frequency noise is neglected for Planck, so elknee = -1 in every band, which switches off the atmospheric term in misc.get_nl.
         #No polarization sensitivity is quoted for 30 and 44 GHz. delta_P there is set to 1e4 so that these channels are negligible in the ILC. (Not 1e6 as in the sptsz branch since that overflows to inf below the standard lmax = 6500 with the 33 arcmin beam.)
-        no_pol_noise = 1e4  #uK-arcmin
+        no_pol_noise = 1e4  #μK arcmin
         specs_dic = {
         #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P]
         30: [33., 145., -1., 0., no_pol_noise, -1., 0.],

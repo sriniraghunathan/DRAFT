@@ -1,0 +1,624 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>get_ilc_residuals module &mdash; DRAFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ilc module" href="ilc.html" />
+    <link rel="prev" title="foregrounds module" href="foregrounds.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DRAFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="modules.html#inputs">Inputs</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#forecasting">Forecasting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DRAFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API reference</a></li>
+      <li class="breadcrumb-item active">get_ilc_residuals module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-get_ilc_residuals">
+<span id="get-ilc-residuals-module"></span><h1>get_ilc_residuals module<a class="headerlink" href="#module-get_ilc_residuals" title="Link to this heading"></a></h1>
+<p>Compute ILC noise and foreground residuals for a CMB experiment configuration.</p>
+<p>This is the driver for the component separation stage of DRAFT.
+It collects per-band beams and white-noise levels for a named experiment configuration, builds the analytic multi-frequency covariance of the CMB including foregrounds and instrumental noise, performs the internal linear combination (ILC), and outputs or writes the resulting residual power spectra to a <code class="docutils literal notranslate"><span class="pre">.npy</span></code> product file.
+The Fisher forecasting and foreground bias stages of DRAFT consume those outputs or product files and are not part of this module.</p>
+<p>Run from the repository root:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="n">get_ilc_residuals</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">expname</span> <span class="n">s4wide_202310xx_pbdr_config</span> <span class="o">-</span><span class="n">include_gal</span> <span class="mi">1</span> <span class="o">-</span><span class="n">which_gal_mask</span> <span class="mi">2</span> <span class="o">-</span><span class="n">final_comp</span> <span class="n">cmb</span>
+</pre></div>
+</div>
+<p>The same calculation is available to other scripts through <a class="reference internal" href="#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_ilc()</span></code></a>, which accepts the command line options as keyword arguments and returns the product dictionary together with the path it would be written to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">get_ilc_residuals</span>
+
+<span class="n">opdic</span><span class="p">,</span> <span class="n">opfname</span> <span class="o">=</span> <span class="n">get_ilc_residuals</span><span class="o">.</span><span class="n">run_ilc</span><span class="p">(</span><span class="s1">&#39;s4wide_202310xx_pbdr_config&#39;</span><span class="p">,</span> <span class="n">include_gal</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">which_gal_mask</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<p>Survey specifications come from <a class="reference internal" href="exp_specs.html#module-exp_specs" title="exp_specs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exp_specs</span></code></a>, beam and noise curves from <a class="reference internal" href="misc.html#module-misc" title="misc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">misc</span></code></a>, and the covariance and ILC weights from <a class="reference internal" href="ilc.html#module-ilc" title="ilc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ilc</span></code></a>, which in turn draws its extragalactic and galactic foreground models from <a class="reference internal" href="foregrounds.html#module-foregrounds" title="foregrounds"><code class="xref py py-mod docutils literal notranslate"><span class="pre">foregrounds</span></code></a>.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="get_ilc_residuals.COMP_CHOICES">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">COMP_CHOICES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['cmb',</span> <span class="pre">'tsz',</span> <span class="pre">'y',</span> <span class="pre">'radio',</span> <span class="pre">'cib']</span></span><a class="headerlink" href="#get_ilc_residuals.COMP_CHOICES" title="Link to this definition"></a></dt>
+<dd><p>Accepted values of <code class="docutils literal notranslate"><span class="pre">final_comp</span></code> and <code class="docutils literal notranslate"><span class="pre">null_comp</span></code>, matching check of <a class="reference internal" href="ilc.html#ilc.residual_power" title="ilc.residual_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">ilc.residual_power()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_ilc_residuals.PARAMFILE">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">PARAMFILE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/home/benjamin/Desktop/S4</span> <span class="pre">Neff</span> <span class="pre">draft/draft_check/working_dir/DRAFT/params.ini'</span></span><a class="headerlink" href="#get_ilc_residuals.PARAMFILE" title="Link to this definition"></a></dt>
+<dd><p>Default parameter file.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_ilc_residuals.GAL_SIM_BANDS">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">GAL_SIM_BANDS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[27,</span> <span class="pre">39,</span> <span class="pre">93,</span> <span class="pre">145,</span> <span class="pre">225,</span> <span class="pre">278]</span></span><a class="headerlink" href="#get_ilc_residuals.GAL_SIM_BANDS" title="Link to this definition"></a></dt>
+<dd><p>Bands in GHz covered by the galactic dust and synchrotron simulations under <code class="docutils literal notranslate"><span class="pre">data/galactic/</span></code>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_ilc_residuals.GAL_MASK_INDICES">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">GAL_MASK_INDICES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></span><a class="headerlink" href="#get_ilc_residuals.GAL_MASK_INDICES" title="Link to this definition"></a></dt>
+<dd><p>Galactic mask indices carried by those simulations, indexing <code class="docutils literal notranslate"><span class="pre">fsky_arr</span></code>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_ilc_residuals.TP_ARR">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">TP_ARR</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['T',</span> <span class="pre">'P']</span></span><a class="headerlink" href="#get_ilc_residuals.TP_ARR" title="Link to this definition"></a></dt>
+<dd><p>Temperature and polarization labels, in the order <code class="docutils literal notranslate"><span class="pre">Nred_dic</span></code> indexes them.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_ilc_residuals.WHICH_SPEC_ARR">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">WHICH_SPEC_ARR</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['TT',</span> <span class="pre">'EE']</span></span><a class="headerlink" href="#get_ilc_residuals.WHICH_SPEC_ARR" title="Link to this definition"></a></dt>
+<dd><p>Spectra the ILC is solved for.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.parse_args">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.parse_args" title="Link to this definition"></a></dt>
+<dd><p>Parse the command line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Argument list to parse. Default is <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>argparse.Namespace</em> – Parsed options. The attribute names match the keyword arguments of <a class="reference internal" href="#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_ilc()</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_experiment_specs">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_experiment_specs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_atm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_fulls4scaledsobaseline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_experiment_specs" title="Link to this definition"></a></dt>
+<dd><p>Look up the beam and noise specifications for an experiment configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expname</strong> (<em>str</em>) – Experiment configuration name, passed through to <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>.
+Two names are special cased and combine two surveys: <code class="docutils literal notranslate"><span class="pre">'s4deepv3r025_plus_s4wide'</span></code> and any name containing <code class="docutils literal notranslate"><span class="pre">'s4wide_single_chlat_plus_2028aso'</span></code>.</p></li>
+<li><p><strong>remove_atm</strong> (<em>int</em><em>, </em><em>optional</em>) – When nonzero, drop the atmospheric <span class="math notranslate nohighlight">\(1/f\)</span> component. Default is 0.</p></li>
+<li><p><strong>include_fulls4scaledsobaseline</strong> (<em>int</em><em>, </em><em>optional</em>) – When nonzero, also look up the scaled SO-baseline specifications so that its noise can be combined in later. Default is 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>specs_dic</strong> (<em>dict</em>) – Frequency band in GHz mapped to <code class="docutils literal notranslate"><span class="pre">[beam_arcmins,</span> <span class="pre">Delta_T,</span> <span class="pre">l_knee_T,</span> <span class="pre">alpha_knee_T,</span> <span class="pre">Delta_P,</span> <span class="pre">l_knee_P,</span> <span class="pre">alpha_knee_P]</span></code>.</p></li>
+<li><p><strong>corr_noise_bands</strong> (<em>dict</em>) – Band mapped to the bands its atmospheric noise is correlated with.</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – Atmospheric noise correlation coefficient.</p></li>
+<li><p><strong>corr_noise</strong> (<em>int</em>) – Whether correlated noise is modelled at all.</p></li>
+<li><p><strong>Nred_dic</strong> (<em>dict</em>) – Band mapped to red-noise levels, indexed by <a class="reference internal" href="#get_ilc_residuals.TP_ARR" title="get_ilc_residuals.TP_ARR"><code class="xref py py-data docutils literal notranslate"><span class="pre">TP_ARR</span></code></a>. Empty for every configuration currently defined.</p></li>
+<li><p><strong>secondary_specs</strong> (<em>dict</em>) – Specifications for any additional survey being combined in, keyed <code class="docutils literal notranslate"><span class="pre">'s4wide'</span></code>, <code class="docutils literal notranslate"><span class="pre">'aso'</span></code> or <code class="docutils literal notranslate"><span class="pre">'fulls4scaledsobaseline'</span></code>.
+Empty when the configuration involves a single survey.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Warns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>UserWarning</strong> – When the CMB-S4 Ultra-deep survey has bands the CMB-S4 Wide survey does not since those bands cannot be inverse-variance combined and keep their Ultra-deep noise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.check_gal_sim_inputs">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">check_gal_sim_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_gal_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.check_gal_sim_inputs" title="Link to this definition"></a></dt>
+<dd><p>Check that the galactic simulations cover every band and mask requested.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>which_gal_mask</strong> (<em>int</em>) – Galactic mask index.</p></li>
+<li><p><strong>expname</strong> (<em>str</em>) – Experiment configuration name, used in the error message.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If any band is absent from <a class="reference internal" href="#get_ilc_residuals.GAL_SIM_BANDS" title="get_ilc_residuals.GAL_SIM_BANDS"><code class="xref py py-data docutils literal notranslate"><span class="pre">GAL_SIM_BANDS</span></code></a>, or if <code class="docutils literal notranslate"><span class="pre">which_gal_mask</span></code> is not in <a class="reference internal" href="#get_ilc_residuals.GAL_MASK_INDICES" title="get_ilc_residuals.GAL_MASK_INDICES"><code class="xref py py-data docutils literal notranslate"><span class="pre">GAL_MASK_INDICES</span></code></a>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Without these checks a missing band or mask raises an opaque <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> from inside <a class="reference internal" href="ilc.html#ilc.get_analytic_covariance" title="ilc.get_analytic_covariance"><code class="xref py py-func docutils literal notranslate"><span class="pre">ilc.get_analytic_covariance()</span></code></a> or when the sky fraction is read.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_total_obs_time_default">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_total_obs_time_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_obs_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_total_obs_time_default" title="Link to this definition"></a></dt>
+<dd><p>Return the reference observing time the stored noise levels correspond to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expname</strong> (<em>str</em>) – Experiment configuration name.</p></li>
+<li><p><strong>total_obs_time</strong> (<em>float</em>) – Requested observing time in years.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><em>float</em> – Reference observing time in years, 10 for the all-Chile configurations and 7 otherwise. The white-noise levels are later scaled by</p>
+<div class="math notranslate nohighlight">
+\[\sqrt{t_\mathrm{default} / t_\mathrm{obs}}\, .\]</div>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">total_obs_time</span></code> is not positive, and if <code class="docutils literal notranslate"><span class="pre">expname</span></code> carries a <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code> suffix and <code class="docutils literal notranslate"><span class="pre">total_obs_time</span></code> disagrees with the reference time. <a class="reference internal" href="exp_specs.html#module-exp_specs" title="exp_specs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exp_specs</span></code></a> already scales the noise using that suffix, so a disagreeing <code class="docutils literal notranslate"><span class="pre">total_obs_time</span></code> would apply a second scaling.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.build_output_path">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">build_output_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_gal_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_comp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_obs_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_atm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_scalings_for_bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s4_so_joint_configs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_multiplier_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.build_output_path" title="Link to this definition"></a></dt>
+<dd><p>Build the output product filename.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expname</strong> (<em>str</em>) – Experiment configuration name.</p></li>
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary from <a class="reference internal" href="misc.html#misc.get_param_dict" title="misc.get_param_dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_param_dict()</span></code></a>.</p></li>
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>which_spec_arr</strong> (<em>list</em><em> of </em><em>str</em>) – Spectra being solved for, e.g. <code class="docutils literal notranslate"><span class="pre">['TT',</span> <span class="pre">'EE']</span></code>.</p></li>
+<li><p><strong>include_gal</strong> (<em>int</em>) – Whether galactic foregrounds are included.</p></li>
+<li><p><strong>which_gal_mask</strong> (<em>int</em>) – Galactic mask index.</p></li>
+<li><p><strong>final_comp</strong> (<em>str</em>) – Component the ILC preserves.</p></li>
+<li><p><strong>total_obs_time</strong> (<em>float</em>) – Observing time in years.</p></li>
+<li><p><strong>corr_noise</strong> (<em>int</em>) – Whether correlated atmospheric noise is modelled.</p></li>
+<li><p><strong>remove_atm</strong> (<em>int</em>) – Whether the atmospheric component was dropped.</p></li>
+<li><p><strong>noise_scalings_for_bands</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Per-band noise scalings. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>s4_so_joint_configs</strong> (<em>int</em><em>, </em><em>optional</em>) – Whether this is a joint S4 and SO configuration. Default is 0.</p></li>
+<li><p><strong>null_comp</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Component nulled by a constrained ILC. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>cl_multiplier_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Per-component spectrum multipliers for a partial ILC. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>str</em> – Path of the <code class="docutils literal notranslate"><span class="pre">.npy</span></code> product file. The containing directory is not created here; see <a class="reference internal" href="#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_ilc()</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_beam_and_noise_dic">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_beam_and_noise_dic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specs_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_obs_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_obs_time_default</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_scalings_for_bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specs_aso</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specs_fulls4scaledsobaseline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_beam_and_noise_dic" title="Link to this definition"></a></dt>
+<dd><p>Collect per-band beams, white-noise levels and <span class="math notranslate nohighlight">\(1/f\)</span> parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expname</strong> (<em>str</em>) – Experiment configuration name.</p></li>
+<li><p><strong>specs_dic</strong> (<em>dict</em>) – Band specifications from <a class="reference internal" href="#get_ilc_residuals.get_experiment_specs" title="get_ilc_residuals.get_experiment_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_experiment_specs()</span></code></a>.</p></li>
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>total_obs_time</strong> (<em>float</em>) – Requested observing time in years.</p></li>
+<li><p><strong>total_obs_time_default</strong> (<em>float</em>) – Reference observing time from <a class="reference internal" href="#get_ilc_residuals.get_total_obs_time_default" title="get_ilc_residuals.get_total_obs_time_default"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_total_obs_time_default()</span></code></a>.</p></li>
+<li><p><strong>noise_scalings_for_bands</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Multiplicative white-noise scaling per band, in the order of <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>specs_aso</strong> (<em>dict</em><em>, </em><em>optional</em>) – Advanced SO specifications, inverse-variance combined for the <code class="docutils literal notranslate"><span class="pre">s4wide_single_chlat_plus_2028aso</span></code> configurations. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>specs_fulls4scaledsobaseline</strong> (<em>dict</em><em>, </em><em>optional</em>) – Scaled SO-baseline specifications to combine in. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>beam_noise_dic</strong> (<em>dict</em>) – <code class="docutils literal notranslate"><span class="pre">'T'</span></code> and <code class="docutils literal notranslate"><span class="pre">'P'</span></code> mapped to band mapped to <code class="docutils literal notranslate"><span class="pre">[beam_arcmins,</span> <span class="pre">Delta_X]</span></code>.</p></li>
+<li><p><strong>elknee_dic</strong> (<em>dict</em>) – <code class="docutils literal notranslate"><span class="pre">'T'</span></code> and <code class="docutils literal notranslate"><span class="pre">'P'</span></code> mapped to band mapped to <code class="docutils literal notranslate"><span class="pre">[l_knee,</span> <span class="pre">alpha_knee]</span></code>.</p></li>
+<li><p><strong>noisearr_T</strong> (<em>list of float</em>) – White-noise levels <span class="math notranslate nohighlight">\(\Delta_T\)</span> in μK arcmin.</p></li>
+<li><p><strong>noisearr_P</strong> (<em>list of float</em>) – White-noise levels <span class="math notranslate nohighlight">\(\Delta_P\)</span> in μK arcmin.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">noise_scalings_for_bands</span></code> has a different length from <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>White-noise levels are scaled by <span class="math notranslate nohighlight">\(\sqrt{t_\mathrm{default} / t_\mathrm{obs}}\)</span> and any additional survey is combined in as</p>
+<div class="math notranslate nohighlight">
+\[\Delta_X = \left( \Delta_{X,1}^{-2} + \Delta_{X,2}^{-2} \right)^{-1/2}\, .\]</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_noise_spectra">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_noise_spectra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_noise_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elknee_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_noise_bands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nred_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specs_s4wide</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_obs_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_obs_time_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_noise_spectra" title="Link to this definition"></a></dt>
+<dd><p>Build beam deconvolved noise spectra for every band pair.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles.</p></li>
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary. <code class="docutils literal notranslate"><span class="pre">lmin</span></code> is used to zero the low multipoles.</p></li>
+<li><p><strong>beam_noise_dic</strong> (<em>dict</em>) – Beams and white-noise levels from <a class="reference internal" href="#get_ilc_residuals.get_beam_and_noise_dic" title="get_ilc_residuals.get_beam_and_noise_dic"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_beam_and_noise_dic()</span></code></a>.</p></li>
+<li><p><strong>elknee_dic</strong> (<em>dict</em>) – Knee multipoles and slopes from <a class="reference internal" href="#get_ilc_residuals.get_beam_and_noise_dic" title="get_ilc_residuals.get_beam_and_noise_dic"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_beam_and_noise_dic()</span></code></a>.</p></li>
+<li><p><strong>corr_noise_bands</strong> (<em>dict</em>) – Band mapped to the bands its atmospheric noise is correlated with.</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – Atmospheric noise correlation coefficient.</p></li>
+<li><p><strong>Nred_dic</strong> (<em>dict</em>) – Band mapped to red-noise levels, indexed by <a class="reference internal" href="#get_ilc_residuals.TP_ARR" title="get_ilc_residuals.TP_ARR"><code class="xref py py-data docutils literal notranslate"><span class="pre">TP_ARR</span></code></a>.</p></li>
+<li><p><strong>specs_s4wide</strong> (<em>dict</em><em>, </em><em>optional</em>) – S4-Wide specifications to inverse-variance combine with, holding keys <code class="docutils literal notranslate"><span class="pre">'specs_dic'</span></code>, <code class="docutils literal notranslate"><span class="pre">'corr_noise_bands'</span></code> and <code class="docutils literal notranslate"><span class="pre">'rho'</span></code>.
+If None (default), no combination is performed. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>total_obs_time</strong> (<em>float</em><em>, </em><em>optional</em>) – Observing time in years. Used only by the disabled rescaling block below. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>total_obs_time_default</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference observing time in years. Used only by the disabled rescaling block below. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>dict</em> – <code class="docutils literal notranslate"><span class="pre">'T'</span></code> and <code class="docutils literal notranslate"><span class="pre">'P'</span></code> mapped to <code class="docutils literal notranslate"><span class="pre">(freq1,</span> <span class="pre">freq2)</span></code> mapped to <span class="math notranslate nohighlight">\(N_\ell\)</span>. Cross-spectra between uncorrelated bands are zero.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Where <code class="docutils literal notranslate"><span class="pre">specs_s4wide</span></code> is given, the two surveys are combined as</p>
+<div class="math notranslate nohighlight">
+\[N_\ell = \left( N_\ell^{-1} + N_{\ell,\mathrm{wide}}^{-1} \right)^{-1} .\]</div>
+<p>Bands present in the CMB-S4 Ultra-deep survey but absent from the CMB-S4 Wide survey have no wide-survey counterpart and keep their Ultra-deep <span class="math notranslate nohighlight">\(N_\ell\)</span>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.setup_matplotlib">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">setup_matplotlib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interactive_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.setup_matplotlib" title="Link to this definition"></a></dt>
+<dd><p>Select the matplotlib backend and set the plotting defaults.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>interactive_mode</strong> (<em>int</em><em>, </em><em>optional</em>) – When zero, force the non-interactive <code class="docutils literal notranslate"><span class="pre">Agg</span></code> backend. Default is 1.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Called by <a class="reference internal" href="#get_ilc_residuals.plot_beams" title="get_ilc_residuals.plot_beams"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot_beams()</span></code></a> and <a class="reference internal" href="#get_ilc_residuals.plot_noise_spectra" title="get_ilc_residuals.plot_noise_spectra"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot_noise_spectra()</span></code></a>, and by nothing else.
+The rest of this module never draws anything, so matplotlib is imported here rather than at module scope and a run that does not plot never imports it at all.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mpl.use</span></code> runs before <a class="reference external" href="https://matplotlib.org/stable/api/pyplot_summary.html#module-matplotlib.pyplot" title="(in Matplotlib v3.11.1)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib.pyplot</span></code></a> is imported, which is what makes the backend selection take effect on the first call.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.plot_beams">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">plot_beams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.plot_beams" title="Link to this definition"></a></dt>
+<dd><p>Plot the beam transfer functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>bl_dic</strong> (<em>dict</em>) – Band mapped to <span class="math notranslate nohighlight">\(B_\ell\)</span>, from <a class="reference internal" href="misc.html#misc.get_beam_dic" title="misc.get_beam_dic"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_beam_dic()</span></code></a>.</p></li>
+<li><p><strong>interactive_mode</strong> (<em>int</em><em>, </em><em>optional</em>) – Passed to <a class="reference internal" href="#get_ilc_residuals.setup_matplotlib" title="get_ilc_residuals.setup_matplotlib"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup_matplotlib()</span></code></a>. Default is 1.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Diagnostic only; nothing in this module calls it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.plot_noise_spectra">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">plot_noise_spectra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_noise_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_decon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.plot_noise_spectra" title="Link to this definition"></a></dt>
+<dd><p>Plot the temperature noise spectra band by band.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expname</strong> (<em>str</em>) – Experiment configuration name, used for the plot title.</p></li>
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles.</p></li>
+<li><p><strong>nl_dic</strong> (<em>dict</em>) – Noise spectra from <a class="reference internal" href="#get_ilc_residuals.get_noise_spectra" title="get_ilc_residuals.get_noise_spectra"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_noise_spectra()</span></code></a>.</p></li>
+<li><p><strong>bl_dic</strong> (<em>dict</em>) – Band mapped to <span class="math notranslate nohighlight">\(B_\ell\)</span>.</p></li>
+<li><p><strong>beam_noise_dic</strong> (<em>dict</em>) – Beams and white-noise levels, printed alongside the measured level.</p></li>
+<li><p><strong>use_dls</strong> (<em>bool</em><em>, </em><em>optional</em>) – Plot <span class="math notranslate nohighlight">\(\ell(\ell+1) N_\ell / 2\pi\)</span> rather than <span class="math notranslate nohighlight">\(N_\ell\)</span>. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>beam_decon</strong> (<em>bool</em><em>, </em><em>optional</em>) – Undo the beam weighting before plotting. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>interactive_mode</strong> (<em>int</em><em>, </em><em>optional</em>) – Passed to <a class="reference internal" href="#get_ilc_residuals.setup_matplotlib" title="get_ilc_residuals.setup_matplotlib"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup_matplotlib()</span></code></a>. The figure is only shown when this is nonzero. Default is 1.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Diagnostic only; nothing in this module calls it.
+The white-noise level quoted in the legend is the median of <span class="math notranslate nohighlight">\(N_\ell\)</span> over <span class="math notranslate nohighlight">\(3000 \le \ell \le 5000\)</span>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_ignore_fg">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_ignore_fg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_comp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_ignore_fg" title="Link to this definition"></a></dt>
+<dd><p>Build the list of components to leave out of the covariance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary, optionally holding <code class="docutils literal notranslate"><span class="pre">ignore_fg</span></code>.</p></li>
+<li><p><strong>final_comp</strong> (<em>str</em>) – Component the ILC preserves, which need not enter the covariance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list of str</em> – Components to ignore.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><a class="reference internal" href="misc.html#misc.get_param_dict" title="misc.get_param_dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_param_dict()</span></code></a> returns scalars, so an <code class="docutils literal notranslate"><span class="pre">ignore_fg</span></code> set in <code class="docutils literal notranslate"><span class="pre">params.ini</span></code> arrives as a string rather than a list.
+It is coerced and copied here so that the list stored in <code class="docutils literal notranslate"><span class="pre">param_dict</span></code>, which is written to the product file, is not modified.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_covariances">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_covariances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_cib_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_multiplier_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_covariances" title="Link to this definition"></a></dt>
+<dd><p>Build the analytic signal, foreground and noise covariance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary from <a class="reference internal" href="misc.html#misc.get_param_dict" title="misc.get_param_dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_param_dict()</span></code></a>.</p></li>
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles.</p></li>
+<li><p><strong>nl_dic</strong> (<em>dict</em>) – Noise spectra from <a class="reference internal" href="#get_ilc_residuals.get_noise_spectra" title="get_ilc_residuals.get_noise_spectra"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_noise_spectra()</span></code></a>.</p></li>
+<li><p><strong>bl_dic</strong> (<em>dict</em>) – Band mapped to <span class="math notranslate nohighlight">\(B_\ell\)</span>.</p></li>
+<li><p><strong>ignore_fg</strong> (<em>list</em><em> of </em><em>str</em>) – Components to leave out, from <a class="reference internal" href="#get_ilc_residuals.get_ignore_fg" title="get_ilc_residuals.get_ignore_fg"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ignore_fg()</span></code></a>.</p></li>
+<li><p><strong>include_gal</strong> (<em>int</em>) – Whether to include galactic dust and synchrotron.</p></li>
+<li><p><strong>which_spec_arr</strong> (<em>list</em><em> of </em><em>str</em>) – Spectra to build, e.g. <code class="docutils literal notranslate"><span class="pre">['TT',</span> <span class="pre">'EE']</span></code>.</p></li>
+<li><p><strong>reduce_cib_power</strong> (<em>float</em><em>, </em><em>optional</em>) – CIB power reduction at 150 GHz after point source removal. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>cl_multiplier_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Per-component spectrum multipliers for a partial ILC. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipoles as returned by <a class="reference internal" href="ilc.html#ilc.get_analytic_covariance" title="ilc.get_analytic_covariance"><code class="xref py py-func docutils literal notranslate"><span class="pre">ilc.get_analytic_covariance()</span></code></a>, which need not be the input array.</p></li>
+<li><p><strong>cl_dic</strong> (<em>dict</em>) – Spectrum label mapped to the band-band covariance.</p></li>
+<li><p><strong>fg_cl_dic</strong> (<em>dict</em>) – Spectrum label mapped to the per-component spectra.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_residual_power">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_residual_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cmb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqcalib_fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_residual_power" title="Link to this definition"></a></dt>
+<dd><p>Run the ILC and return the residual power and weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary from <a class="reference internal" href="misc.html#misc.get_param_dict" title="misc.get_param_dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_param_dict()</span></code></a>.</p></li>
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles.</p></li>
+<li><p><strong>cl_dic</strong> (<em>dict</em>) – Band-band covariance from <a class="reference internal" href="#get_ilc_residuals.get_covariances" title="get_ilc_residuals.get_covariances"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_covariances()</span></code></a>.</p></li>
+<li><p><strong>nc</strong> (<em>int</em>) – Number of bands.</p></li>
+<li><p><strong>which_spec_arr</strong> (<em>list</em><em> of </em><em>str</em>) – Spectra to solve for.</p></li>
+<li><p><strong>final_comp</strong> (<em>str</em><em>, </em><em>optional</em>) – Component the ILC preserves. Default is <code class="docutils literal notranslate"><span class="pre">'cmb'</span></code>.</p></li>
+<li><p><strong>freqcalib_fac</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multiplicative gain of each band, in the same order as <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>, by which the assumed response is scaled.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is equivalent to unity in every band.</p></li>
+<li><p><strong>null_comp</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Component to null with a constrained ILC. None implies that <code class="docutils literal notranslate"><span class="pre">TT</span></code> and <code class="docutils literal notranslate"><span class="pre">EE</span></code> are solved jointly. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>cl_residual</strong> (<em>dict</em>) – Spectrum label mapped to the residual <span class="math notranslate nohighlight">\(C_\ell\)</span> after the ILC.</p></li>
+<li><p><strong>weights_dic</strong> (<em>dict</em>) – Spectrum label mapped to the per-band ILC weights.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_fg_residuals">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_fg_residuals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fg_cl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec_arr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_fg_residuals" title="Link to this definition"></a></dt>
+<dd><p>Propagate each foreground component through the ILC weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqarr</strong> (<em>list</em><em> of </em><em>int</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles.</p></li>
+<li><p><strong>fg_cl_dic</strong> (<em>dict</em>) – Per-component spectra from <a class="reference internal" href="#get_ilc_residuals.get_covariances" title="get_ilc_residuals.get_covariances"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_covariances()</span></code></a>.</p></li>
+<li><p><strong>weights_dic</strong> (<em>dict</em>) – ILC weights from <a class="reference internal" href="#get_ilc_residuals.get_residual_power" title="get_ilc_residuals.get_residual_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_residual_power()</span></code></a>.</p></li>
+<li><p><strong>include_gal</strong> (<em>int</em>) – Whether galactic dust and synchrotron are included in the component list.</p></li>
+<li><p><strong>which_spec_arr</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Spectra to propagate. <code class="docutils literal notranslate"><span class="pre">'TE'</span></code> is skipped. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which uses <a class="reference internal" href="#get_ilc_residuals.WHICH_SPEC_ARR" title="get_ilc_residuals.WHICH_SPEC_ARR"><code class="xref py py-data docutils literal notranslate"><span class="pre">WHICH_SPEC_ARR</span></code></a>.</p></li>
+<li><p><strong>debug</strong> (<em>int</em><em>, </em><em>optional</em>) – When nonzero, print progress every 2500 multipoles. Default is 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><em>dict</em> – Spectrum label mapped to component name mapped to the residual power, as</p>
+<div class="math notranslate nohighlight">
+\[C_\ell^\mathrm{res} = \mathbf{w}_\ell^\mathsf{T}
+                      \mathbf{C}_\ell \mathbf{w}_\ell\, .\]</div>
+</p>
+</dd>
+<dt class="field-odd">Warns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>UserWarning</strong> – If <code class="docutils literal notranslate"><span class="pre">which_spec_arr</span></code> contains <code class="docutils literal notranslate"><span class="pre">'TE'</span></code>, whose weights are two dimensional per multipole.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.get_fsky_val">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">get_fsky_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.get_fsky_val" title="Link to this definition"></a></dt>
+<dd><p>Read the unmasked sky fraction from the galactic simulation products.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary holding <code class="docutils literal notranslate"><span class="pre">cl_gal_dic_dust_fname</span></code>, optionally <code class="docutils literal notranslate"><span class="pre">cl_gal_folder</span></code>, and <code class="docutils literal notranslate"><span class="pre">which_gal_mask</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>float</em> – Sky fraction for the selected galactic mask.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.build_output_dic">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">build_output_dic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_residual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fg_res_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_noise_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elknee_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_gal_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_fg_res_and_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqcalib_fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_multiplier_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_scalings_for_bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.build_output_dic" title="Link to this definition"></a></dt>
+<dd><p>Assemble the dictionary provided and/or written to the product file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles.</p></li>
+<li><p><strong>cl_residual</strong> (<em>dict</em>) – Residual power from <a class="reference internal" href="#get_ilc_residuals.get_residual_power" title="get_ilc_residuals.get_residual_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_residual_power()</span></code></a>.</p></li>
+<li><p><strong>fg_res_dic</strong> (<em>dict</em>) – Per-component residuals from <a class="reference internal" href="#get_ilc_residuals.get_fg_residuals" title="get_ilc_residuals.get_fg_residuals"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_fg_residuals()</span></code></a>.</p></li>
+<li><p><strong>weights_dic</strong> (<em>dict</em>) – ILC weights from <a class="reference internal" href="#get_ilc_residuals.get_residual_power" title="get_ilc_residuals.get_residual_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_residual_power()</span></code></a>.</p></li>
+<li><p><strong>beam_noise_dic</strong> (<em>dict</em>) – Beams and white-noise levels.</p></li>
+<li><p><strong>elknee_dic</strong> (<em>dict</em>) – Knee multipoles and slopes.</p></li>
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary, stored so products are self describing.</p></li>
+<li><p><strong>which_gal_mask</strong> (<em>int</em>) – Galactic mask index.</p></li>
+<li><p><strong>include_gal</strong> (<em>int</em>) – Whether galactic foregrounds were included.</p></li>
+<li><p><strong>save_fg_res_and_weights</strong> (<em>int</em><em>, </em><em>optional</em>) – Whether to store the per-component residuals and the weights. Default is 1.</p></li>
+<li><p><strong>freqcalib_fac</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multiplicative gain of each band, in the same order as <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>, by which the assumed response is scaled.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is equivalent to unity in every band.</p></li>
+<li><p><strong>cl_multiplier_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Per-component spectrum multipliers. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>noise_scalings_for_bands</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Per-band noise scalings. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>dict</em> – Contents of the product file.</p>
+</dd>
+<dt class="field-odd">Warns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>UserWarning</strong> – When <code class="docutils literal notranslate"><span class="pre">noise_scalings_for_bands</span></code> is given, since that forces <code class="docutils literal notranslate"><span class="pre">save_fg_res_and_weights</span></code> to zero and so overrides an explicit request.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.run_ilc">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">run_ilc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_obs_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_gal_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_fg_res_and_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s4_so_joint_configs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_fulls4scaledsobaseline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_scalings_for_bands</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cmb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paramfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/benjamin/Desktop/S4</span> <span class="pre">Neff</span> <span class="pre">draft/draft_check/working_dir/DRAFT/params.ini'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec_arr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_multiplier_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqcalib_fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.run_ilc" title="Link to this definition"></a></dt>
+<dd><p>Compute the ILC residuals for one experiment configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expname</strong> (<em>str</em>) – Experiment configuration name, passed to <a class="reference internal" href="#get_ilc_residuals.get_experiment_specs" title="get_ilc_residuals.get_experiment_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_experiment_specs()</span></code></a>.</p></li>
+<li><p><strong>total_obs_time</strong> (<em>float</em><em>, </em><em>optional</em>) – Observing time in years. Default is 7.0.</p></li>
+<li><p><strong>include_gal</strong> (<em>int</em><em>, </em><em>optional</em>) – Include galactic dust and synchrotron. Default is 0.</p></li>
+<li><p><strong>which_gal_mask</strong> (<em>int</em><em>, </em><em>optional</em>) – Galactic mask index. Forced to -1 when <code class="docutils literal notranslate"><span class="pre">include_gal</span></code> is zero. Default is 2.</p></li>
+<li><p><strong>save_fg_res_and_weights</strong> (<em>int</em><em>, </em><em>optional</em>) – Store the per-component residuals and the ILC weights. Default is 1.</p></li>
+<li><p><strong>s4_so_joint_configs</strong> (<em>int</em><em>, </em><em>optional</em>) – Mark this as a joint S4 and SO configuration in the output path. Default is 0.</p></li>
+<li><p><strong>include_fulls4scaledsobaseline</strong> (<em>int</em><em>, </em><em>optional</em>) – Combine in the scaled SO-baseline noise. Default is 0.</p></li>
+<li><p><strong>noise_scalings_for_bands</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Multiplicative white-noise scaling per band. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>final_comp</strong> (<em>str</em><em>, </em><em>optional</em>) – Component the ILC preserves, one of <a class="reference internal" href="#get_ilc_residuals.COMP_CHOICES" title="get_ilc_residuals.COMP_CHOICES"><code class="xref py py-data docutils literal notranslate"><span class="pre">COMP_CHOICES</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">'cmb'</span></code>.</p></li>
+<li><p><strong>debug</strong> (<em>int</em><em>, </em><em>optional</em>) – Print intermediate dictionary keys and progress. Default is 0.</p></li>
+<li><p><strong>paramfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Parameter file to read. Default is <a class="reference internal" href="#get_ilc_residuals.PARAMFILE" title="get_ilc_residuals.PARAMFILE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PARAMFILE</span></code></a>.</p></li>
+<li><p><strong>which_spec_arr</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Spectra to solve for. Default is <a class="reference internal" href="#get_ilc_residuals.WHICH_SPEC_ARR" title="get_ilc_residuals.WHICH_SPEC_ARR"><code class="xref py py-data docutils literal notranslate"><span class="pre">WHICH_SPEC_ARR</span></code></a>.</p></li>
+<li><p><strong>null_comp</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Component or components to null with a constrained ILC, each one of <a class="reference internal" href="#get_ilc_residuals.COMP_CHOICES" title="get_ilc_residuals.COMP_CHOICES"><code class="xref py py-data docutils literal notranslate"><span class="pre">COMP_CHOICES</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>cl_multiplier_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Per-component spectrum multipliers for a partial ILC. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is treated as an empty dictionary.</p></li>
+<li><p><strong>freqcalib_fac</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multiplicative gain of each band, in the same order as <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>, by which the assumed response is scaled.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is equivalent to unity in every band.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – Write the result to the product file. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>opdic</strong> (<em>dict</em>) – Contents of the product file, from <a class="reference internal" href="#get_ilc_residuals.build_output_dic" title="get_ilc_residuals.build_output_dic"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_output_dic()</span></code></a>.</p></li>
+<li><p><strong>opfname</strong> (<em>str</em>) – Path the result was or would have been written to.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">final_comp</span></code> is not in <a class="reference internal" href="#get_ilc_residuals.COMP_CHOICES" title="get_ilc_residuals.COMP_CHOICES"><code class="xref py py-data docutils literal notranslate"><span class="pre">COMP_CHOICES</span></code></a>, if a band or mask lacks galactic simulations, if <code class="docutils literal notranslate"><span class="pre">expname</span></code> and <code class="docutils literal notranslate"><span class="pre">total_obs_time</span></code> imply a double observing-time scaling, or if <code class="docutils literal notranslate"><span class="pre">noise_scalings_for_bands</span></code> has the wrong length.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_ilc_residuals.main">
+<span class="sig-prename descclassname"><span class="pre">get_ilc_residuals.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_ilc_residuals.main" title="Link to this definition"></a></dt>
+<dd><p>Parse the command line and run the ILC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Argument list. Default is <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="foregrounds.html" class="btn btn-neutral float-left" title="foregrounds module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ilc.html" class="btn btn-neutral float-right" title="ilc module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Srini Raghunathan.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

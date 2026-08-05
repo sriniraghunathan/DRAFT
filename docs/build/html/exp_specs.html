@@ -8,19 +8,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>exp_specs module &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Data Products" href="products.html" />
-    <link rel="prev" title="misc module" href="misc.html" /> 
+    <link rel="next" title="foregrounds module" href="foregrounds.html" />
+    <link rel="prev" title="API reference" href="modules.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,26 +43,25 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="ilc.html">ilc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html">misc module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">exp_specs module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#exp_specs.get_exp_specs"><code class="docutils literal notranslate"><span class="pre">get_exp_specs()</span></code></a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#forecasting">Forecasting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#utilities">Utilities</a></li>
 </ul>
 </li>
 </ul>
-</li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -79,10 +79,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API reference</a></li>
       <li class="breadcrumb-item active">exp_specs module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/exp_specs.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -90,15 +89,91 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="exp-specs-module">
-<h1>exp_specs module<a class="headerlink" href="#exp-specs-module" title="Link to this heading"></a></h1>
-<p>Experiment specifications: frequency bands, beams, white noise levels,
-and atmospheric (one-over-f) noise parameters for the supported
-experiment configurations (e.g. S4-Wide, S4-Ultra deep).</p>
-<dl class="py function" id="module-exp_specs">
+  <section id="module-exp_specs">
+<span id="exp-specs-module"></span><h1>exp_specs module<a class="headerlink" href="#module-exp_specs" title="Link to this heading"></a></h1>
+<p>Instrument specifications for the experiment configurations supported by get_ilc_residuals.py.</p>
+<p>The module exposes a single function, <code class="docutils literal notranslate"><span class="pre">get_exp_specs</span></code>, which maps an experiment name onto the per-band beams, white-noise levels and atmospheric (1/f) noise parameters from which the noise power spectra are built in <code class="docutils literal notranslate"><span class="pre">misc.get_nl</span></code>.</p>
+<p>Seven experiment families are covered:</p>
+<ul class="simple">
+<li><p>CMB-S4: CMB-S4 Wide and CMB-S4 Ultra-deep surveys, preliminary baseline/conceptual design, and Chile-only revised configurations, which may be combined with an SO-like LAT,</p></li>
+<li><p>CMB-HD,</p></li>
+<li><p>AtLAST,</p></li>
+<li><p>Advanced Simons Observatory: baseline and goal,</p></li>
+<li><p>Simons Observatory: baseline and goal,</p></li>
+<li><p>South Pole Telescope: SPT-SZ, SPTpol and SPT-3G,</p></li>
+<li><p>Planck.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">get_exp_specs</span></code> is called by <code class="docutils literal notranslate"><span class="pre">get_ilc_residuals.py</span></code>.
+<code class="docutils literal notranslate"><span class="pre">data_folder</span></code> points at the repository’s <code class="docutils literal notranslate"><span class="pre">data</span></code> directory and is used to load the per-patch survey noise levels needed by the Chile-only revised configurations.</p>
+<dl class="py function">
 <dt class="sig sig-object py" id="exp_specs.get_exp_specs">
 <span class="sig-prename descclassname"><span class="pre">exp_specs.</span></span><span class="sig-name descname"><span class="pre">get_exp_specs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_noise_for_spt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_atm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#exp_specs.get_exp_specs" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Beams, noise levels and atmospheric-noise parameters for one experiment configuration.</p>
+<p>Each frequency band is described by a beam full-width at half-maximum <span class="math notranslate nohighlight">\(\theta_b\)</span> in arcmin, a white-noise level <span class="math notranslate nohighlight">\(\Delta_X\)</span> in μK arcmin for temperature and polarization (<span class="math notranslate nohighlight">\(X = T, P\)</span>), and the low-frequency (1/f)/atmospheric parameters <span class="math notranslate nohighlight">\(\ell_\mathrm{knee}\)</span> and <span class="math notranslate nohighlight">\(\alpha_\mathrm{knee}\)</span> entering</p>
+<div class="math notranslate nohighlight">
+\[N_\ell^X = \Delta_X^2 B_\ell^{-2} \left[ 1 + \left( \frac{\ell_\mathrm{knee}}{\ell} \right)^{\!\alpha_\mathrm{knee}} \right] ,\]</div>
+<p>as evaluated by <a class="reference internal" href="misc.html#misc.get_nl" title="misc.get_nl"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_nl()</span></code></a>. An <span class="math notranslate nohighlight">\(\ell_\mathrm{knee}\)</span> of <code class="docutils literal notranslate"><span class="pre">-1</span></code> disables the atmospheric term for that band.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expname</strong> (<em>str</em>) – <p>Experiment configuration. The recognized configurations, grouped by experiment:</p>
+<ul>
+<li><p><strong>CMB-S4</strong>, selected by <code class="docutils literal notranslate"><span class="pre">s4</span></code> appearing anywhere in the name:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">s4wide</span></code>, and the detector-scaled variants <code class="docutils literal notranslate"><span class="pre">s4wide_scaled_sobaseline</span></code>, <code class="docutils literal notranslate"><span class="pre">s4wide_scaled_aso</span></code>, <code class="docutils literal notranslate"><span class="pre">s4wide_single_chlat</span></code> and <code class="docutils literal notranslate"><span class="pre">s4wide_single_chlat_plus_aso</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">s4wide_scaled_aso_plus_fulls4scaledsobaseline</span></code> and <code class="docutils literal notranslate"><span class="pre">s4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline</span></code>, which add a full SO-baseline-scaled CMB-S4. Only these two names accept that suffix</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">s4wide_202310xx_pbdr_config</span></code>, <code class="docutils literal notranslate"><span class="pre">s4deepv3r025_202310xx_pbdr_config</span></code>, <code class="docutils literal notranslate"><span class="pre">s4wide_acheived_performance_pbdr_202312xx</span></code>, <code class="docutils literal notranslate"><span class="pre">s4wide_chlat_el40</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">s4deep</span></code>, <code class="docutils literal notranslate"><span class="pre">s4deepv3r025</span></code>, <code class="docutils literal notranslate"><span class="pre">s4deepv3r025_tma</span></code></p></li>
+<li><p>the Chile-only revised configurations, <code class="docutils literal notranslate"><span class="pre">s4_all_chile_config_&lt;survey&gt;---patch&lt;N&gt;[---year&lt;Y&gt;]</span></code>, optionally combined with an SO-like LAT by appending <code class="docutils literal notranslate"><span class="pre">+advanced_so_baseline</span></code> or <code class="docutils literal notranslate"><span class="pre">+advanced_so_goal</span></code>, itself optionally suffixed <code class="docutils literal notranslate"><span class="pre">---year&lt;Z&gt;</span></code>.
+<code class="docutils literal notranslate"><span class="pre">&lt;survey&gt;</span></code> is one of <code class="docutils literal notranslate"><span class="pre">lat_wide</span></code>, <code class="docutils literal notranslate"><span class="pre">lat_wide_phase2</span></code>, <code class="docutils literal notranslate"><span class="pre">lat_wide_dc0</span></code>, <code class="docutils literal notranslate"><span class="pre">lat_roman</span></code> or <code class="docutils literal notranslate"><span class="pre">lat_delensing</span></code>, and <code class="docutils literal notranslate"><span class="pre">&lt;N&gt;</span></code> selects a sky patch, both looked up in <code class="docutils literal notranslate"><span class="pre">data/cmbs4_chile_opt_survey_patch_noise_levels.npy</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong>CMB-HD</strong>, selected by <code class="docutils literal notranslate"><span class="pre">cmbhd</span></code> or <code class="docutils literal notranslate"><span class="pre">cmb-hd</span></code> appearing anywhere in the name.</p></li>
+<li><p><strong>AtLAST</strong>, selected by <code class="docutils literal notranslate"><span class="pre">atlast</span></code>: <code class="docutils literal notranslate"><span class="pre">atlast</span></code> or <code class="docutils literal notranslate"><span class="pre">atlast_dummy</span></code>.</p></li>
+<li><p><strong>Advanced Simons Observatory</strong>, selected by <code class="docutils literal notranslate"><span class="pre">advanced_so</span></code>: <code class="docutils literal notranslate"><span class="pre">advanced_so_baseline</span></code> or <code class="docutils literal notranslate"><span class="pre">advanced_so_goal</span></code>, optionally suffixed <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code>.</p></li>
+<li><p><strong>Simons Observatory</strong>: <code class="docutils literal notranslate"><span class="pre">sobaseline</span></code> or <code class="docutils literal notranslate"><span class="pre">sogoal</span></code>, case insensitive. (<code class="docutils literal notranslate"><span class="pre">ccat_prime_so</span></code> reaches this family but has no noise levels defined and raises.)</p></li>
+<li><p><strong>South Pole Telescope</strong>, selected by <code class="docutils literal notranslate"><span class="pre">spt</span></code>: <code class="docutils literal notranslate"><span class="pre">sptsz</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpol</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpol_summer</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpolsummer</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpolultradeep</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpolultradeepplus3g</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpolplusultradeep</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpolplusultradeepplus3g</span></code>, <code class="docutils literal notranslate"><span class="pre">sptpolplusultradeepplus3gfull</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3g</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3gsummer</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3g_summer</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3g_y12</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3g_ZP</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3g_TC</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3g_WG2</span></code>, <code class="docutils literal notranslate"><span class="pre">spt3g_plus_spt3g+_WG2</span></code>.</p></li>
+<li><p><strong>Planck</strong>: <code class="docutils literal notranslate"><span class="pre">planck</span></code>, case insensitive.</p></li>
+</ul>
+<p>The tests are applied in the order above and are substring matches, so a name containing <code class="docutils literal notranslate"><span class="pre">s4</span></code>, <code class="docutils literal notranslate"><span class="pre">atlast</span></code>, <code class="docutils literal notranslate"><span class="pre">advanced_so</span></code> or <code class="docutils literal notranslate"><span class="pre">spt</span></code> anywhere is routed to that family.
+CMB-S4 and CMB-HD share a single dispatch test, so a name matching both is given the CMB-HD specifications.</p>
+</p></li>
+<li><p><strong>corr_noise_for_spt</strong> (<em>int</em><em>, </em><em>optional</em>) – Whether the SPT bands carry correlated atmospheric noise. Ignored by every other family, whose correlated-noise setting is fixed in the source. Default is 1.</p></li>
+<li><p><strong>remove_atm</strong> (<em>int</em><em>, </em><em>optional</em>) – If non-zero, switch off the atmospheric term by setting <span class="math notranslate nohighlight">\(\ell_\mathrm{knee}\)</span> to <code class="docutils literal notranslate"><span class="pre">-1</span></code> and <span class="math notranslate nohighlight">\(\alpha_\mathrm{knee}\)</span> to zero. Honored only by the Simons Observatory and South Pole Telescope families. Default is 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>specs_dic</strong> (<em>dict</em>) – Per-band specifications, keyed by frequency band center in GHz.
+Each value is the seven-element list <code class="docutils literal notranslate"><span class="pre">[beam_fwhm,</span> <span class="pre">delta_T,</span> <span class="pre">elknee_T,</span> <span class="pre">alphaknee_T,</span> <span class="pre">delta_P,</span> <span class="pre">elknee_P,</span> <span class="pre">alphaknee_P]</span></code>, with the beam in arcmin and both noise levels in μK arcmin.</p></li>
+<li><p><strong>corr_noise_bands</strong> (<em>dict</em>) – For each band, the list of bands its atmospheric noise is correlated with.
+A band mapped to itself alone has no correlated partner, so the corresponding cross-band noise is zero.</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – Correlation coefficient between the atmospheric noise of two correlated bands, passed to <a class="reference internal" href="misc.html#misc.get_nl" title="misc.get_nl"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_nl()</span></code></a>.</p></li>
+<li><p><strong>corr_noise</strong> (<em>int</em>) – Whether correlated atmospheric noise is modelled for this configuration.</p></li>
+<li><p><strong>Nred_dic</strong> (<em>dict</em>) – Red-noise amplitudes in μK² s, keyed by band, each a <code class="docutils literal notranslate"><span class="pre">[Nred_T,</span> <span class="pre">Nred_P]</span></code> pair in which <code class="docutils literal notranslate"><span class="pre">-1</span></code> disables the treatment.
+Empty except for the Simons Observatory family.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">expname</span></code> is not a string, if it matches no family or matches a family but none of its configurations, if the Chile-only or Advanced SO name does not follow the <code class="docutils literal notranslate"><span class="pre">---patch&lt;N&gt;</span></code> / <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code> grammar, or if a parsed observing time is not positive.</p>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – If <code class="docutils literal notranslate"><span class="pre">remove_atm</span></code> is set for a CMB-S4, CMB-HD, AtLAST or Advanced SO configuration, none of which implement it. The atmospheric term is retained.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Polarization noise levels are <span class="math notranslate nohighlight">\(\Delta_P = \sqrt{2} \Delta_T\)</span> unless the configuration quotes them separately.
+Bands with no usable data in a given configuration are given a large <span class="math notranslate nohighlight">\(\Delta_X\)</span> rather than being omitted, so that the ILC weights them to zero.</p>
+<p>Observing times are handled by rescaling the reference white-noise level of a configuration from its reference duration <span class="math notranslate nohighlight">\(t_\mathrm{ref}\)</span> to the requested <span class="math notranslate nohighlight">\(t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\Delta_X \rightarrow \Delta_X \sqrt{ t_\mathrm{ref} / t } .\]</div>
+<p>Configurations that combine two instruments do so by inverse-variance weighting of the white-noise levels band by band:</p>
+<div class="math notranslate nohighlight">
+\[\Delta_X = \left( \Delta_{X,1}^{-2} + \Delta_{X,2}^{-2} \right)^{-1/2} .\]</div>
+<p>The returned dictionaries are built afresh on every call, so callers may mutate them without affecting later calls.
+<code class="docutils literal notranslate"><span class="pre">rho</span></code> is returned regardless of <code class="docutils literal notranslate"><span class="pre">corr_noise</span></code> and is unused when it is zero, in which case its value differs between families and should not be relied on.</p>
+</dd></dl>
 
 </section>
 
@@ -106,8 +181,8 @@ experiment configurations (e.g. S4-Wide, S4-Ultra deep).</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="misc.html" class="btn btn-neutral float-left" title="misc module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="products.html" class="btn btn-neutral float-right" title="Data Products" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="modules.html" class="btn btn-neutral float-left" title="API reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="foregrounds.html" class="btn btn-neutral float-right" title="foregrounds module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

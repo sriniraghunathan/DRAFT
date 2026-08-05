@@ -6,21 +6,22 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API Reference &mdash; DRAFT 1.0 documentation</title>
+  <title>API reference &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="ilc module" href="ilc.html" />
-    <link rel="prev" title="Quickstart" href="quickstart.html" /> 
+    <link rel="next" title="exp_specs module" href="exp_specs.html" />
+    <link rel="prev" title="Adding an experiment" href="new_experiment.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,23 +43,25 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html">ilc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html">misc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp_specs.html">exp_specs module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forecasting">Forecasting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -76,9 +79,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">API Reference</li>
+      <li class="breadcrumb-item active">API reference</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -87,58 +89,90 @@
            <div itemprop="articleBody">
              
   <section id="api-reference">
-<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<h1>API reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p><strong>DRAFT</strong> provides an end-to-end forecasting pipeline from experimental
+specifications to projected parameter constraints, covering foreground modeling,
+sky masking, ILC-based component separation, delensing and the Fisher-matrix
+calculation. The pipeline as a whole is described in §3.4 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>, with the
+underlying formalism in §3.1 to §3.3.</p>
+<p>The component separation stage is implemented in this repository. The delensing
+and Fisher-matrix stages are performed by two companion codes and are not yet
+integrated here.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The pages below document the sub-modules of the <code class="docutils literal notranslate"><span class="pre">DRAFT</span></code> package.
-If module names in your checkout differ, regenerate these stubs with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sphinx-apidoc<span class="w"> </span>-f<span class="w"> </span>-o<span class="w"> </span>docs/source<span class="w"> </span>modules
-</pre></div>
+<p>The pages below are currently maintained by hand, with each module described
+by its own module docstring. Do not regenerate them with <code class="docutils literal notranslate"><span class="pre">sphinx-apidoc</span></code>.</p>
 </div>
-</div>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><a class="reference internal" href="exp_specs.html"><span class="doc">exp_specs module</span></a></dt><dd><p>Experimental specifications for each survey configuration: frequency bands,
+beam widths <span class="math notranslate nohighlight">\(\theta_b\)</span>, white-noise levels <span class="math notranslate nohighlight">\(\Delta_{T,P}\)</span> and the
+atmospheric (<span class="math notranslate nohighlight">\(1/f\)</span>) parameters <span class="math notranslate nohighlight">\(\ell_\mathrm{knee}\)</span> and
+<span class="math notranslate nohighlight">\(\alpha_\mathrm{knee}\)</span>. Also covers the Planck configurations whose
+inverse-variance-combined noise enters the forecast (§2.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+</dd>
+<dt><a class="reference internal" href="foregrounds.html"><span class="doc">foregrounds module</span></a></dt><dd><p>Galactic dust and synchrotron power spectra obtained from pySM3 simulations,
+and the extragalactic CIB, radio, tSZ and kSZ templates (§3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+</dd>
+</dl>
+<p>The fiducial cosmology, the parameter step sizes for the numerical derivatives
+and the foreground configuration are read from <code class="docutils literal notranslate"><span class="pre">params.ini</span></code>.</p>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ilc.html">ilc module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.compton_y_to_delta_Tcmb"><code class="docutils literal notranslate"><span class="pre">compton_y_to_delta_Tcmb()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.corr_from_cov"><code class="docutils literal notranslate"><span class="pre">corr_from_cov()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.coth"><code class="docutils literal notranslate"><span class="pre">coth()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.create_clmat"><code class="docutils literal notranslate"><span class="pre">create_clmat()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.get_acap"><code class="docutils literal notranslate"><span class="pre">get_acap()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.get_analytic_covariance"><code class="docutils literal notranslate"><span class="pre">get_analytic_covariance()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.get_cib_freq_dep"><code class="docutils literal notranslate"><span class="pre">get_cib_freq_dep()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.get_clinv"><code class="docutils literal notranslate"><span class="pre">get_clinv()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.get_radio_freq_dep"><code class="docutils literal notranslate"><span class="pre">get_radio_freq_dep()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.get_teb_spec_combination"><code class="docutils literal notranslate"><span class="pre">get_teb_spec_combination()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="ilc.html#ilc.residual_power"><code class="docutils literal notranslate"><span class="pre">residual_power()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="misc.html">misc module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.fn_get_param_dict"><code class="docutils literal notranslate"><span class="pre">fn_get_param_dict()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.gauss_beam"><code class="docutils literal notranslate"><span class="pre">gauss_beam()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.get_apod_mask"><code class="docutils literal notranslate"><span class="pre">get_apod_mask()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.get_beam_dic"><code class="docutils literal notranslate"><span class="pre">get_beam_dic()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.get_bl"><code class="docutils literal notranslate"><span class="pre">get_bl()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.get_delta_cl"><code class="docutils literal notranslate"><span class="pre">get_delta_cl()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.get_nl"><code class="docutils literal notranslate"><span class="pre">get_nl()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.get_nl_v1"><code class="docutils literal notranslate"><span class="pre">get_nl_v1()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.healpix_rotate_coords"><code class="docutils literal notranslate"><span class="pre">healpix_rotate_coords()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html#misc.rebeam"><code class="docutils literal notranslate"><span class="pre">rebeam()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="exp_specs.html">exp_specs module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs"><code class="docutils literal notranslate"><span class="pre">get_exp_specs()</span></code></a></li>
-</ul>
-</li>
-</ul>
 </div>
+</section>
+<section id="component-separation">
+<h2>Component separation<a class="headerlink" href="#component-separation" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><a class="reference internal" href="get_ilc_residuals.html"><span class="doc">get_ilc_residuals module</span></a></dt><dd><p>Driver for this stage. Assembles the per-band beams and noise levels for a
+named configuration, applies the galactic mask, builds the covariance, runs
+the ILC and writes the residual power spectra <span class="math notranslate nohighlight">\(C_\ell^\mathrm{res}\)</span>
+to a product file.</p>
+</dd>
+<dt><a class="reference internal" href="ilc.html"><span class="doc">ilc module</span></a></dt><dd><p>The multi-frequency covariance <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> of the noise and
+foreground spectra, the ILC weights and the residual power. Supports the
+minimum-variance, constrained and partial variants (§3.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+</dd>
+<dt><a class="reference internal" href="misc.html"><span class="doc">misc module</span></a></dt><dd><p>Supporting calculations: beam transfer functions <span class="math notranslate nohighlight">\(B_\ell\)</span>, noise power
+spectra <span class="math notranslate nohighlight">\(N_\ell\)</span> from the experimental specifications, parameter file
+I/O and map-domain utilities.</p>
+</dd>
+</dl>
+<p>The data location for the galactic foregrounds and the values of the template
+parameters for the extragalactic foregrounds are read from <code class="docutils literal notranslate"><span class="pre">params.ini</span></code>.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="forecasting">
+<h2>Forecasting<a class="headerlink" href="#forecasting" title="Link to this heading"></a></h2>
+<p>Not yet part of this repository (to be added):</p>
+<ul class="simple">
+<li><p>Theoretical CMB spectra and iterative delensing, performed by
+<a class="reference external" href="https://github.com/selimhotinli/class_delens">CLASS_delens</a>.</p></li>
+<li><p>Fisher-matrix forecast, performed by
+<a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a>.</p></li>
+</ul>
+<p>Both consume the ILC residuals produced by the component separation stage
+(§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+</section>
+<section id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><a class="reference internal" href="flatsky.html"><span class="doc">flatsky module</span></a></dt><dd><p>Flat-sky simulation and power-spectrum estimation, used for small patches in
+the flat-sky approximation. Not part of the forecasting pipeline.</p>
+</dd>
+</dl>
+<div class="toctree-wrapper compound">
+</div>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="ilc.html" class="btn btn-neutral float-right" title="ilc module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="new_experiment.html" class="btn btn-neutral float-left" title="Adding an experiment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="exp_specs.html" class="btn btn-neutral float-right" title="exp_specs module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

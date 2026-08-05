@@ -1,6 +1,10 @@
 # CMB-S4: Dark Radiation Anisotropy Flowdown Team (DRAFT) tool
 
-## Articles to cite: 
+## Documentation
+Built with Sphinx from `docs/`. A rendered copy is committed at
+[docs/build/html/index.html](docs/build/html/index.html), which can be opened directly after cloning. (Read the Docs will be added later.)
+
+## Articles to cite:
 If you use results from this repository, please cite the following articles.
 * ILC residuals:
   *  Raghunathan and Omori, 2023, arXiv:[2304.09166](https://arxiv.org/abs/2304.09166).
@@ -25,8 +29,8 @@ If you use results from this repository, please cite the following articles.
      *  [S4-Ultra deep (South Pole LAT](https://github.com/sriniraghunathan/DRAFT/tree/master/products/202310xx_PBDR_config/s4deepv3r025_202310xx_pbdr_config): This is for the latest noise specs from PBDR (as of Oct 2023).
      *  [S4-Wide (Chilean LAT) achevied performance](https://github.com/sriniraghunathan/DRAFT/tree/master/products/202310xx_PBDR_config/s4wide_acheived_performance_pbdr_202312xx): This is best performance that can be acheived.
      * Look into [read_ilc_residuals.py](https://github.com/sriniraghunathan/DRAFT/blob/master/products/202310xx_PBDR_config/read_ilc_residuals.py) script to read ILC curves.
-     * Look into [read_lensing_noise.py](https://github.com/sriniraghunathan/DRAFT/blob/master/products/202310xx_PBDR_config/read_lensing_noise.py) script to lensing noise curves. 
-     
+     * Look into [read_lensing_noise.py](https://github.com/sriniraghunathan/DRAFT/blob/master/products/202310xx_PBDR_config/read_lensing_noise.py) script to lensing noise curves.
+
 ### CMB-S4 instrument/noise specs:
 <p align="left">
   <img src="data/s4_wide_specs_pbdr.png" width="750" title="Chilean LAT">
@@ -53,11 +57,11 @@ If you use results from this repository, please cite the following articles.
 
 <!--### Results:
 * **ILC curves**:
-  * Look into this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust/). 
-     * Look into *read_file.py* script to read ILC curves. 
-     * Standard ILC curves for S4-Wide (PBDR configuration) will be under this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust/s4like_mask_v2/TT-EE/baseline). 
-     * Constrained ILC curves (for galactc dust) are also in the above folder. 
+  * Look into this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust/).
+     * Look into *read_file.py* script to read ILC curves.
+     * Standard ILC curves for S4-Wide (PBDR configuration) will be under this [link](https://github.com/sriniraghunathan/DRAFT/tree/master/results/20210506_with202102designtoolinputforpySM3sims_sedscalingfordust/s4like_mask_v2/TT-EE/baseline).
+     * Constrained ILC curves (for galactc dust) are also in the above folder.
  -->
 
-## Contributors: 
+## Contributors:
 [_Joel_ **Meyers**](https://joelmeyers.github.io/), [_Cynthia_ **Trendafilova**](https://github.com/ctrendafilova), and [_Benjamin_ **Wallisch**](https://www.ias.edu/scholars/benjamin-wallisch).

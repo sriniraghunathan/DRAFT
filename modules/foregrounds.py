@@ -1,6 +1,12 @@
 r"""
 Foreground power spectra supporting the ILC noise and residual calculation in get_ilc_residuals.py.
 
+Precise measurements of the CMB damping tail at multipoles :math:`\ell \gtrsim 1000` are essential for constraining :math:`N_\mathrm{eff}`, but this is also the regime where astrophysical foreground emission becomes increasingly significant relative to the primary CMB signal.
+Extragalactic sources dominate at small angular scales, while galactic emission is the primary contaminant at large angular scales and near the galactic plane.
+The foreground contamination in polarization is comparatively smaller than in temperature at the angular scales and frequencies relevant for primary damping-tail science.
+The resulting auto- and cross-frequency spectra enter the multi-frequency covariance used in the internal linear combination of :mod:`ilc`.
+See also §3.1 of |paper| for additional information and details.
+
 The module is grouped into four sections:
 
 * Unit conversions and spectral functions: ``coth``, ``dl_to_cl``, ``get_BnuT``, ``get_dB_dT``, ``compton_y_to_delta_Tcmb``
@@ -12,7 +18,26 @@ The module is grouped into four sections:
 ``scale_cl_dust_cib``, ``smooth_cib_spectra`` and ``get_cl_dust_galactic`` are standalone utilities that are currently not used elsewhere in this repository.
 The remaining routines are internal helpers.
 
-Power spectra are in units of :math:`\mathrm{\mu K}^2` unless stated otherwise.
+**Galactic foregrounds.**
+The dominant galactic signals at the relevant frequencies are thermal dust emission and synchrotron radiation.
+Thermal dust arises from interstellar grains heated by the interstellar radiation field, is described by a modified blackbody spectrum, rises towards higher frequencies and is brightest towards the galactic plane where the dust column density is largest.
+Synchrotron radiation is emitted by cosmic-ray electrons spiralling in the galactic magnetic field and follows a power law that falls steeply towards higher frequencies, so that it dominates the lowest bands.
+The subdominant free-free and anomalous-microwave-emission components are neglected.
+Both components are read from map-based PySM 3 simulations rather than computed here, with the spectra evaluated on the masked sky region and the simulation files named in the parameter dictionary.
+Since those simulations carry no galactic :math:`TE`, the correlation is constructed as :math:`C_\ell^{TE} = \rho_{TE} \sqrt{C_\ell^{TT} C_\ell^{EE}}` (see §3.1 of |paper|).
+
+**Extragalactic foregrounds.**
+The dominant extragalactic components are the thermal and kinematic Sunyaev-Zel'dovich effects, the cosmic infrared background and emission from radio galaxies.
+The tSZ signal is sourced by inverse Compton scattering of CMB photons off the hot electrons in the intracluster medium and the kSZ effect by the Doppler shift due to the peculiar motion of galaxy clusters. Both follow a common template.
+CIB emission from dusty star-forming galaxies is decomposed into a Poisson contribution from individually unresolved sources and a spatially clustered contribution, with the frequency dependence of both described by a modified blackbody spectrum.
+Radio galaxy emission, which dominates at lower frequencies, is modelled as a Poisson power spectrum whose power-law frequency scaling falls towards higher frequencies, with a clustering contribution not being included.
+The tSZ-CIB correlation is available through ``get_cl_tsz_cib`` (but is not included in the forecasts of |paper|).
+The brightest individual point sources and galaxy clusters are assumed to be detected and masked, so the spectra modelled here are those of the unresolved sources that remain.
+That masking is captured directly at the power-spectrum level through the amplitudes of the templates rather than by injecting sources into simulated maps.
+Amplitudes and frequency scalings follow the parameterization based on measurements by the South Pole Telescope (see §3.1 of |paper|).
+
+**Conventions.**
+Power spectra are in units of μK² unless stated otherwise.
 Frequencies are in GHz throughout.
 """
 
@@ -42,11 +67,11 @@ _cl_gal_cache = {}
 
 def coth(x):
     r"""
-    Hyperbolic cotangent.
+    Hyperbolic cotangent:
 
     .. math::
 
-        \coth x = \frac{e^x + e^{-x}}{e^x - e^{-x}}
+        \coth x = \frac{e^x + e^{-x}}{e^x - e^{-x}}, .
 
     Parameters
     ----------
@@ -66,11 +91,11 @@ def coth(x):
 
 def dl_to_cl(dl, dl_fac):
     r"""
-    Convert :math:`D_\ell` to :math:`C_\ell`.
+    Convert :math:`D_\ell` to :math:`C_\ell`:
 
     .. math::
 
-        C_\ell = \frac{2\pi}{\ell(\ell+1)} D_\ell
+        C_\ell = \frac{2\pi}{\ell(\ell+1)} D_\ell\, .
 
     Parameters
     ----------
@@ -94,7 +119,7 @@ def dl_to_cl(dl, dl_fac):
 
 def get_BnuT(nu, temp=2.725):  #default is 2.725 (but not used), compton_y_to_delta_Tcmb uses 2.73
     r"""
-    Planck blackbody spectrum.
+    Planck blackbody spectrum:
 
     .. math::
 
@@ -105,7 +130,7 @@ def get_BnuT(nu, temp=2.725):  #default is 2.725 (but not used), compton_y_to_de
     nu : float
         Frequency in GHz.
     temp : float, optional
-        Temperature in K. Default 2.725.
+        Temperature in K. Default is 2.725.
 
     Returns
     -------
@@ -130,7 +155,7 @@ def get_BnuT(nu, temp=2.725):  #default is 2.725 (but not used), compton_y_to_de
 
 def get_dB_dT(nu, nu0=None, temp=2.725):  #default is 2.725, compton_y_to_delta_Tcmb uses 2.73
     r"""
-    Derivative of the blackbody spectrum with respect to temperature.
+    Derivative of the blackbody spectrum with respect to temperature:
 
     .. math::
 
@@ -143,9 +168,9 @@ def get_dB_dT(nu, nu0=None, temp=2.725):  #default is 2.725, compton_y_to_delta_
     nu : float
         Frequency in GHz.
     nu0 : float, optional
-        Reference frequency in GHz. If given, the ratio of the value at ``nu`` to the value at ``nu0`` is returned instead.
+        Reference frequency in GHz. If given, the ratio of the value at ``nu`` to the value at ``nu0`` is returned instead. Default is ``None``.
     temp : float, optional
-        Temperature in K. Default 2.725.
+        Temperature in K. Default is 2.725.
 
     Returns
     -------
@@ -190,9 +215,9 @@ def compton_y_to_delta_Tcmb(freq, freq_max=None, Tcmb=2.73):  #default is 2.73, 
     freq : float
         Frequency in GHz.
     freq_max : float, optional
-        Upper end of a frequency band. If given, :math:`g` is averaged across the band rather than evaluated at a single frequency. (Currently not usable.)
+        Upper end of a frequency band. If given, :math:`g` is averaged across the band rather than evaluated at a single frequency.  Default is ``None``. (Currently not usable.)
     Tcmb : float, optional
-        CMB temperature in K. Default 2.73.
+        CMB temperature in K. Default is 2.73.
 
     Returns
     -------
@@ -226,11 +251,11 @@ def compton_y_to_delta_Tcmb(freq, freq_max=None, Tcmb=2.73):  #default is 2.73, 
 
 def power_law(ell, A, alpha, ell_norm=80.):
     r"""
-    Power law in multipole.
+    Power law in multipole :math:`\ell`:
 
     .. math::
 
-        A \left( \frac{\ell}{\ell_\mathrm{norm}} \right)^{\!\alpha}
+        A \left( \frac{\ell}{\ell_\mathrm{norm}} \right)^{\!\alpha} .
 
     Parameters
     ----------
@@ -241,7 +266,7 @@ def power_law(ell, A, alpha, ell_norm=80.):
     alpha : float
         Power-law index :math:`\alpha`.
     ell_norm : float, optional
-        Multipole at which the amplitude is defined. Default 80.
+        Multipole at which the amplitude is defined. Default is 80.
 
     Returns
     -------
@@ -271,7 +296,7 @@ def perform_power_law_fit(el, cl, ell_norm=80):
     cl : ndarray
         Power spectrum :math:`C_\ell`, same shape as ``el``.
     ell_norm : float, optional
-        Multipole at which the fitted amplitude is defined. Must be present in ``el``. Default 80.
+        Multipole at which the fitted amplitude is defined. Must be present in ``el``. Default is 80.
 
     Returns
     -------
@@ -330,9 +355,9 @@ def smooth_cib_spectra(el, cl, min_el=200, el_knee_guess=2000):
     cl : array_like
         Power spectrum to smooth, same shape as ``el``.
     min_el : float, optional
-        Multipoles at or below this value are excluded from the fit and set to zero in the output. Default 200.
+        Multipoles at or below this value are excluded from the fit and set to zero in the output. Default is 200.
     el_knee_guess : float, optional
-        Initial guess for :math:`\ell_\mathrm{knee}`. Also the lower multipole bound used to estimate the initial Poisson level. Default 2000.
+        Initial guess for :math:`\ell_\mathrm{knee}`. Also the lower multipole bound used to estimate the initial Poisson level. Default is 2000.
 
     Returns
     -------
@@ -405,13 +430,13 @@ def scale_cl_dust_galactic(cl, freq1, freq2=None, freq0=278., Tdust=19.6, beta_d
     freq1 : float
         Frequency of the first channel in GHz.
     freq2 : float, optional
-        Frequency of the second channel in GHz. Defaults to ``freq1``.
+        Frequency of the second channel in GHz. Default is ``freq1``.
     freq0 : float, optional
-        Reference frequency in GHz. Default 278.
+        Reference frequency in GHz. Default is 278.
     Tdust : float, optional
-        Dust temperature :math:`T_\mathrm{d}` in K. Default 19.6.
+        Dust temperature :math:`T_\mathrm{d}` in K. Default is 19.6.
     beta_dust : float, optional
-        Dust spectral index :math:`\beta_\mathrm{d}`. Default 1.6.
+        Dust spectral index :math:`\beta_\mathrm{d}`. Default is 1.6.
 
     Returns
     -------
@@ -441,7 +466,18 @@ def scale_cl_dust_galactic(cl, freq1, freq2=None, freq0=278., Tdust=19.6, beta_d
     return cl_dust
 
 
-def get_cl_dust_galactic(el, freq1, freq2=None, freq0=353., el_norm=80., el_slope=-0.58, Tdust=19.6, Adust_freq0=4.3, spec_index_dust=1.6, return_dl=0):
+def get_cl_dust_galactic(
+        el,
+        freq1,
+        freq2=None,
+        freq0=353.,
+        el_norm=80.,
+        el_slope=-0.58,
+        Tdust=19.6,
+        Adust_freq0=4.3,
+        spec_index_dust=1.6,
+        return_dl=0
+        ):
     r"""
     Analytic galactic dust power spectrum.
 
@@ -458,21 +494,21 @@ def get_cl_dust_galactic(el, freq1, freq2=None, freq0=353., el_norm=80., el_slop
     freq1 : float
         Frequency of the first channel in GHz.
     freq2 : float, optional
-        Frequency of the second channel in GHz. Defaults to ``freq1``.
+        Frequency of the second channel in GHz. Default is ``freq1``.
     freq0 : float, optional
-        Reference frequency in GHz. Default 353.
+        Reference frequency in GHz. Default is 353.
     el_norm : float, optional
-        Multipole at which the amplitude is defined. Default 80.
+        Multipole at which the amplitude is defined. Default is 80.
     el_slope : float, optional
-        Power-law slope of :math:`D_\ell`. Default -0.58.
+        Power-law slope of :math:`D_\ell`. Default is -0.58.
     Tdust : float, optional
-        Dust temperature in K. Default 19.6.
+        Dust temperature in K. Default is 19.6.
     Adust_freq0 : float, optional
-        Amplitude :math:`A_{\nu_0}` of :math:`D_\ell` at ``el_norm`` and ``freq0``, in :math:`\mathrm{\mu K}^2`. Default 4.3.
+        Amplitude :math:`A_{\nu_0}` of :math:`D_\ell` at ``el_norm`` and ``freq0``, in μK². Default is 4.3.
     spec_index_dust : float, optional
-        Dust spectral index. Default 1.6.
+        Dust spectral index. Default is 1.6.
     return_dl : int, optional
-        If non-zero, return :math:`D_\ell` instead of :math:`C_\ell`. Default 0.
+        If non-zero, return :math:`D_\ell` instead of :math:`C_\ell`. Default is 0.
 
     Returns
     -------
@@ -509,7 +545,22 @@ def get_cl_dust_galactic(el, freq1, freq2=None, freq0=353., el_norm=80., el_slop
     return cl_dust
 
 
-def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_mask=None, bl_dic=None, el=None, use_power_law_fit=False, use_sed_scaling=True, freq0_for_sed_scaling=278, ell_norm=80., Tdust=20., beta_dust=1.54):
+def get_cl_galactic(
+        param_dict,
+        component,
+        freq1,
+        freq2,
+        which_spec,
+        which_gal_mask=None,
+        bl_dic=None,
+        el=None,
+        use_power_law_fit=False,
+        use_sed_scaling=True,
+        freq0_for_sed_scaling=278,
+        ell_norm=80.,
+        Tdust=20.,
+        beta_dust=1.54
+        ):
     r"""
     Galactic foreground power spectrum from the PySM simulations.
 
@@ -528,23 +579,23 @@ def get_cl_galactic(param_dict, component, freq1, freq2, which_spec, which_gal_m
     which_spec : str
         Spectrum to return, one of ``'TT'``, ``'EE'``, ``'BB'``, ``'TE'``, ``'EB'`` or ``'TB'``.
     which_gal_mask : int, optional
-        Index of the galactic mask. Defaults to 0, but ``param_dict['which_gal_mask']`` takes precedence when present, and a conflicting value given here is ignored with a warning.
+        Index of the galactic mask. Default is 0, but ``param_dict['which_gal_mask']`` takes precedence when present, and a conflicting value given here is ignored with a warning. Default is ``None``.
     bl_dic : dict, optional
-        Beam window functions :math:`B_\ell` keyed by frequency. If given, the spectrum is beam deconvolved.
+        Beam window functions :math:`B_\ell` keyed by frequency. If given, the spectrum is beam deconvolved. Default is ``None``.
     el : array_like, optional
-        Multipoles onto which the result is interpolated. If omitted, the simulation multipoles are returned.
+        Multipoles onto which the result is interpolated. If omitted, the simulation multipoles are returned. Default is ``None``.
     use_power_law_fit : bool, optional
-        If True, the spectrum is replaced by the power-law fit of :func:`perform_power_law_fit`. Default False.
+        If ``True``, the spectrum is replaced by the power-law fit of :func:`perform_power_law_fit`. Default is ``False``.
     use_sed_scaling : bool, optional
-        If True, dust spectra are obtained by rescaling the 278 GHz auto-spectrum. Default True.
+        If ``True``, dust spectra are obtained by rescaling the 278 GHz auto-spectrum. Default is ``True``.
     freq0_for_sed_scaling : float, optional
-        Reference frequency in GHz for the SED scaling. Currently ignored: the function hardcodes 278 GHz and warns if a different value is passed. Default 278.
+        Reference frequency in GHz for the SED scaling. Currently ignored: the function hardcodes 278 GHz and warns if a different value is passed. Default is 278.
     ell_norm : float, optional
-        Multipole at which the power-law fit is normalized. Default 80.
+        Multipole at which the power-law fit is normalized. Default is 80.
     Tdust : float, optional
-        Galactic dust temperature in K. Default 20.
+        Galactic dust temperature in K. Default is 20.
     beta_dust : float, optional
-        Galactic dust spectral index. Default 1.54.
+        Galactic dust spectral index. Default is 1.54.
 
     Returns
     -------
@@ -730,14 +781,14 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax=
         Foreground component, one of ``'all'``, ``'tSZ'``, ``'kSZ'``, ``'DG-Cl'``, ``'DG-Po'``, ``'RG'``, ``'tSZ-CIB'``, ``'Total'`` or ``'CMB'``.
         ``'all'`` sums the tSZ, kSZ, clustered CIB, Poisson CIB and radio terms.
     freq1 : int, optional
-        Frequency band in GHz. A value of 90 is treated as 95. Default 150.
+        Frequency band in GHz. A value of 90 is treated as 95. Default is 150.
     freq2 : int, optional
-        Second frequency band in GHz, for a cross-spectrum. Defaults to ``freq1``.
+        Second frequency band in GHz, for a cross-spectrum. Default is ``freq1``.
         The pair is sorted internally, so the order of the two frequencies does not matter.
     units : str, optional
-        ``'uK'`` for :math:`\mathrm{\mu K}^2` or ``'K'`` for :math:`\mathrm{K}^2`. Default ``'uK'``.
+        ``'uK'`` for μK² or ``'K'`` for K². Default is ``'uK'``.
     lmax : int, optional
-        If given, the output is truncated to :math:`\ell <` ``lmax``.
+        If given, the output is truncated to :math:`\ell <` ``lmax``.  Default is ``None``.
 
     Returns
     -------
@@ -825,17 +876,17 @@ def get_cl_dust_cib(freq1, freq2, fg_model='george15', freq0=150, spec_index_dg_
     freq1, freq2 : float
         Frequencies of the two channels in GHz.
     fg_model : str, optional
-        Foreground model, ``'george15'`` or ``'reichardt21'``. Both use the same template here. Default ``'george15'``.
+        Foreground model, ``'george15'`` or ``'reichardt21'``. Both use the same template here. Default is ``'george15'``.
     freq0 : float, optional
-        Reference frequency in GHz at which the template is normalized. Default 150.
+        Reference frequency in GHz at which the template is normalized. Default is 150.
     spec_index_dg_po : float, optional
-        Modified blackbody spectral index :math:`\beta` of the Poisson term. Default ``1.505 - 0.077``.
+        Modified blackbody spectral index :math:`\beta` of the Poisson term. Default is ``1.505 - 0.077``.
     spec_index_dg_clus : float, optional
-        Modified blackbody spectral index :math:`\beta` of the clustered term. Default ``2.51 - 0.2``.
+        Modified blackbody spectral index :math:`\beta` of the clustered term. Default is ``2.51 - 0.2``.
     Tcib : float, optional
-        CIB dust temperature in K. Default 20.
+        CIB dust temperature in K. Default is 20.
     reduce_cib_power : float, optional
-        If given, the ``freq0`` CIB power is divided by this factor before scaling.
+        If given, the ``freq0`` CIB power is divided by this factor before scaling. Default is ``None``.
 
     Returns
     -------
@@ -922,7 +973,7 @@ def scale_cl_dust_cib(el, cl_dust_freq0, freq0, freq1, freq2, beta, Tcib, el_slo
     el_slope : float
         Power-law slope of :math:`D_\ell`.
     el_norm : float, optional
-        Multipole at which the input spectrum is anchored. Must be present in ``el``. Default 3000.
+        Multipole at which the input spectrum is anchored. Must be present in ``el``. Default is 3000.
 
     Returns
     -------
@@ -981,11 +1032,11 @@ def get_cl_tsz(freq1, freq2, freq0=150, fg_model='george15', reduce_tsz_power=No
     freq1, freq2 : float
         Frequencies of the two channels in GHz.
     freq0 : float, optional
-        Reference frequency in GHz. Default 150.
+        Reference frequency in GHz. Default is 150.
     fg_model : str, optional
-        Foreground model, ``'george15'`` or ``'reichardt21'``. Both use the same template here. Default ``'george15'``.
+        Foreground model, ``'george15'`` or ``'reichardt21'``. Both use the same template here. Default is ``'george15'``.
     reduce_tsz_power : float, optional
-        If given, the scaled spectrum is divided by this factor.
+        If given, the scaled spectrum is divided by this factor. Default is ``None``.
 
     Returns
     -------
@@ -1023,11 +1074,11 @@ def get_cl_tsz(freq1, freq2, freq0=150, fg_model='george15', reduce_tsz_power=No
 
 def get_cl_tsz_cib(freq1, freq2, freq0=150, fg_model='george15', spec_index_dg_po=1.505-0.077, spec_index_dg_clus=2.51-0.2, Tcib=20., cl_cib_dic=None, reduce_tsz_power=None):  #, cib_flux_threshold=1.5):
     r"""
-    Correlated thermal SZ and CIB power spectrum.
+    Correlated thermal SZ and CIB power spectrum:
 
     .. math::
 
-        C_\ell^{\mathrm{tSZ} \times \mathrm{CIB}} = -\rho \left( \sqrt{C_\ell^{\mathrm{tSZ}, \nu_1 \nu_1} C_\ell^{\mathrm{CIB}, \nu_2 \nu_2}} + \sqrt{C_\ell^{\mathrm{tSZ}, \nu_2 \nu_2} C_\ell^{\mathrm{CIB}, \nu_1 \nu_1}} \right)
+        C_\ell^{\mathrm{tSZ} \times \mathrm{CIB}} = -\rho \left( \sqrt{C_\ell^{\mathrm{tSZ}, \nu_1 \nu_1} C_\ell^{\mathrm{CIB}, \nu_2 \nu_2}} + \sqrt{C_\ell^{\mathrm{tSZ}, \nu_2 \nu_2} C_\ell^{\mathrm{CIB}, \nu_1 \nu_1}} \right) .
 
     The correlation coefficient :math:`\rho` is 0.1 for ``'george15'`` and 0.078 for ``'reichardt21'``.
 
@@ -1036,18 +1087,19 @@ def get_cl_tsz_cib(freq1, freq2, freq0=150, fg_model='george15', spec_index_dg_p
     freq1, freq2 : float
         Frequencies of the two channels in GHz.
     freq0 : float, optional
-        Reference frequency in GHz. Default 150.
+        Reference frequency in GHz. Default is 150.
     fg_model : str, optional
-        Foreground model, ``'george15'`` or ``'reichardt21'``. Only :math:`\rho` differs between them. Default ``'george15'``.
+        Foreground model, ``'george15'`` or ``'reichardt21'``. Only :math:`\rho` differs between them. Default is ``'george15'``.
     spec_index_dg_po, spec_index_dg_clus : float, optional
-        Modified blackbody spectral indices of the Poisson and clustered CIB terms. Default ``1.505 - 0.077`` and  ``2.51 - 0.2``.
+        Modified blackbody spectral indices of the Poisson and clustered CIB terms. Default is ``1.505 - 0.077`` and  ``2.51 - 0.2``.
     Tcib : float, optional
-        CIB dust temperature in K. Default 20.
+        CIB dust temperature in K. Default is 20.
     cl_cib_dic : dict, optional
         CIB auto-spectra keyed by ``(freq, freq)``, each an ``(el, cl)`` pair.
         If given, these replace the spectra that would otherwise come from :func:`get_cl_dust_cib`.
+        Default is ``None``.
     reduce_tsz_power : float, optional
-        If given, both tSZ auto-spectra are divided by this factor.
+        If given, both tSZ auto-spectra are divided by this factor. Default is ``None``.
 
     Returns
     -------
@@ -1118,15 +1170,15 @@ def get_cl_radio(freq1, freq2, freq0=150, fg_model='george15', spec_index_rg=-0.
     freq1, freq2 : float
         Frequencies of the two channels in GHz.
     freq0 : float, optional
-        Reference frequency in GHz. Default 150.
+        Reference frequency in GHz. Default is 150.
     fg_model : str, optional
-        Foreground model. Only ``'george15'`` is implemented here. Default ``'george15'``.
+        Foreground model. Only ``'george15'`` is implemented here. Default is ``'george15'``.
     spec_index_rg : float, optional
-        Radio spectral index :math:`\alpha_\mathrm{rg}`. Default -0.9.
+        Radio spectral index :math:`\alpha_\mathrm{rg}`. Default is -0.9.
     null_highfreq_radio : int, optional
-        If non-zero, the spectrum is set to zero when either frequency exceeds 230 GHz. Default 1.
+        If non-zero, the spectrum is set to zero when either frequency exceeds 230 GHz. Default is 1.
     reduce_radio_power_150 : float, optional
-        If given, the template is divided by this factor before scaling.
+        If given, the template is divided by this factor before scaling. Default is ``None``.
 
     Returns
     -------

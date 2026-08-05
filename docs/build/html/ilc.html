@@ -8,19 +8,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ilc module &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="misc module" href="misc.html" />
-    <link rel="prev" title="API Reference" href="modules.html" /> 
+    <link rel="prev" title="get_ilc_residuals module" href="get_ilc_residuals.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,36 +43,25 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">ilc module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.compton_y_to_delta_Tcmb"><code class="docutils literal notranslate"><span class="pre">compton_y_to_delta_Tcmb()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.corr_from_cov"><code class="docutils literal notranslate"><span class="pre">corr_from_cov()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.coth"><code class="docutils literal notranslate"><span class="pre">coth()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.create_clmat"><code class="docutils literal notranslate"><span class="pre">create_clmat()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.get_acap"><code class="docutils literal notranslate"><span class="pre">get_acap()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.get_analytic_covariance"><code class="docutils literal notranslate"><span class="pre">get_analytic_covariance()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.get_cib_freq_dep"><code class="docutils literal notranslate"><span class="pre">get_cib_freq_dep()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.get_clinv"><code class="docutils literal notranslate"><span class="pre">get_clinv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.get_radio_freq_dep"><code class="docutils literal notranslate"><span class="pre">get_radio_freq_dep()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.get_teb_spec_combination"><code class="docutils literal notranslate"><span class="pre">get_teb_spec_combination()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ilc.residual_power"><code class="docutils literal notranslate"><span class="pre">residual_power()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="misc.html">misc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp_specs.html">exp_specs module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="modules.html#inputs">Inputs</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#forecasting">Forecasting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#utilities">Utilities</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="products.html">Data Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -89,10 +79,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API reference</a></li>
       <li class="breadcrumb-item active">ilc module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/ilc.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -100,235 +89,298 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="ilc-module">
-<h1>ilc module<a class="headerlink" href="#ilc-module" title="Link to this heading"></a></h1>
-<p>Internal linear combination (ILC) routines. Optimally combines data from
-different frequency bands using noise and foreground signals. Supports
-standard, constrained, and partial ILC, and computes residual foreground
-power in the ILC maps.</p>
-<dl class="py function" id="module-ilc">
-<dt class="sig sig-object py" id="ilc.compton_y_to_delta_Tcmb">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">compton_y_to_delta_Tcmb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.compton_y_to_delta_Tcmb" title="Link to this definition"></a></dt>
-<dd><p>Get the tSZ frequency response</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>nu</strong> (<em>float</em>) – Frequency in Hz.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>g_nu_with_tcmb</strong> – tSZ frequency response in Tcmb units.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ilc.corr_from_cov">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">corr_from_cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">covmat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.corr_from_cov" title="Link to this definition"></a></dt>
-<dd><p>Get correlation matrix from covariance matrix.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>covmat</strong> (<em>array</em>) – Covariance matrix.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>corrmat</strong> – Correlation matrix.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>array</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ilc.coth">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">coth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.coth" title="Link to this definition"></a></dt>
-<dd><p>Coth function for tSZ frequency response</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>x</strong> (<em>float</em>) – x = h*nu/(k_B * T_CMB)</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>coth_x</strong> – Hyperbolic cotanget of x.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ilc.create_clmat">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">create_clmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elcnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_dic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.create_clmat" title="Link to this definition"></a></dt>
-<dd><p>Get the inverse covariance matrix at a specific multipole moment ell.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>freqarr</strong> (<em>list</em>) – Frequency array</p></li>
-<li><p><strong>elcnt</strong> (<em>int</em>) – ell index.</p></li>
-<li><p><strong>cl_dic</strong> (<em>dict</em>) – dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-Keys must be TT, EE, TE, etc.</p></li>
+  <section id="module-ilc">
+<span id="ilc-module"></span><h1>ilc module<a class="headerlink" href="#module-ilc" title="Link to this heading"></a></h1>
+<p>Internal linear combination (ILC) of multi-frequency CMB data supporting the residual calculation in get_ilc_residuals.py.</p>
+<p>The multi-frequency CMB observations are combined into a single estimate of the CMB signal using a harmonic-space internal linear combination.
+The ILC exploits the known frequency independence of the CMB signal (in thermodynamic temperature units), together with the distinct frequency dependence of the foregrounds, to construct an optimal estimate by linearly combining the maps from all available frequency channels, while down-weighting modes that are dominated by foreground emission or instrumental noise.</p>
+<p>The module is grouped into four sections:</p>
+<ul class="simple">
+<li><p>Covariance: <code class="docutils literal notranslate"><span class="pre">get_analytic_covariance</span></code></p></li>
+<li><p>Frequency response: <code class="docutils literal notranslate"><span class="pre">get_cib_freq_dep</span></code>, <code class="docutils literal notranslate"><span class="pre">get_radio_freq_dep</span></code>, <code class="docutils literal notranslate"><span class="pre">get_acap</span></code></p></li>
+<li><p>Covariance assembly: <code class="docutils literal notranslate"><span class="pre">get_teb_spec_combination</span></code>, <code class="docutils literal notranslate"><span class="pre">create_clmat</span></code>, <code class="docutils literal notranslate"><span class="pre">get_clinv</span></code>, <code class="docutils literal notranslate"><span class="pre">corr_from_cov</span></code></p></li>
+<li><p>ILC residuals: <code class="docutils literal notranslate"><span class="pre">residual_power</span></code></p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>clmat</strong> – Covariance matrix at the ell index.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>array</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ilc.get_acap">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_acap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cmb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqcalib_fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspecs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_acap" title="Link to this definition"></a></dt>
-<dd><p>get frequency dependence of a sky signal.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>freqarr</strong> (<em>array</em>) – array of frequency bands for which we need the covariance.</p></li>
-<li><p><strong>final_comp</strong> (<em>str</em>) – It can be
-‘cmb’ for CMB spectra
-‘tsz’ or ‘y’ for thermal SZ
-‘radio’ for radio galaxies (see get_radio_freq_dep() function)
-‘cib’ or ‘cibpo’ for Poisson component of the CIB.
-‘cibclus’ for clustered component of the CIB.
-‘misc_cib_tcibxx_betayy’ for misc CIB with T_d=xx and beta=yy.
-‘misc_radio_alphaxx’ for misc radio with spectral index=xx.
-In the above case, the code will get the freq dep of radio as
-get_radio_freq_dep(…., alpha = xxx)</p></li>
-<li><p><strong>freqcalib_fac</strong> (<em>array</em>) – array containing calibration factors / mis-matches between different bands.
-default is None which is equivalent to [1, 1, 1, … 1] in all bands.</p></li>
-<li><p><strong>nspecs</strong> (<em>int</em>) – tells if we are performing ILC for T alone or T/E/B together.
-default is 1. For only one map component.</p></li>
+<p><code class="docutils literal notranslate"><span class="pre">get_analytic_covariance</span></code>, <code class="docutils literal notranslate"><span class="pre">residual_power</span></code> and <code class="docutils literal notranslate"><span class="pre">create_clmat</span></code> are called by <code class="docutils literal notranslate"><span class="pre">get_ilc_residuals.py</span></code>.
+<code class="docutils literal notranslate"><span class="pre">corr_from_cov</span></code> is a standalone utility that is currently not used elsewhere in this repository.
+The remaining routines are internal helpers.</p>
+<p>In harmonic space, the ILC estimate of the CMB signal at multipole <span class="math notranslate nohighlight">\(\ell\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[S_\ell = \sum_{i=1}^{N_f} w_\ell^i\, M_\ell^i\, ,\]</div>
+<p>where <span class="math notranslate nohighlight">\(M_\ell^i\)</span> is the harmonic-space representation of the observed map in frequency channel <span class="math notranslate nohighlight">\(i\)</span> and the sum runs over all <span class="math notranslate nohighlight">\(N_f\)</span> frequency channels.
+The multipole-dependent weights <span class="math notranslate nohighlight">\(w_\ell^i\)</span> are determined by minimizing the total variance of <span class="math notranslate nohighlight">\(S_\ell\)</span> subject to the constraint that the CMB signal is preserved, with the option to additionally null or suppress the frequency response of one or more other sky components.
+The spectral energy distributions of all components included in the solution are collected into a matrix <span class="math notranslate nohighlight">\(\mathcal{F} = [A_s, B_{f_1}, C_{f_2}, \ldots]_{N_f \times N_c}\)</span>, where <span class="math notranslate nohighlight">\(N_c\)</span> is the number of components.
+The first column <span class="math notranslate nohighlight">\(A_s\)</span> is the target signal and <span class="math notranslate nohighlight">\(B_{f_1}, C_{f_2}, \ldots\)</span> are the <span class="math notranslate nohighlight">\(N_c - 1\)</span> undesired (foreground) components.
+For the CMB, the target signal is frequency independent, so <span class="math notranslate nohighlight">\(A_s = A_\mathrm{CMB} = [1, 1, \ldots, 1]\)</span>.
+The constrained-ILC weights then take the form</p>
+<div class="math notranslate nohighlight">
+\[w_\ell = \mathbf{C}_\ell^{-1} \mathcal{F} \left( \mathcal{F}^\mathrm{T} \mathbf{C}_\ell^{-1} \mathcal{F} \right)^{\!-1} U\, ,\]</div>
+<p>where the constraint vector <span class="math notranslate nohighlight">\(U = [1, 0, \ldots, 0]\)</span> has length <span class="math notranslate nohighlight">\(N_c\)</span> and selects <span class="math notranslate nohighlight">\(A_\mathrm{CMB}\)</span> as the preserved component.
+The <span class="math notranslate nohighlight">\(N_f \times N_f\)</span> covariance matrix <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> of the noise and foreground power at multipole <span class="math notranslate nohighlight">\(\ell\)</span> is constructed from the auto- and cross-frequency power spectra of the instrumental noise and of the galactic and extragalactic foreground components, after computing them on the masked sky.</p>
+<p>In the limit where no additional components are nulled, <span class="math notranslate nohighlight">\(\mathcal{F}\)</span> reduces to the <span class="math notranslate nohighlight">\(N_f \times 1\)</span> frequency response vector <span class="math notranslate nohighlight">\(A_\mathrm{CMB}\)</span> and the weights simplify to the standard minimum-variance form,</p>
+<div class="math notranslate nohighlight">
+\[w_\ell^\mathrm{MV} = \frac{\mathbf{C}_\ell^{-1} A_\mathrm{CMB}}{A_\mathrm{CMB}^\mathrm{T} \mathbf{C}_\ell^{-1} A_\mathrm{CMB}}\, .\]</div>
+<p>The corresponding residual power spectrum after component separation is</p>
+<div class="math notranslate nohighlight">
+\[C_\ell^\mathrm{res} = \left( A_\mathrm{CMB}^\mathrm{T} \mathbf{C}_\ell^{-1} A_\mathrm{CMB} \right)^{-1}\, ,\]</div>
+<p>which represents the effective noise that includes residuals from both the experimental noise and the foreground signals in the component-separated CMB map.</p>
+<p>The framework defines four forms of the ILC:</p>
+<ul class="simple">
+<li><p>Standard minimum-variance ILC minimizes the variance subject to unit response for the required component. This is the form used for the forecasts in the accompanying paper (arXiv:2608.XXXXX).</p></li>
+<li><p>Constrained ILC additionally nulls the frequency response of one or more other sky components, selected with the <code class="docutils literal notranslate"><span class="pre">null_comp</span></code> argument of <code class="docutils literal notranslate"><span class="pre">residual_power</span></code>.</p></li>
+<li><p>Partial ILC suppresses the targeted component by artificially rescaling the covariance of that component rather than imposing an explicit nulling constraint, selected with the <code class="docutils literal notranslate"><span class="pre">cl_multiplier_dic</span></code> argument of <code class="docutils literal notranslate"><span class="pre">get_analytic_covariance</span></code>. This is useful when the frequency response of an unwanted component is not known a priori or cannot be captured by a single spectral energy distribution, as is the case for the cosmic infrared background.</p></li>
+<li><p>Cross-ILC constructs two separate constrained-ILC maps that null different sky components and estimates the CMB power spectrum from their cross-correlation. <em>[To be ported.]</em></p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>acap</strong> – freq. dependene of the respective sky component.
-for example: CMB will be  [1., 1., …., 1.] in all bands.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>array</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p><code class="docutils literal notranslate"><span class="pre">get_analytic_covariance</span></code> builds <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span>, <code class="docutils literal notranslate"><span class="pre">get_acap</span></code> builds <span class="math notranslate nohighlight">\(A_\mathrm{CMB}\)</span> and <code class="docutils literal notranslate"><span class="pre">residual_power</span></code> combines them.
+Power spectra are in units of μK² and frequencies are in GHz.
+Band ordering follows the <code class="docutils literal notranslate"><span class="pre">freqarr</span></code> supplied by the caller: <code class="docutils literal notranslate"><span class="pre">get_acap</span></code>, <code class="docutils literal notranslate"><span class="pre">create_clmat</span></code> and the returned weights are all indexed in that order, so <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>, <code class="docutils literal notranslate"><span class="pre">freqcalib_fac</span></code> and the covariance must be consistent.
+Component names follow the spelling used in the returned foreground dictionary, namely <code class="docutils literal notranslate"><span class="pre">cib</span></code> for the cosmic infrared background and <code class="docutils literal notranslate"><span class="pre">galdust</span></code>/<code class="docutils literal notranslate"><span class="pre">galsync</span></code> for the galactic terms.
+Various parameter values and data locations are taken from <code class="docutils literal notranslate"><span class="pre">param_dict</span></code>, which is populated from <code class="docutils literal notranslate"><span class="pre">params.ini</span></code>.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.get_analytic_covariance">
 <span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_analytic_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'TT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_dust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_tsz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pol_frac_per_cent_ksz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cib_corr_coeffs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_highfreq_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_radio_power_150</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_tsz_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce_cib_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_cib_decorr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_multiplier_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_fg_spectra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_cl_dic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_analytic_covariance" title="Link to this definition"></a></dt>
-<dd><p>Get signal + noise covariance for ILC.
-Supports MV-ILC, cILC, partial ILC, etc..</p>
+<dd><p>Signal and noise covariance <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> across a set of frequency bands.</p>
+<p>The covariance combines the CMB, the extragalactic and galactic foregrounds, and the instrumental noise:</p>
+<div class="math notranslate nohighlight">
+\[C_{\ell, ij} = C_\ell^\mathrm{CMB} + C_\ell^\mathrm{kSZ} + C_{\ell, ij}^\mathrm{tSZ}
++ C_{\ell, ij}^\mathrm{radio} + C_{\ell, ij}^\mathrm{CIB}
++ C_{\ell, ij}^{\mathrm{tSZ} \times \mathrm{CIB}} + C_{\ell, ij}^\mathrm{gal} + N_{\ell, ij}\, ,\]</div>
+<p>where the CMB and kSZ terms are frequency independent in thermodynamic units.
+Individual terms can be excluded with <code class="docutils literal notranslate"><span class="pre">ignore_fg</span></code>, which is how the component being recovered is kept out of the covariance, or rescaled with <code class="docutils literal notranslate"><span class="pre">cl_multiplier_dic</span></code> for a partial ILC.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>param_dict</strong> (<em>dict</em>) – Dictionary containing the params</p></li>
-<li><p><strong>freqarr</strong> (<em>array</em>) – array of frequency bands for which we need the covariance.</p></li>
-<li><p><strong>el</strong> (<em>array</em>) – Multipoles over which the covariance must be defined.
-Default is None in which case el = np.arange( len(cl_cmb) ) derived below.</p></li>
-<li><p><strong>nl_dic</strong> (<em>dict</em>) – Dictionary containing the noise covariance in the bands.
-Default is None.</p></li>
-<li><p><strong>bl_dic</strong> (<em>dict</em>) – Dictionary containing the beams. Only used for galactic foreground file since cl_gal have S4 beams.
-Default is None.</p></li>
-<li><p><strong>ignore_fg</strong> (<em>list</em>) – List of signals that must be excluded from the covariance.</p></li>
-<li><p><strong>which_spec</strong> (<em>str</em>) – spectra name TT/EE/TE.</p></li>
-<li><p><strong>pol_frac_per_cent_dust</strong> (<em>float</em>) – Pol fraction for CIB.
-Default is 0.02.</p></li>
-<li><p><strong>pol_frac_per_cent_radio</strong> (<em>float</em>) – Pol fraction for Radio galaxies.
-Default is 0.03.</p></li>
-<li><p><strong>pol_frac_per_cent_tsz</strong> (<em>float</em>) – Pol fraction for tSZ. Default is zero.</p></li>
-<li><p><strong>pol_frac_per_cent_ksz</strong> (<em>float</em>) – Pol fraction for kSZ. Default is zero.</p></li>
-<li><p><strong>include_gal</strong> (<em>bool</em>) – Include galactic foregrounds.
-Default is None.</p></li>
-<li><p><strong>cib_corr_coeffs</strong> (<em>dict</em>) – Cross-correlation coefficients across bands for CIB.
-Default is None.</p></li>
-<li><p><strong>null_highfreq_radio</strong> (<em>bool</em>) – Null radio beyond 230 GHz.
-Deault is True.</p></li>
-<li><p><strong>reduce_radio_power_150</strong> (<em>float</em>) – Reduce radio power by some number.
-Default is None.</p></li>
-<li><p><strong>reduce_tsz_power</strong> (<em>float</em>) – Reduce tSZ power by some number.
-Default is None.</p></li>
-<li><p><strong>reduce_cib_power</strong> (<em>float</em>) – Reduce CIB power by some number.
-Default is None.</p></li>
-<li><p><strong>remove_cib_decorr</strong> (<em>bool</em>) – Remove CIB decorrelations.
-Default is False.</p></li>
-<li><p><strong>cl_multiplier_dic</strong> (<em>dict</em>) – Dictionary containing factors by which a certain signal must be suppressed in the covariance.
-For partial ILC.
-Default is None.</p></li>
-<li><p><strong>return_fg_spectra</strong> (<em>bool</em>) – Return the spectra for each foreground signal along with the total covariance.
-Default is True.</p></li>
-<li><p><strong>force_cl_dic</strong> (<em>dict</em>) – Supply own foreground Cl dict.
-Default is None.</p></li>
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary, as returned by <code class="docutils literal notranslate"><span class="pre">misc.get_param_dict</span></code>.
+Must contain <code class="docutils literal notranslate"><span class="pre">freq0</span></code>, <code class="docutils literal notranslate"><span class="pre">fg_model</span></code>, <code class="docutils literal notranslate"><span class="pre">spec_index_rg</span></code>, <code class="docutils literal notranslate"><span class="pre">spec_index_dg_po</span></code>, <code class="docutils literal notranslate"><span class="pre">spec_index_dg_clus</span></code> and <code class="docutils literal notranslate"><span class="pre">Tcib</span></code>, and the galactic file names when <code class="docutils literal notranslate"><span class="pre">include_gal</span></code> is set.</p></li>
+<li><p><strong>freqarr</strong> (<em>array_like</em>) – Frequency bands in GHz. The returned dictionary is keyed by pairs drawn from this list and the ordering is the one used throughout the ILC.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>, which must start at zero.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, in which case the multipoles of the SPT foreground templates are used.</p></li>
+<li><p><strong>nl_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Noise power spectra, keyed either by band or by band pair. A band pair that is absent is taken to have zero cross-band noise.
+Each entry must cover at least the requested multipoles. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, i.e. a noise-free covariance.</p></li>
+<li><p><strong>bl_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Beam transfer functions <span class="math notranslate nohighlight">\(B_\ell\)</span> keyed by band, used only to correct the galactic templates, which carry the S4 beams. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>ignore_fg</strong> (<em>list</em><em>, </em><em>optional</em>) – Components to leave out of the covariance, drawn from <code class="docutils literal notranslate"><span class="pre">cmb</span></code>, <code class="docutils literal notranslate"><span class="pre">tsz</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">ksz</span></code>, <code class="docutils literal notranslate"><span class="pre">radio</span></code>, <code class="docutils literal notranslate"><span class="pre">cib</span></code>, <code class="docutils literal notranslate"><span class="pre">noise</span></code> and <code class="docutils literal notranslate"><span class="pre">tsz_cib</span></code>.
+Requesting <code class="docutils literal notranslate"><span class="pre">cmb</span></code> also removes the kSZ. Default is an empty list.</p></li>
+<li><p><strong>which_spec</strong> (<em>str</em><em>, </em><em>optional</em>) – Spectrum to compute, one of <code class="docutils literal notranslate"><span class="pre">'TT'</span></code>, <code class="docutils literal notranslate"><span class="pre">'EE'</span></code> or <code class="docutils literal notranslate"><span class="pre">'TE'</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">'TT'</span></code>.</p></li>
+<li><p><strong>pol_frac_per_cent_dust</strong> (<em>float</em><em>, </em><em>optional</em>) – Polarization fraction of the CIB. Default is 0.02.</p></li>
+<li><p><strong>pol_frac_per_cent_radio</strong> (<em>float</em><em>, </em><em>optional</em>) – Polarization fraction of the radio sources. Default is 0.03.</p></li>
+<li><p><strong>pol_frac_per_cent_tsz</strong> (<em>float</em><em>, </em><em>optional</em>) – Polarization fraction of the tSZ. Default is 0.</p></li>
+<li><p><strong>pol_frac_per_cent_ksz</strong> (<em>float</em><em>, </em><em>optional</em>) – Polarization fraction of the kSZ. Default is 0.</p></li>
+<li><p><strong>include_gal</strong> (<em>bool</em><em>, </em><em>optional</em>) – Include galactic dust and synchrotron from the PySM simulations. Default is 0.</p></li>
+<li><p><strong>cib_corr_coeffs</strong> (<em>dict</em><em>, </em><em>optional</em>) – CIB decorrelation coefficients keyed by band pair, applied to the cross-band CIB power.
+Every off-diagonal pair must be present if the dictionary is supplied at all.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, i.e. fully correlated.</p></li>
+<li><p><strong>null_highfreq_radio</strong> (<em>bool</em><em>, </em><em>optional</em>) – Null the radio power above the high-frequency threshold of <a class="reference internal" href="foregrounds.html#foregrounds.get_cl_radio" title="foregrounds.get_cl_radio"><code class="xref py py-func docutils literal notranslate"><span class="pre">foregrounds.get_cl_radio()</span></code></a>. Default is 1.</p></li>
+<li><p><strong>reduce_radio_power_150</strong> (<em>float</em><em>, </em><em>optional</em>) – Rescale the radio power at 150 GHz by this factor. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>reduce_tsz_power</strong> (<em>float</em><em>, </em><em>optional</em>) – Rescale the tSZ power by this factor. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>reduce_cib_power</strong> (<em>float</em><em>, </em><em>optional</em>) – Rescale the CIB power by this factor. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>remove_cib_decorr</strong> (<em>bool</em><em>, </em><em>optional</em>) – Replace the cross-band CIB with the geometric mean of the two auto-spectra, which removes the decorrelation built into the template. Overrides <code class="docutils literal notranslate"><span class="pre">cib_corr_coeffs</span></code>. Default is 0.</p></li>
+<li><p><strong>cl_multiplier_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Factors by which individual components are rescaled in the covariance for a partial ILC.
+Keys are drawn from <code class="docutils literal notranslate"><span class="pre">cmb</span></code>, <code class="docutils literal notranslate"><span class="pre">ksz</span></code>, <code class="docutils literal notranslate"><span class="pre">tsz</span></code>, <code class="docutils literal notranslate"><span class="pre">radio</span></code>, <code class="docutils literal notranslate"><span class="pre">cib</span></code>, <code class="docutils literal notranslate"><span class="pre">tsz_cib</span></code>, <code class="docutils literal notranslate"><span class="pre">galdust</span></code>, <code class="docutils literal notranslate"><span class="pre">galsync</span></code> and <code class="docutils literal notranslate"><span class="pre">noise</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>return_fg_spectra</strong> (<em>bool</em><em>, </em><em>optional</em>) – Also return the individual component spectra. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>force_cl_dic</strong> (<em>dict</em><em>, </em><em>optional</em>) – Spectra supplied by the caller which override the internally computed ones.
+Recognized keys are <code class="docutils literal notranslate"><span class="pre">cmb</span></code>, <code class="docutils literal notranslate"><span class="pre">ksz</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">tsz</span></code>, <code class="docutils literal notranslate"><span class="pre">cib</span></code>, <code class="docutils literal notranslate"><span class="pre">tsz_cib</span></code> or <code class="docutils literal notranslate"><span class="pre">cib_tsz</span></code>, and <code class="docutils literal notranslate"><span class="pre">rad</span></code> or <code class="docutils literal notranslate"><span class="pre">radio</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>el</strong> (<em>array</em>) – Multipoles over which the covariance is defined.</p></li>
-<li><p><strong>cl_dic</strong> (<em>dict</em>) – Total covariance in each band as a dictionary.</p></li>
-<li><p><strong>fg_cl_dic</strong> (<em>dict</em>) – Spectra for each foreground signal in each band as a dictionary.
-Only returned when return_fg_spectra is True.</p></li>
+<li><p><strong>el</strong> (<em>ndarray</em>) – Multipole moments over which the covariance is defined.</p></li>
+<li><p><strong>cl_dic</strong> (<em>dict</em>) – Total covariance, keyed by band pair.</p></li>
+<li><p><strong>fg_cl_dic</strong> (<em>dict</em>) – Spectrum of each component, keyed by component name and then by band pair.
+Only returned when <code class="docutils literal notranslate"><span class="pre">return_fg_spectra</span></code> is set.</p></li>
 </ul>
 </p>
 </dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">freqarr</span></code> is empty or contains a repeated band, if <code class="docutils literal notranslate"><span class="pre">el</span></code> is empty or does not start at zero, if an entry of <code class="docutils literal notranslate"><span class="pre">nl_dic</span></code> is shorter than <code class="docutils literal notranslate"><span class="pre">el</span></code>, if <code class="docutils literal notranslate"><span class="pre">ignore_fg</span></code> or <code class="docutils literal notranslate"><span class="pre">cl_multiplier_dic</span></code> contains an unrecognized component or if <code class="docutils literal notranslate"><span class="pre">cib_corr_coeffs</span></code> is supplied without an entry for every band pair.</p>
+</dd>
 </dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">cib</span></code> denotes the cosmic infrared background throughout, whereas <code class="docutils literal notranslate"><span class="pre">galdust</span></code> denotes galactic dust.
+Note that <a class="reference internal" href="foregrounds.html#foregrounds.get_cl_galactic" title="foregrounds.get_cl_galactic"><code class="xref py py-func docutils literal notranslate"><span class="pre">foregrounds.get_cl_galactic()</span></code></a> uses <code class="docutils literal notranslate"><span class="pre">dust</span></code> for the latter.</p>
+<p>Noise that has been amplified by beam deconvolution is clipped at <span class="math notranslate nohighlight">\(5 \times 10^4\)</span>μK² to limit the dynamic range of the covariance.
+The galactic terms are currently not clipped, so at multipoles where the beam correction of a large-beam channel diverges the covariance can still become badly conditioned.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.get_cib_freq_dep">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_cib_freq_dep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tcib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tcmb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.7255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.505</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_cib_freq_dep" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ilc.get_clinv">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_clinv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elcnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_clmat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_clinv" title="Link to this definition"></a></dt>
-<dd><p>Get the inverse covariance matrix at a specific multipole moment ell.</p>
+<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_cib_freq_dep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tcib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.505</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_cib_freq_dep" title="Link to this definition"></a></dt>
+<dd><p>Frequency dependence of the CIB as a modified blackbody:</p>
+<div class="math notranslate nohighlight">
+\[f(\nu) = \nu^\beta \, \frac{B_\nu(T_\mathrm{CIB})}{\mathrm{d}B_\nu/\mathrm{d}T}\, ,\]</div>
+<p>where the division by <span class="math notranslate nohighlight">\(\mathrm{d}B_\nu/\mathrm{d}T\)</span> converts from flux to thermodynamic temperature units.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>freqarr</strong> (<em>list</em>) – Frequency array</p></li>
-<li><p><strong>elcnt</strong> (<em>int</em>) – ell index.</p></li>
-<li><p><strong>cl_dic</strong> (<em>dict</em>) – dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-Keys must be TT, EE, TE, etc.</p></li>
-<li><p><strong>return_clmat</strong> (<em>bool</em>) – If True, return covariance at a specific ell. (For debugging pruposes)
-Default is False</p></li>
+<li><p><strong>nu</strong> (<em>float</em>) – Frequency in GHz.</p></li>
+<li><p><strong>Tcib</strong> (<em>float</em><em>, </em><em>optional</em>) – Dust temperature <span class="math notranslate nohighlight">\(T_\mathrm{CIB}\)</span> in K. Default is 20.</p></li>
+<li><p><strong>beta</strong> (<em>float</em><em>, </em><em>optional</em>) – Emissivity index <span class="math notranslate nohighlight">\(\beta\)</span>. Default is 1.505, the Poisson CIB value; the clustered component uses 2.505.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>clinv</strong> (<em>array</em>) – Inverse covariance matrix at the given ell index.</p></li>
-<li><p><strong>clmat</strong> (<em>array</em>) – Covariance matrix at the ell index.
-Only returned if return_clmat is set to True.</p></li>
-</ul>
-</p>
+<dd class="field-even"><p><strong>value</strong> (<em>float</em>) – Frequency dependence in thermodynamic temperature units, unnormalized.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">nu</span></code> is not positive, or is at or above <span class="math notranslate nohighlight">\(10^4\)</span> and so is presumably in Hz rather than GHz.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.get_radio_freq_dep">
-<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_radio_freq_dep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_rg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.76</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_highfreq_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highfreq_radio_threhsold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">230</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_radio_freq_dep" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_radio_freq_dep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_rg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.76</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_highfreq_radio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highfreq_radio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">230</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_radio_freq_dep" title="Link to this definition"></a></dt>
+<dd><p>Frequency dependence of radio sources as a power law:</p>
+<div class="math notranslate nohighlight">
+\[f(\nu) = \frac{\mathrm{d}B_{\nu_0}/\mathrm{d}T}{\mathrm{d}B_\nu/\mathrm{d}T} \left( \frac{\nu}{\nu_0} \right)^{\!\alpha} ,\]</div>
+<p>with the ratio of blackbody derivatives converting from flux to thermodynamic temperature units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> (<em>float</em>) – Frequency in GHz.</p></li>
+<li><p><strong>nu0</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference frequency in GHz. Default is 150.</p></li>
+<li><p><strong>spec_index_rg</strong> (<em>float</em><em>, </em><em>optional</em>) – Radio spectral index <span class="math notranslate nohighlight">\(\alpha\)</span>. Default is -0.76.</p></li>
+<li><p><strong>null_highfreq_radio</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return zero above <code class="docutils literal notranslate"><span class="pre">highfreq_radio_threshold</span></code>, where the radio contribution is negligible. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>highfreq_radio_threshold</strong> (<em>float</em><em>, </em><em>optional</em>) – Threshold in GHz for the above. Default is 230.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>value</strong> (<em>float</em>) – Frequency dependence in thermodynamic temperature units, normalized to unity at <code class="docutils literal notranslate"><span class="pre">nu0</span></code> up to the unit conversion.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">nu</span></code> or <code class="docutils literal notranslate"><span class="pre">nu0</span></code> is not positive, or is at or above <span class="math notranslate nohighlight">\(10^4\)</span> and so is presumably in Hz rather than GHz.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ilc.get_acap">
+<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_acap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cmb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqcalib_fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspecs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_rg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.76</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_acap" title="Link to this definition"></a></dt>
+<dd><p>Frequency response <span class="math notranslate nohighlight">\(A_s\)</span> of a sky component across a set of bands.</p>
+<p>The response is the factor by which the component appears in each band relative to the reference, in the same thermodynamic units as the maps, multiplied by any calibration factor:</p>
+<div class="math notranslate nohighlight">
+\[A_i = f(\nu_i) \, g_i\, ,\]</div>
+<p>with <span class="math notranslate nohighlight">\(f\)</span> the spectral dependence of the component, <span class="math notranslate nohighlight">\(\nu_i\)</span> the frequency of band <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(g_i\)</span> the calibration factor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqarr</strong> (<em>array_like</em>) – Frequency bands in GHz. The response is returned in this order, which must match the band ordering used to build the covariance.</p></li>
+<li><p><strong>final_comp</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Component whose response is required. Default is <code class="docutils literal notranslate"><span class="pre">'cmb'</span></code>. One of</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cmb'</span></code>, unit response in every band,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'tsz'</span></code> or <code class="docutils literal notranslate"><span class="pre">'y'</span></code>, the thermal SZ spectral function from <a class="reference internal" href="foregrounds.html#foregrounds.compton_y_to_delta_Tcmb" title="foregrounds.compton_y_to_delta_Tcmb"><code class="xref py py-func docutils literal notranslate"><span class="pre">foregrounds.compton_y_to_delta_Tcmb()</span></code></a>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cib'</span></code> or <code class="docutils literal notranslate"><span class="pre">'cibpo'</span></code>, the Poisson CIB from <a class="reference internal" href="#ilc.get_cib_freq_dep" title="ilc.get_cib_freq_dep"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cib_freq_dep()</span></code></a>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cibclus'</span></code>, the clustered CIB, i.e. <a class="reference internal" href="#ilc.get_cib_freq_dep" title="ilc.get_cib_freq_dep"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cib_freq_dep()</span></code></a> with <span class="math notranslate nohighlight">\(\beta = 2.505\)</span>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'misc_cib_tcibXX_betaYY'</span></code>, the CIB with dust temperature <code class="docutils literal notranslate"><span class="pre">XX</span></code> and emissivity index <code class="docutils literal notranslate"><span class="pre">YY</span></code>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'radio'</span></code>, radio sources from <a class="reference internal" href="#ilc.get_radio_freq_dep" title="ilc.get_radio_freq_dep"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_radio_freq_dep()</span></code></a>.</p></li>
+</ul>
+</p></li>
+<li><p><strong>freqcalib_fac</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multiplicative gain of each band, in the same order as <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>, by which the assumed response is scaled.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is equivalent to unity in every band.</p></li>
+<li><p><strong>nspecs</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of map components entering the ILC jointly, as returned by <a class="reference internal" href="#ilc.get_teb_spec_combination" title="ilc.get_teb_spec_combination"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_teb_spec_combination()</span></code></a>.
+Default is 1, i.e. temperature or polarization alone.</p></li>
+<li><p><strong>spec_index_rg</strong> (<em>float</em><em>, </em><em>optional</em>) – Radio spectral index, used only when <code class="docutils literal notranslate"><span class="pre">final_comp</span></code> is <code class="docutils literal notranslate"><span class="pre">'radio'</span></code>. Default is -0.76.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>acap</strong> (<em>ndarray</em>) – Frequency response, of shape <code class="docutils literal notranslate"><span class="pre">(nspecs</span> <span class="pre">*</span> <span class="pre">len(freqarr),</span> <span class="pre">nspecs)</span></code>.
+For a joint temperature and polarization ILC only the CMB has a nonzero polarization response.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no frequency response is implemented for <code class="docutils literal notranslate"><span class="pre">final_comp</span></code>.
+    This includes <code class="docutils literal notranslate"><span class="pre">ksz</span></code>, <code class="docutils literal notranslate"><span class="pre">noise</span></code> and <code class="docutils literal notranslate"><span class="pre">tsz_cib</span></code>, which <a class="reference internal" href="#ilc.residual_power" title="ilc.residual_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">residual_power()</span></code></a> accepts as components but which have no response here.
+     Also if <code class="docutils literal notranslate"><span class="pre">freqcalib_fac</span></code> does not have exactly one entry per band.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.get_teb_spec_combination">
 <span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_teb_spec_combination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cl_dic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_teb_spec_combination" title="Link to this definition"></a></dt>
-<dd><p>uses cl_dict to determine if we are using ILC jointly for T/E/B.</p>
+<dd><p>Determine whether the ILC is to be performed on one map component or on several jointly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>cl_dic</strong> (<em>dict</em>) – dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-Keys must be TT, EE, TE, etc.</p>
+<dd class="field-odd"><p><strong>cl_dic</strong> (<em>dict</em>) – Auto- and cross-spectra of different frequency channels keyed by spectrum name, i.e. <code class="docutils literal notranslate"><span class="pre">'TT'</span></code>, <code class="docutils literal notranslate"><span class="pre">'EE'</span></code>, <code class="docutils literal notranslate"><span class="pre">'TE'</span></code>, <code class="docutils literal notranslate"><span class="pre">'BB'</span></code>, <code class="docutils literal notranslate"><span class="pre">'TB'</span></code>, <code class="docutils literal notranslate"><span class="pre">'EB'</span></code>.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>nspecs</strong> (<em>int</em>) – tells if we are performing ILC for T alone or T/E/B together.
-default is 1. For only one map component.</p></li>
-<li><p><strong>specs</strong> (<em>list</em>) – creates [‘TT’, ‘EE’, ‘TE’, … etc.] based on cl_dict that is supplied.
-For example:
-[‘TT’] = ILC for T-only
-[‘EE’] = ILC for E-only
-[‘TT’, ‘EE’] = ILC for T and E separately.
-[‘TT’, ‘EE’, ‘TE’] = ILC for T and E jointly.</p></li>
+<li><p><strong>nspecs</strong> (<em>int</em>) – Number of map components entering the ILC, namely 1 for temperature or polarization alone, 2 for temperature and E-modes jointly, and 3 when B-modes are included.</p></li>
+<li><p><strong>specs</strong> (<em>list of str or None</em>) – The spectrum names in sorted order or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the combination of keys is not one of those recognized.</p></li>
 </ul>
 </p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>When <a class="reference internal" href="#ilc.create_clmat" title="ilc.create_clmat"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_clmat()</span></code></a> is uaws, only 1 and 2 are usable since B-modes are absent.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ilc.create_clmat">
+<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">create_clmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elcnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_dic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.create_clmat" title="Link to this definition"></a></dt>
+<dd><p>Band-band covariance matrix at one multipole.</p>
+<p>For a single map component, the matrix is <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> over the requested bands.
+For a joint temperature and polarization ILC, it is the block matrix</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{pmatrix} C^{TT}_{ij} &amp; C^{TE}_{ij} \\ C^{TE}_{ij} &amp; C^{EE}_{ij} \end{pmatrix}\end{split}\]</div>
+<p>of size <code class="docutils literal notranslate"><span class="pre">nspecs</span> <span class="pre">*</span> <span class="pre">len(freqarr)</span></code> on a side.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqarr</strong> (<em>array_like</em>) – Frequency bands in GHz. Rows and columns follow this order.</p></li>
+<li><p><strong>elcnt</strong> (<em>int</em>) – Index into the multipole axis of the spectra, not the multipole itself.</p></li>
+<li><p><strong>cl_dic</strong> (<em>dict</em>) – Auto- and cross-spectra at all <span class="math notranslate nohighlight">\(\ell\)</span> keyed by spectrum name and then by band pair.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>clmat</strong> (<em>ndarray</em>) – Covariance matrix at the requested multipole index.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the keys of <code class="docutils literal notranslate"><span class="pre">cl_dic</span></code> are not a recognized combination of spectra.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ilc.get_clinv">
+<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">get_clinv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elcnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_clmat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.get_clinv" title="Link to this definition"></a></dt>
+<dd><p>Inverse of the band-band covariance matrix at one multipole <span class="math notranslate nohighlight">\(\ell\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freqarr</strong> (<em>array_like</em>) – Frequency bands in GHz.</p></li>
+<li><p><strong>elcnt</strong> (<em>int</em>) – Index into the multipole axis of the spectra, not the multipole <span class="math notranslate nohighlight">\(\ell\)</span> itself.</p></li>
+<li><p><strong>cl_dic</strong> (<em>dict</em>) – Auto- and cross-spectra at all <span class="math notranslate nohighlight">\(\ell\)</span> keyed by spectrum name and then by band pair.</p></li>
+<li><p><strong>return_clmat</strong> (<em>bool</em><em>, </em><em>optional</em>) – Also return the covariance itself, which is convenient for debugging. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>clinv</strong> (<em>ndarray</em>) – Inverse covariance at the requested multipole index.</p></li>
+<li><p><strong>clmat</strong> (<em>ndarray</em>) – Covariance at the same index. Only returned when <code class="docutils literal notranslate"><span class="pre">return_clmat</span></code> is set.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Warns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>UserWarning</strong> – If the covariance contains non-finite entries. <code class="docutils literal notranslate"><span class="pre">numpy.linalg.pinv</span></code> returns zeros for an infinite entry without raising, which would otherwise silently zero the weights at that multipole.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The Moore-Penrose pseudo-inverse is used, so a rank-deficient covariance, for instance one in which a band carries no information, is handled without raising.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ilc.corr_from_cov">
+<span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">corr_from_cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">covmat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.corr_from_cov" title="Link to this definition"></a></dt>
+<dd><p>Correlation matrix corresponding to a covariance matrix:</p>
+<div class="math notranslate nohighlight">
+\[R_{ij} = \frac{C_{ij}}{\sqrt{C_{ii} C_{jj}}}\, .\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>covmat</strong> (<em>array_like</em>) – Covariance matrix, assumed square.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>corrmat</strong> (<em>ndarray</em>) – Correlation matrix, of the same shape as <code class="docutils literal notranslate"><span class="pre">covmat</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If any diagonal entry of <code class="docutils literal notranslate"><span class="pre">covmat</span></code> is not positive, which would otherwise give a non-finite correlation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -336,37 +388,50 @@ For example:
 <dl class="py function">
 <dt class="sig sig-object py" id="ilc.residual_power">
 <span class="sig-prename descclassname"><span class="pre">ilc.</span></span><span class="sig-name descname"><span class="pre">residual_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqarr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cmb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">null_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_index_rg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.76</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqcalib_fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ilc.residual_power" title="Link to this definition"></a></dt>
-<dd><p>Get the residual ILC power.</p>
+<dd><p>Residual power and weights of an ILC.</p>
+<p>For a standard ILC, the weights and the residual power follow from the covariance <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> and the frequency response <span class="math notranslate nohighlight">\(A_s\)</span> of the component being recovered:</p>
+<div class="math notranslate nohighlight">
+\[w_\ell = \frac{\mathbf{C}_\ell^{-1} A_s}{A_s^\mathrm{T} \mathbf{C}_\ell^{-1} A_s} \, , \qquad C_\ell^\mathrm{res} = \left( A_s^\mathrm{T} \mathbf{C}_\ell^{-1} A_s \right)^{\!-1} .\]</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">null_comp</span></code> is given, a constrained ILC is performed instead.
+Here, <span class="math notranslate nohighlight">\(\mathcal{F}\)</span> is the matrix whose columns are the response of the component to be recovered followed by those of the components to be nulled, and <span class="math notranslate nohighlight">\(U = [1, 0, \ldots, 0]\)</span> is the constraint vector,</p>
+<div class="math notranslate nohighlight">
+\[w_\ell = \mathbf{C}_\ell^{-1} \mathcal{F} \left( \mathcal{F}^\mathrm{T} \mathbf{C}_\ell^{-1} \mathcal{F} \right)^{\!-1} U \, ,\]</div>
+<p>which returns the required component with unit response while nulling the others.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>freqarr</strong> (<em>list</em>) – Frequency array</p></li>
-<li><p><strong>el</strong> (<em>int</em>) – Multipole moment ell.</p></li>
-<li><p><strong>cl_dic</strong> (<em>dict</em>) – dictionary containing (signal+noise) auto- and cross- spectra of different freq. channels at all ell.
-Keys must be TT, EE, TE, etc.</p></li>
-<li><p><strong>final_comp</strong> (<em>str</em>) – Name of the signal that is being minimised.
-Default is ‘cmb’.
-Options are [‘cmb’, ‘tsz’, ‘y’, ‘ksz’, ‘radio’, ‘dust’, ‘noise’, ‘tsz_cib’]</p></li>
-<li><p><strong>null_comp</strong> (<em>str</em>) – Name of the signal that is being nulled.
-Default is None.
-Options are [‘cmb’, ‘tsz’, ‘y’, ‘ksz’, ‘radio’, ‘dust’, ‘noise’, ‘tsz_cib’]</p></li>
-<li><p><strong>spec_index_rg</strong> (<em>float</em>) – Default radio spectral index set to -0.76.</p></li>
-<li><p><strong>freqcalib_fac</strong> (<em>array</em>) – array containing calibration factors / mis-matches between different bands.
-default is None which is equivalent to [1, 1, 1, … 1] in all bands.</p></li>
-<li><p><strong>lmin</strong> (<em>int</em>) – Minimum multipole moment to use.
-Default is 10.</p></li>
-<li><p><strong>return_weights</strong> (<em>bool</em>) – If True return ILC weights along with the residuals</p></li>
+<li><p><strong>param_dict</strong> (<em>dict</em>) – Parameter dictionary. Currently unused, but retained so that the call signature matches the other routines.</p></li>
+<li><p><strong>freqarr</strong> (<em>array_like</em>) – Frequency bands in GHz, in the same order as the covariance and the weights.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipole moments <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>cl_dic</strong> (<em>dict</em>) – Auto- and cross-spectra at all <span class="math notranslate nohighlight">\(\ell\)</span> keyed by spectrum name and then by band pair, as returned by <a class="reference internal" href="#ilc.get_analytic_covariance" title="ilc.get_analytic_covariance"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_analytic_covariance()</span></code></a>.</p></li>
+<li><p><strong>final_comp</strong> (<em>str</em><em>, </em><em>optional</em>) – Component to be recovered. Default is <code class="docutils literal notranslate"><span class="pre">'cmb'</span></code>.
+Options are ‘cmb’, ‘tsz’, ‘y’, ‘ksz’, ‘radio’, ‘cib’, ‘noise’ and ‘tsz_cib’.</p></li>
+<li><p><strong>null_comp</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Component or components to be nulled, which selects a constrained ILC. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+Options are the same as for <code class="docutils literal notranslate"><span class="pre">final_comp</span></code>.</p></li>
+<li><p><strong>spec_index_rg</strong> (<em>float</em><em>, </em><em>optional</em>) – Radio spectral index, passed to <a class="reference internal" href="#ilc.get_acap" title="ilc.get_acap"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_acap()</span></code></a> and used only for radio components. Default is -0.76.</p></li>
+<li><p><strong>freqcalib_fac</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multiplicative gain of each band, in the same order as <code class="docutils literal notranslate"><span class="pre">freqarr</span></code>, by which the assumed response is scaled.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is equivalent to unity in every band.</p></li>
+<li><p><strong>lmin</strong> (<em>int</em><em>, </em><em>optional</em>) – Multipoles at or below this value are skipped and their residual left at zero. Default is 10.</p></li>
+<li><p><strong>return_weights</strong> (<em>bool</em><em>, </em><em>optional</em>) – Also return the weights. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>cl_residual</strong> (<em>array</em>) – ILC residuals defined over the desired multiples.</p></li>
-<li><p><strong>weightsarr</strong> (<em>array</em>) – ILC weights defined over the desired multiples for all the frequency bands.
-Only returned if return_weights is set to True.</p></li>
+<li><p><strong>cl_residual</strong> (<em>ndarray</em>) – Residual power, of shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">len(el))</span></code>.
+The rows are the temperature, polarization and cross-terms, with only the first being filled for a single map component.</p></li>
+<li><p><strong>weightsarr</strong> (<em>ndarray</em>) – ILC weights, of shape <code class="docutils literal notranslate"><span class="pre">(nspecs</span> <span class="pre">*</span> <span class="pre">len(freqarr),</span> <span class="pre">nspecs,</span> <span class="pre">len(el))</span></code>.
+Only returned when <code class="docutils literal notranslate"><span class="pre">return_weights</span></code> is set.</p></li>
 </ul>
 </p>
 </dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">freqarr</span></code> is empty or contains a repeated band, if <code class="docutils literal notranslate"><span class="pre">final_comp</span></code> or any entry of <code class="docutils literal notranslate"><span class="pre">null_comp</span></code> is not a recognized component, if <code class="docutils literal notranslate"><span class="pre">freqcalib_fac</span></code> does not have exactly one entry per band, or if the response of <code class="docutils literal notranslate"><span class="pre">final_comp</span></code> lies in the span of the nulled components and so cannot be preserved and nulled at once.</p>
+</dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Non-finite residuals, which arise where the covariance cannot be inverted, are set to zero.</p>
+<p>A constrained ILC is supported only for a single map component.
+Combining <code class="docutils literal notranslate"><span class="pre">null_comp</span></code> with a joint temperature and polarization covariance raises <code class="docutils literal notranslate"><span class="pre">IndexError</span></code> since the joint constrained formalism is not implemented.</p>
 </dd></dl>
 
 </section>
@@ -375,7 +440,7 @@ Only returned if return_weights is set to True.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="modules.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="get_ilc_residuals.html" class="btn btn-neutral float-left" title="get_ilc_residuals module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="misc.html" class="btn btn-neutral float-right" title="misc module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

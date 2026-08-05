@@ -112,7 +112,7 @@ def get_bl(beamval, el):
     Parameters
     ----------
     beamval : float
-        Beam full-width at half-maximum :math:`\theta_b` in arcminutes. Converted to radians internally.
+        Beam full-width at half-maximum :math:`\theta_b` in arcmin. Converted to radians internally.
     el : array_like
         Multipole moments :math:`\ell` at which to evaluate the beam.
 
@@ -143,19 +143,20 @@ def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam=None, make_2d=0, mapparams=
     freqs : list of int
         Frequency channels, in GHz.
     beam_noise_dic : dict
-        Maps each frequency in ``freqs`` to a ``(beam_fwhm, noise)`` pair, with the beam FWHM in arcminutes.
+        Maps each frequency in ``freqs`` to a ``(beam_fwhm, noise)`` pair, with the beam FWHM in arcmin.
         Only the beam value is used here.
     lmax : int
         Beams are evaluated on ``np.arange(lmax)``, i.e. :math:`\ell = 0` to ``lmax - 1``.
     opbeam : float, optional
-        FWHM in arcminutes of a common output beam.
+        FWHM in arcmin of a common output beam.
         If given, an additional ``'effective'`` entry is added to the returned dictionary.
+        Default is ``None``.
     make_2d : int, optional
         If non-zero, convert each 1-D :math:`B_\ell` onto a 2-D flat-sky grid using :func:`flatsky.cl_to_cl2d`.
         Requires ``mapparams``.
     mapparams : list, optional
-        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``dx`` and ``dy`` are the pixel sizes in arcminutes.
-        Required when ``make_2d`` is set.
+        Flat-sky map geometry ``[nx, ny, dx, dy]``, where ``dx`` and ``dy`` are the pixel sizes in arcmin.
+        Required when ``make_2d`` is set. Default is ``None``.
 
     Returns
     -------
@@ -202,7 +203,7 @@ def rebeam(bl_dic, threshold=1000.):
         Typically produced by :func:`get_beam_dic` with ``opbeam`` set. Only integer keys are treated as frequency channels.
     threshold : float, optional
         Upper bound on :math:`1 / B_\ell`.
-        Multipoles where the channel beam is zero or negative or where the inverse would exceed this value are clamped to it. Default 1000.
+        Multipoles where the channel beam is zero or negative or where the inverse would exceed this value are clamped to it. Default is 1000.
 
     Returns
     -------
@@ -237,7 +238,23 @@ def rebeam(bl_dic, threshold=1000.):
 
 # Noise
 
-def get_nl(noiseval, el, beamval, use_beam_window=1, uk_to_K=0, elknee=-1, alphaknee=0, beamval2=None, noiseval2=None, elknee2=-1, alphaknee2=0, rho=None, Nred1=-1., Nred2=-1.):  #, so_like=False):
+def get_nl(
+        noiseval,
+        el,
+        beamval,
+        use_beam_window=1,
+        uk_to_K=0,
+        elknee=-1,
+        alphaknee=0,
+        beamval2=None,
+        noiseval2=None,
+        elknee2=-1,
+        alphaknee2=0,
+        rho=None,
+        Nred1=-1.,
+        Nred2=-1.
+        #, so_like=False  #unused
+        ):
     r"""
     Noise power spectrum :math:`N_\ell` for one frequency channel or the correlated noise between two channels.
 
@@ -247,7 +264,7 @@ def get_nl(noiseval, el, beamval, use_beam_window=1, uk_to_K=0, elknee=-1, alpha
 
         N_\ell^X = \Delta_X^2 B_\ell^{-2} \left[ 1 + \left( \frac{\ell_\mathrm{knee}}{\ell} \right)^{\!\alpha_\mathrm{knee}} \right] ,
 
-    where :math:`\Delta_X` is the instrumental white-noise level for temperature or polarization (:math:`X = T, P`) in :math:`\mathrm{\mu K}\,\mathrm{arcmin}`.
+    where :math:`\Delta_X` is the instrumental white-noise level for temperature or polarization (:math:`X = T, P`) in μK arcmin.
 
     When a second channel is supplied, the correlated (atmospheric) noise between the two is returned instead:
 
@@ -264,26 +281,28 @@ def get_nl(noiseval, el, beamval, use_beam_window=1, uk_to_K=0, elknee=-1, alpha
     el : array_like
         Multipole moments :math:`\ell`.
     beamval : float
-        Beam full-width at half-maximum of the first channel in arcminutes.
+        Beam full-width at half-maximum of the first channel in arcmin.
     use_beam_window : int, optional
-        If non-zero, deconvolve the beam by multiplying by :func:`get_bl`, i.e. by :math:`B_\ell^{-2}`. Default 1.
+        If non-zero, deconvolve the beam by multiplying by :func:`get_bl`, i.e. by :math:`B_\ell^{-2}`. Default is 1.
     uk_to_K : int, optional
-        If non-zero, convert the supplied noise levels from μK to K. Default 0.
+        If non-zero, convert the supplied noise levels from μK to K. Default is 0.
     elknee : float, optional
         Atmospheric-noise knee multipole :math:`\ell_\mathrm{knee}` of the first channel.
-        A value of ``-1`` disables the atmospheric term. Default -1.
+        A value of ``-1`` disables the atmospheric term. Default is -1.
     alphaknee : float, optional
-        Atmospheric-noise slope :math:`\alpha_\mathrm{knee}` of the first channel. Default 0.
+        Atmospheric-noise slope :math:`\alpha_\mathrm{knee}` of the first channel. Default is 0.
     beamval2, noiseval2 : float, optional
-        Beam full-width at half-maximum in arcminutes and white-noise level in μK arcmin of the second channel.
+        Beam full-width at half-maximum in arcmin and white-noise level in μK arcmin of the second channel.
         Supplying ``noiseval2`` selects the cross-channel branch; ``rho`` is then required, and ``beamval2`` is required when ``use_beam_window`` is set.
+        Defaults are ``None`` and ``None``.
     elknee2, alphaknee2 : float, optional
-        Atmospheric-noise knee multipole and slope of the second channel. Defaults -1 and 0.
+        Atmospheric-noise knee multipole and slope of the second channel. Defaults are -1 and 0.
     rho : float, optional
-        Correlation coefficient between the atmospheric noise of the two channels. Required when ``noiseval2`` is given.
+        Correlation coefficient between the atmospheric noise of the two channels.
+        Required when ``noiseval2`` is given. Default is ``None``.
     Nred1, Nred2 : float, optional
         Red-noise amplitudes for the two channels, internally rescaled by survey area and duration.
-        A value of ``-1`` disables this treatment. Defaults -1.
+        A value of ``-1`` disables this treatment. Default is -1.
 
     Returns
     -------
@@ -432,10 +451,11 @@ def get_delta_cl(el, cl, nl=None, fsky=1., delta_l=1.):
         Power spectrum :math:`C_\ell`.
     nl : array_like, optional
         Noise power spectrum. Accepted but *not used*, i.e. only sample variance is returned.
+        Default is ``None``.
     fsky : float, optional
-        Observed sky fraction. Default 1.
+        Observed sky fraction. Default is 1.
     delta_l : float, optional
-        Multipole bin width :math:`\Delta \ell`. Default 1.
+        Multipole bin width :math:`\Delta \ell`. Default is 1.
 
     Returns
     -------
@@ -468,11 +488,11 @@ def get_apod_mask(ra_grid, dec_grid, mask_radius=2., taper_radius=6., in_arcmins
     ra_grid, dec_grid : ndarray
         Two-dimensional coordinate grids, both the same shape as the output.
     mask_radius : float, optional
-        Radius in arcminutes of the region set to one before tapering. Default 2.
+        Radius in arcmin of the region set to one before tapering. Default is 2.
     taper_radius : float, optional
-        Length in pixels of the Hann window convolved with the mask. Default 6.
+        Length in pixels of the Hann window convolved with the mask. Default is 6.
     in_arcmins : int, optional
-        If zero, the grids are taken to be in degrees and converted to arcminutes. Default 1.
+        If zero, the grids are taken to be in degrees and converted to arcmin. Default is 1.
 
     Returns
     -------

@@ -1,0 +1,393 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>flatsky module &mdash; DRAFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data and products" href="products.html" />
+    <link rel="prev" title="misc module" href="misc.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DRAFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="modules.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#forecasting">Forecasting</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DRAFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API reference</a></li>
+      <li class="breadcrumb-item active">flatsky module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-flatsky">
+<span id="flatsky-module"></span><h1>flatsky module<a class="headerlink" href="#module-flatsky" title="Link to this heading"></a></h1>
+<p>Flat-sky routines for simulating and analyzing small patches of sky in the flat-sky approximation.</p>
+<p>The module is grouped into four sections:</p>
+<ul class="simple">
+<li><p>Fourier grid: <code class="docutils literal notranslate"><span class="pre">get_lxly</span></code>, <code class="docutils literal notranslate"><span class="pre">get_lxly_az_angle</span></code>, <code class="docutils literal notranslate"><span class="pre">cl_to_cl2d</span></code></p></li>
+<li><p>Filters: <code class="docutils literal notranslate"><span class="pre">get_lpf_hpf</span></code>, <code class="docutils literal notranslate"><span class="pre">wiener_filter</span></code></p></li>
+<li><p>Simulations: <code class="docutils literal notranslate"><span class="pre">convert_eb_qu</span></code>, <code class="docutils literal notranslate"><span class="pre">cl2map</span></code>, <code class="docutils literal notranslate"><span class="pre">make_gaussian_realization</span></code></p></li>
+<li><p>Power spectra: <code class="docutils literal notranslate"><span class="pre">radial_profile</span></code>, <code class="docutils literal notranslate"><span class="pre">map2cl</span></code></p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">cl_to_cl2d</span></code> is referenced by <code class="docutils literal notranslate"><span class="pre">misc.get_beam_dic</span></code>, which calls it only when its <code class="docutils literal notranslate"><span class="pre">make_2d</span></code> option is set.
+The remaining routines are standalone utilities that are currently not used elsewhere in this repository.</p>
+<p>A flat-sky patch is described by <code class="docutils literal notranslate"><span class="pre">mapparams</span> <span class="pre">=</span> <span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>, where <code class="docutils literal notranslate"><span class="pre">nx</span></code> and <code class="docutils literal notranslate"><span class="pre">ny</span></code> are the number of pixels along each axis and <code class="docutils literal notranslate"><span class="pre">dx</span></code> and <code class="docutils literal notranslate"><span class="pre">dy</span></code> are the pixel sizes in arcmin.
+Multipoles follow the flat-sky convention <span class="math notranslate nohighlight">\(\ell = \sqrt{\ell_x^2 + \ell_y^2}\)</span>, with the 2-D Fourier grid supplied by <code class="docutils literal notranslate"><span class="pre">get_lxly</span></code>.
+Power spectra carry whatever units the input <code class="docutils literal notranslate"><span class="pre">cl</span></code> is given in and maps carry its square root.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.get_lxly">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">get_lxly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.get_lxly" title="Link to this definition"></a></dt>
+<dd><p>Wavenumber grids <span class="math notranslate nohighlight">\(\ell_x\)</span> and <span class="math notranslate nohighlight">\(\ell_y\)</span> for a flat-sky patch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>, where <code class="docutils literal notranslate"><span class="pre">nx</span></code> and <code class="docutils literal notranslate"><span class="pre">ny</span></code> are the pixel counts along each axis and <code class="docutils literal notranslate"><span class="pre">dx</span></code> and <code class="docutils literal notranslate"><span class="pre">dy</span></code> are the pixel sizes in arcmin.
+<code class="docutils literal notranslate"><span class="pre">nx</span></code> and <code class="docutils literal notranslate"><span class="pre">ny</span></code> must be integers.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>lx</strong> (<em>ndarray</em>) – Wavenumbers varying along the second axis, of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>.</p></li>
+<li><p><strong>ly</strong> (<em>ndarray</em>) – Wavenumbers varying along the first axis, of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The grids follow <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.fft.fftfreq.html#numpy.fft.fftfreq" title="(in NumPy v2.5)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.fft.fftfreq()</span></code></a> ordering, so the zero mode sits at index <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code> and the upper half of each axis carries negative wavenumbers.</p>
+<p>A single pixel size is used for both axes. The unpacking binds the third and fourth entries of <code class="docutils literal notranslate"><span class="pre">mapparams</span></code> to the same name, so the declared <code class="docutils literal notranslate"><span class="pre">dx</span></code> is discarded and <code class="docutils literal notranslate"><span class="pre">dy</span></code> is used for both. The grid is therefore correct only for square pixels, which is what the implementation assumes throughout.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.get_lxly_az_angle">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">get_lxly_az_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ly</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.get_lxly_az_angle" title="Link to this definition"></a></dt>
+<dd><p>Twice the azimuthal angle of each Fourier mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lx</strong> (<em>array_like</em>) – Wavenumber grids, as returned by <a class="reference internal" href="#flatsky.get_lxly" title="flatsky.get_lxly"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_lxly()</span></code></a>.</p></li>
+<li><p><strong>ly</strong> (<em>array_like</em>) – Wavenumber grids, as returned by <a class="reference internal" href="#flatsky.get_lxly" title="flatsky.get_lxly"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_lxly()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>angle</strong> (<em>ndarray</em>) – <span class="math notranslate nohighlight">\(2\phi_\ell\)</span>, where <span class="math notranslate nohighlight">\(\phi_\ell = \arctan(\ell_x / -\ell_y)\)</span>, with the same shape as the inputs.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The factor of two is included because the result is used to rotate spin-2 fields in <a class="reference internal" href="#flatsky.convert_eb_qu" title="flatsky.convert_eb_qu"><code class="xref py py-func docutils literal notranslate"><span class="pre">convert_eb_qu()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.cl_to_cl2d">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">cl_to_cl2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.cl_to_cl2d" title="Link to this definition"></a></dt>
+<dd><p>Interpolate a 1-D power spectrum onto the 2-D flat-sky Fourier grid.</p>
+<p>Each grid point is assigned <span class="math notranslate nohighlight">\(C_\ell\)</span> at <span class="math notranslate nohighlight">\(\ell = \sqrt{\ell_x^2 + \ell_y^2}\)</span>, with <span class="math notranslate nohighlight">\(\ell_x\)</span> and <span class="math notranslate nohighlight">\(\ell_y\)</span> taken from <a class="reference internal" href="#flatsky.get_lxly" title="flatsky.get_lxly"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_lxly()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles <span class="math notranslate nohighlight">\(\ell\)</span> at which <code class="docutils literal notranslate"><span class="pre">cl</span></code> is defined. Must be strictly increasing.</p></li>
+<li><p><strong>cl</strong> (<em>array_like</em>) – Power spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span>, the same length as <code class="docutils literal notranslate"><span class="pre">el</span></code>.</p></li>
+<li><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>, where <code class="docutils literal notranslate"><span class="pre">nx</span></code> and <code class="docutils literal notranslate"><span class="pre">ny</span></code> are the pixel counts along each axis and <code class="docutils literal notranslate"><span class="pre">dx</span></code> and <code class="docutils literal notranslate"><span class="pre">dy</span></code> are the pixel sizes in arcmin.
+<code class="docutils literal notranslate"><span class="pre">nx</span></code> and <code class="docutils literal notranslate"><span class="pre">ny</span></code> must be integers. A float pixel count, which is what a plain <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> of <code class="docutils literal notranslate"><span class="pre">mapparams</span></code> produces, raises inside <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.fft.fftfreq.html#numpy.fft.fftfreq" title="(in NumPy v2.5)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.fft.fftfreq()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cl2d</strong> (<em>ndarray</em>) – Power spectrum on the 2-D grid, of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">el</span></code> is not strictly increasing since <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.interp.html#numpy.interp" title="(in NumPy v2.5)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.interp()</span></code></a> would otherwise return silently incorrect values.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.interp.html#numpy.interp" title="(in NumPy v2.5)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.interp()</span></code></a> clamps outside the range of <code class="docutils literal notranslate"><span class="pre">el</span></code>, so every grid point above <code class="docutils literal notranslate"><span class="pre">max(el)</span></code> is assigned <code class="docutils literal notranslate"><span class="pre">cl[-1]</span></code> rather than zero.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.get_lpf_hpf">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">get_lpf_hpf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmin_lmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.get_lpf_hpf" title="Link to this definition"></a></dt>
+<dd><p>Top-hat low-pass, high-pass or band-pass filter on the 2-D Fourier grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>.</p></li>
+<li><p><strong>lmin_lmax</strong> (<em>float</em><em> or </em><em>sequence</em><em> of </em><em>float</em>) – Cutoff multipole. Must be a single value for <code class="docutils literal notranslate"><span class="pre">filter_type</span></code> 0 or 1, and an <code class="docutils literal notranslate"><span class="pre">(lmin,</span> <span class="pre">lmax)</span></code> pair for <code class="docutils literal notranslate"><span class="pre">filter_type</span></code> 2.</p></li>
+<li><p><strong>filter_type</strong> (<em>int</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">0</span></code> for low pass, <code class="docutils literal notranslate"><span class="pre">1</span></code> for high pass and <code class="docutils literal notranslate"><span class="pre">2</span></code> for band pass. Default is 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fft_filter</strong> (<em>ndarray</em>) – Filter on the 2-D grid, of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>, holding one inside the pass band and zero outside.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">filter_type</span></code> is not 0, 1 or 2, or if <code class="docutils literal notranslate"><span class="pre">lmin_lmax</span></code> does not have the shape that <code class="docutils literal notranslate"><span class="pre">filter_type</span></code> requires.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.wiener_filter">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">wiener_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl_noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.wiener_filter" title="Link to this definition"></a></dt>
+<dd><p>Wiener filter on the 2-D Fourier grid.</p>
+<div class="math notranslate nohighlight">
+\[W_\ell = \frac{C_\ell^\mathrm{S}}{C_\ell^\mathrm{S} + C_\ell^\mathrm{N}}\, ,\]</div>
+<p>with both spectra placed on the grid by <a class="reference internal" href="#flatsky.cl_to_cl2d" title="flatsky.cl_to_cl2d"><code class="xref py py-func docutils literal notranslate"><span class="pre">cl_to_cl2d()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>.</p></li>
+<li><p><strong>cl_signal</strong> (<em>array_like</em>) – Signal power spectrum <span class="math notranslate nohighlight">\(C_\ell^\mathrm{S}\)</span>.</p></li>
+<li><p><strong>cl_noise</strong> (<em>array_like</em>) – Noise power spectrum <span class="math notranslate nohighlight">\(C_\ell^\mathrm{N}\)</span>, the same length as <code class="docutils literal notranslate"><span class="pre">cl_signal</span></code>.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multipoles at which both spectra are defined. Default is <code class="docutils literal notranslate"><span class="pre">np.arange(len(cl_signal))</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>wiener_filter2d</strong> (<em>ndarray</em>) – Filter on the 2-D grid, of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>, with entries between zero and one.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Modes at which signal and noise both vanish are set to zero, matching the treatment of the spectrum in <a class="reference internal" href="#flatsky.make_gaussian_realization" title="flatsky.make_gaussian_realization"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_gaussian_realization()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.convert_eb_qu">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">convert_eb_qu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">map1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eb_to_qu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.convert_eb_qu" title="Link to this definition"></a></dt>
+<dd><p>Rotate a pair of flat-sky polarization maps between E/B and Q/U.</p>
+<p>The transform is a rotation by <span class="math notranslate nohighlight">\(2\phi_\ell\)</span> applied in Fourier space,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{pmatrix} Q \\ U \end{pmatrix} = \begin{pmatrix} \cos 2\phi_\ell &amp; -\sin 2\phi_\ell \\ \sin 2\phi_\ell &amp; \cos 2\phi_\ell \end{pmatrix} \begin{pmatrix} E \\ B \end{pmatrix}\, ,\end{split}\]</div>
+<p>with the transpose of that matrix applied in the opposite direction. The rotation is orthogonal mode by mode, but see the note below on the Nyquist row and column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>map1</strong> (<em>array_like</em>) – The pair to rotate, E and B when <code class="docutils literal notranslate"><span class="pre">eb_to_qu</span></code> is set and Q and U otherwise.</p></li>
+<li><p><strong>map2</strong> (<em>array_like</em>) – The pair to rotate, E and B when <code class="docutils literal notranslate"><span class="pre">eb_to_qu</span></code> is set and Q and U otherwise.</p></li>
+<li><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>.</p></li>
+<li><p><strong>eb_to_qu</strong> (<em>int</em><em>, </em><em>optional</em>) – If non-zero, rotate E/B to Q/U. Otherwise rotate Q/U to E/B. Default is 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>map1_mod, map2_mod</strong> (<em>ndarray</em>) – The rotated pair, Q and U when <code class="docutils literal notranslate"><span class="pre">eb_to_qu</span></code> is set and E and B otherwise.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Only the real part of the inverse transform is retained. On an even-sized grid this discards information. A pure E-mode input, and a field with no power on the Nyquist row and column, are transformed exactly.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.cl2map">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">cl2map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.cl2map" title="Link to this definition"></a></dt>
+<dd><p>Draw a Gaussian random flat-sky map with a given power spectrum.</p>
+<p>White noise is generated in map space and multiplied by <span class="math notranslate nohighlight">\(\sqrt{C_\ell}\)</span> on the Fourier grid, with a pixel-area normalization chosen so that the recovered spectrum matches the input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>.</p></li>
+<li><p><strong>cl</strong> (<em>array_like</em>) – Power spectrum <span class="math notranslate nohighlight">\(C_\ell\)</span> to realize.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Multipoles at which <code class="docutils literal notranslate"><span class="pre">cl</span></code> is defined. Default is <code class="docutils literal notranslate"><span class="pre">np.arange(len(cl))</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>flatskymap</strong> (<em>ndarray</em>) – Realization with its mean removed.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The random field is drawn with shape <code class="docutils literal notranslate"><span class="pre">(nx,</span> <span class="pre">ny)</span></code> while the Fourier grid from <a class="reference internal" href="#flatsky.get_lxly" title="flatsky.get_lxly"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_lxly()</span></code></a> has shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>, so the two agree only for a square patch and a rectangular one raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+<p>The normalization uses a single pixel size rather than <span class="math notranslate nohighlight">\(\sqrt{\mathrm{d}x\,\mathrm{d}y}\)</span>, so for non-square pixels the amplitude differs from <a class="reference internal" href="#flatsky.make_gaussian_realization" title="flatsky.make_gaussian_realization"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_gaussian_realization()</span></code></a> by <span class="math notranslate nohighlight">\(\sqrt{\mathrm{d}x/\mathrm{d}y}\)</span>.
+Use <a class="reference internal" href="#flatsky.make_gaussian_realization" title="flatsky.make_gaussian_realization"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_gaussian_realization()</span></code></a> for correlated fields or to apply a beam.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.make_gaussian_realization">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">make_gaussian_realization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl12</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qu_or_eb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'qu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.make_gaussian_realization" title="Link to this definition"></a></dt>
+<dd><p>Draw one Gaussian flat-sky field or a correlated pair followed by a field of zeros.</p>
+<p>A single field is drawn as in <a class="reference internal" href="#flatsky.cl2map" title="flatsky.cl2map"><code class="xref py py-func docutils literal notranslate"><span class="pre">cl2map()</span></code></a>. When <code class="docutils literal notranslate"><span class="pre">cl2</span></code> and <code class="docutils literal notranslate"><span class="pre">cl12</span></code> are supplied, a second field correlated with the first is built in Fourier space from two independent white-noise realizations,</p>
+<div class="math notranslate nohighlight">
+\[\tilde{f}_2 = \tilde{g}_1 \frac{C_\ell^{12}}{\sqrt{C_\ell^{11}}} + \tilde{g}_2 \sqrt{C_\ell^{22} - \frac{(C_\ell^{12})^2}{C_\ell^{11}}}\, ,\]</div>
+<p>so that the pair carries the requested auto and cross spectra.
+A third field of zeros is appended, standing for B when the pair is T and E.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>.</p></li>
+<li><p><strong>el</strong> (<em>array_like</em>) – Multipoles at which the spectra are defined.</p></li>
+<li><p><strong>cl</strong> (<em>array_like</em>) – Auto spectrum of the first field, <span class="math notranslate nohighlight">\(C_\ell^{11}\)</span>.</p></li>
+<li><p><strong>cl2</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Auto spectrum of the second field, <span class="math notranslate nohighlight">\(C_\ell^{22}\)</span>. Supplying it selects the correlated branch, which also requires <code class="docutils literal notranslate"><span class="pre">cl12</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>cl12</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Cross spectrum of the two fields, <span class="math notranslate nohighlight">\(C_\ell^{12}\)</span>. Required when <code class="docutils literal notranslate"><span class="pre">cl2</span></code> is given. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>bl</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Beam transfer function <span class="math notranslate nohighlight">\(B_\ell\)</span>, either 1-D over <code class="docutils literal notranslate"><span class="pre">el</span></code> or already on the 2-D grid, applied to the output. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>qu_or_eb</strong> (<em>{'qu'</em><em>, </em><em>'eb'}</em><em>, </em><em>optional</em>) – Whether to return T, Q, U or T, E, B. Only has an effect in the correlated branch. Default is <code class="docutils literal notranslate"><span class="pre">'qu'</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>SIM</strong> (<em>ndarray</em>) – A single map of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code> or a cube of shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">ny,</span> <span class="pre">nx)</span></code> in the correlated branch, with the mean removed.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">qu_or_eb</span></code> is neither <code class="docutils literal notranslate"><span class="pre">'qu'</span></code> nor <code class="docutils literal notranslate"><span class="pre">'eb'</span></code> or if <code class="docutils literal notranslate"><span class="pre">cl2</span></code> is given without <code class="docutils literal notranslate"><span class="pre">cl12</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The random fields are drawn with shape <code class="docutils literal notranslate"><span class="pre">(nx,</span> <span class="pre">ny)</span></code> while the Fourier grid has shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>, so a rectangular patch raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.radial_profile">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">radial_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minbin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxbin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_arcmins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.radial_profile" title="Link to this definition"></a></dt>
+<dd><p>Average a 2-D field in annuli of constant radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> (<em>array_like</em>) – Field to profile, real or complex. Must be 2-D when <code class="docutils literal notranslate"><span class="pre">xy</span></code> is not given.</p></li>
+<li><p><strong>xy</strong> (<em>tuple</em><em> of </em><em>ndarray</em><em>, </em><em>optional</em>) – Coordinate grids <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code>, each the same shape as <code class="docutils literal notranslate"><span class="pre">z</span></code>. Default is <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.indices.html#numpy.indices" title="(in NumPy v2.5)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.indices()</span></code></a>, i.e. pixel indices.</p></li>
+<li><p><strong>bin_size</strong> (<em>float</em><em>, </em><em>optional</em>) – Width of the radial bins, in the units of <code class="docutils literal notranslate"><span class="pre">xy</span></code>. Default is 1.</p></li>
+<li><p><strong>minbin</strong> (<em>float</em><em>, </em><em>optional</em>) – Lowest and highest radius of the binning. Defaults are 0 and 10.</p></li>
+<li><p><strong>maxbin</strong> (<em>float</em><em>, </em><em>optional</em>) – Lowest and highest radius of the binning. Defaults are 0 and 10.</p></li>
+<li><p><strong>to_arcmins</strong> (<em>int</em><em>, </em><em>optional</em>) – If non-zero, multiply the radius by 60 before binning, i.e. convert degrees to arcmin. Default is 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>radprf</strong> (<em>ndarray</em>) – Array of shape <code class="docutils literal notranslate"><span class="pre">(nbin,</span> <span class="pre">3)</span></code> holding the bin center, the mean of <code class="docutils literal notranslate"><span class="pre">z</span></code> over the bin and an uncertainty.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">z</span></code> is not 2-D and <code class="docutils literal notranslate"><span class="pre">xy</span></code> is not given or if the <code class="docutils literal notranslate"><span class="pre">xy</span></code> grids do not have the same shape as <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The defaults are mutually inconsistent. <code class="docutils literal notranslate"><span class="pre">to_arcmins</span></code> presumes <code class="docutils literal notranslate"><span class="pre">xy</span></code> in degrees, whereas the fallback used when <code class="docutils literal notranslate"><span class="pre">xy</span></code> is omitted supplies pixel indices.
+Pass <code class="docutils literal notranslate"><span class="pre">xy</span></code> explicitly or set <code class="docutils literal notranslate"><span class="pre">to_arcmins</span></code> to zero, as <a class="reference internal" href="#flatsky.map2cl" title="flatsky.map2cl"><code class="xref py py-func docutils literal notranslate"><span class="pre">map2cl()</span></code></a> does.</p>
+<p>The bin mean divides by the number of non-zero entries rather than by the number of entries, so a field containing exact zeros is averaged over its non-zero subset alone.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="flatsky.map2cl">
+<span class="sig-prename descclassname"><span class="pre">flatsky.</span></span><span class="sig-name descname"><span class="pre">map2cl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatskymap1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatskymap2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minbin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxbin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#flatsky.map2cl" title="Link to this definition"></a></dt>
+<dd><p>Auto- or cross-power spectrum of one or two flat-sky maps.</p>
+<p>The 2-D periodogram is formed and then averaged in annuli of <span class="math notranslate nohighlight">\(\ell\)</span> by <a class="reference internal" href="#flatsky.radial_profile" title="flatsky.radial_profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">radial_profile()</span></code></a>,</p>
+<div class="math notranslate nohighlight">
+\[\hat{C}_\ell = \frac{\mathrm{d}x^2}{n_x n_y} \left\langle \tilde{m}_1 \tilde{m}_2^* \right\rangle_\ell\, ,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathrm{d}x\)</span> is in radians and <span class="math notranslate nohighlight">\(\tilde{m}\)</span> is the unnormalized discrete transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mapparams</strong> (<em>list</em>) – Flat-sky map geometry <code class="docutils literal notranslate"><span class="pre">[nx,</span> <span class="pre">ny,</span> <span class="pre">dx,</span> <span class="pre">dy]</span></code>.</p></li>
+<li><p><strong>flatskymap1</strong> (<em>array_like</em>) – First map, of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>.</p></li>
+<li><p><strong>flatskymap2</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Second map, of the same shape. If given, the cross spectrum is returned in place of the auto spectrum. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>binsize</strong> (<em>float</em><em>, </em><em>optional</em>) – Width of the <span class="math notranslate nohighlight">\(\ell\)</span> bins. Default is the <span class="math notranslate nohighlight">\(\ell_x\)</span> grid spacing, i.e. along the second axis.</p></li>
+<li><p><strong>minbin</strong> (<em>float</em><em>, </em><em>optional</em>) – Lowest and highest <span class="math notranslate nohighlight">\(\ell\)</span> of the binning. Defaults are 100 and 10000.</p></li>
+<li><p><strong>maxbin</strong> (<em>float</em><em>, </em><em>optional</em>) – Lowest and highest <span class="math notranslate nohighlight">\(\ell\)</span> of the binning. Defaults are 100 and 10000.</p></li>
+<li><p><strong>mask</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Window that the caller has already applied to the maps. Only its mean is used to rescale the spectrum. The maps are not multiplied by it here. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>filter_2d</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Filter already applied to the maps, of shape <code class="docutils literal notranslate"><span class="pre">(ny,</span> <span class="pre">nx)</span></code>. Its radial profile is divided out of the spectrum. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>el</strong> (<em>ndarray</em>) – Bin centers.</p></li>
+<li><p><strong>cl</strong> (<em>ndarray</em>) – Binned power spectrum.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">flatskymap1</span></code> does not match the grid implied by <code class="docutils literal notranslate"><span class="pre">mapparams</span></code> or if <code class="docutils literal notranslate"><span class="pre">flatskymap2</span></code> is given and does not have the same shape as <code class="docutils literal notranslate"><span class="pre">flatskymap1</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="misc.html" class="btn btn-neutral float-left" title="misc module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="products.html" class="btn btn-neutral float-right" title="Data and products" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Srini Raghunathan.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
