@@ -1,0 +1,3 @@
+[submodule "FisherLens"]
+	path = FisherLens
+	url = https://github.com/ctrendafilova/FisherLens.git
