@@ -114,6 +114,40 @@ CLASS_COSMO_KEYS_REQUIRED = ('omega_b_h2', 'omega_c_h2', 'n_s', 'tau')
 Cosmological parameters that ``classWrapTools.class_generate_data`` indexes unconditionally, so that omitting one raises ``KeyError`` from inside FisherLens.
 """
 
+LENSING_DERIVATIVE_FILES = {'cl_TT': 'dClTTdCldd', 'cl_EE': 'dClEEdCldd',
+                            'cl_TE': 'dClTEdCldd', 'cl_BB': 'dClBBdCldd'}
+"""
+File stem CLASS_delens writes each lensing-deflection derivative to, keyed as ``classWrapTools.loadLensingDerivatives`` of FisherLens keys the dictionary it returns.
+The full name is ``<root_name>_<stem>_<derivative type>.dat`` under ``output/``.
+"""
+
+UNLENSED_DERIVATIVE_FILES = {'cl_TT_cl_TT': 'dClTTdClTT', 'cl_TE_cl_TE': 'dClTEdClTE',
+                             'cl_EE_cl_EE': 'dClEEdClEE', 'cl_EE_cl_BB': 'dClEEdClBB',
+                             'cl_BB_cl_EE': 'dClBBdClEE', 'cl_BB_cl_BB': 'dClBBdClBB'}
+"""
+Same as ``LENSING_DERIVATIVE_FILES`` for the derivatives with respect to the unlensed spectra, keyed as ``classWrapTools.loadUnlensedSpectraDerivatives`` keys them.
+"""
+
+DERIVATIVE_TYPES = ['lensed', 'delensed']
+"""
+Derivative types CLASS_delens will produce.
+There is no unlensed entry: the unlensed spectra do not depend on the lensing potential, so those derivatives vanish and the unlensed non-Gaussian covariance is the Gaussian one.
+"""
+
+NG_DERIVATIVE_MODES = ['recompute', 'save', 'load']
+"""
+How the non-Gaussian derivative matrices are obtained: recomputed and discarded, recomputed and written to a DRAFT product or read back from an earlier run without a CLASS run at all.
+No default is offered, since the three trade a large file against a long calculation.
+"""
+
+DERIVATIVE_FLAGS = ['delensing derivatives', 'output_derivatives', 'derv_binedges',
+                    'derivative type', 'calculate_derviaties_wrt_unlensed',
+                    'unlensed derivative type']
+"""
+CLASS parameters that ``classWrapTools`` sets to request the derivative matrices, spelled as it spells them.
+The transposition in ``calculate_derviaties_wrt_unlensed`` is reproduced deliberately: if CLASS spells that name correctly then the flag is never consumed and the unlensed derivatives are silently not requested, which is what :func:`unused_class_parameters` is for.
+"""
+
 
 # Setup
 
@@ -511,7 +545,7 @@ def planck_noise(el, expname='planck', include_pol=True):
             #misc.get_nl forms exp( l(l+1) sigma**2 ) and only then multiplies by noiseval_radians**2.
             # Evaluate the band only where both are representable, which keeps an overflow from arising.
             headroom = max_exponent - max(0., 2.*np.log(noiseval_radians))
-            safe = el*(el+1.)*sigma**2. < headroom
+            safe = el * (el+1.) * sigma**2. < headroom
             if not safe.any():
                 continue
             nl = misc.get_nl(noiseval, el[safe], beam_arcmins, elknee=elknee, alphaknee=alphaknee)
@@ -991,6 +1025,92 @@ def missing_class_outputs(class_data_dir, root_name, expect_reconstruction):
             if not os.path.exists( os.path.join(class_data_dir, 'output', root_name + suffix) )]
 
 
+def missing_class_derivatives(class_data_dir, root_name, derivative_type, include_unlensed=True):
+    r"""
+    List the derivative files that ``classWrapTools`` will read but which are absent.
+
+    Parameters
+    ----------
+    class_data_dir : str
+        Scratch directory handed to CLASS, ending in a separator.
+    root_name : str
+        Base name of the run.
+    derivative_type : str
+        One of :data:`DERIVATIVE_TYPES`.
+    include_unlensed : bool, optional
+        Whether the derivatives with respect to the unlensed spectra were requested. Default is ``True``.
+
+    Returns
+    -------
+    list of str
+        Names of the missing files, empty if all are present.
+
+    Notes
+    -----
+    Kept separate from :func:`missing_class_outputs` rather than folded into it because the two are checked at different points: a derivative run returns only the derivative matrices, so the spectrum files it also writes are never read back by it. It does write them since ``classWrapTools`` sets the same ``output`` on both kinds of run and the derivative branch does not alter it, so :func:`missing_class_outputs` applies to a derivative run unchanged.
+    """
+
+    #TODO: establish the spectrum files left behind
+
+    stems = dict(LENSING_DERIVATIVE_FILES)
+    if include_unlensed:
+        stems.update(UNLENSED_DERIVATIVE_FILES)
+    names = ['%s_%s_%s.dat' % (root_name, stem, derivative_type)
+             for stem in sorted( stems.values() )]
+
+    return [name for name in names
+            if not os.path.exists( os.path.join(class_data_dir, 'output', name) )]
+
+
+def unused_class_parameters(class_data_dir, root_name, among=None):
+    r"""
+    List the parameters CLASS read but did not consume.
+
+    Parameters
+    ----------
+    class_data_dir : str
+        Scratch directory handed to CLASS, ending in a separator.
+    root_name : str
+        Base name of the run.
+    among : iterable of str, optional
+        Restrict the result to these names. Default is ``None``, which returns all of them.
+
+    Returns
+    -------
+    list of str
+        Names CLASS ignored, sorted and without repeats.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file is absent, which means CLASS was not asked to record its parameters.
+
+    Notes
+    -----
+    ``classWrapTools`` sets ``write parameters``, so CLASS records the deck it was given in ``<root_name>_parameters.ini`` and everything it did not recognize in ``<root_name>_unused_parameters``.
+    That second file is the only way to tell a misspelled CLASS parameter from a working one: CLASS ignores what it does not recognize without complaint, so a flag whose name is wrong has no effect and no error.
+    """
+
+    path = os.path.join(class_data_dir, 'output', root_name + '_unused_parameters')
+    if not os.path.exists(path):
+        raise FileNotFoundError('No %s. CLASS records the parameters it ignored there when it is '
+                                'asked to write its parameters, which classWrapTools of FisherLens '
+                                'does, so its absence means the run did not reach that point.'
+                                % (path))
+
+    names = []
+    with open(path) as handle:
+        for line in handle:
+            line = line.split('#')[0].strip()
+            if '=' in line:
+                names.append( line.split('=')[0].strip() )
+    if among is not None:
+        among = set(among)
+        names = [name for name in names if name in among]
+
+    return sorted( set(names) )
+
+
 def run_class(cosmo_fid,
               lmax_calc,
               cmb_noise=None,
@@ -1147,6 +1267,295 @@ def run_class(cosmo_fid,
     return powers, reconstruction
 
 
+def ng_derivative_bytes(lmax_calc, include_unlensed=True, derivative_types=1):
+    r"""
+    Size in memory of a set of non-Gaussian derivative matrices.
+
+    Parameters
+    ----------
+    lmax_calc : int
+        Highest multipole the matrices cover.
+    include_unlensed : bool, optional
+        Whether the derivatives with respect to the unlensed spectra are counted. Default is ``True``.
+    derivative_types : int, optional
+        How many of :data:`DERIVATIVE_TYPES` are held at once. Default is 1.
+
+    Returns
+    -------
+    int
+        Size in bytes.
+
+    Notes
+    -----
+    Each matrix is square in the multipole, of side ``lmax_calc + 1`` once the two rows and columns below the first multipole CLASS returns are padded on and is held as ``float64``.
+    The size is therefore quadratic in ``lmax_calc``.
+    """
+
+    matrices = len(LENSING_DERIVATIVE_FILES)
+    if include_unlensed:
+        matrices += len(UNLENSED_DERIVATIVE_FILES)
+
+    return (int(lmax_calc)+1)**2 * 8 * matrices * int(derivative_types)
+
+
+def class_run_parameters(class_data_dir, root_name):
+    r"""
+    Read back the input deck CLASS recorded for a run.
+
+    Parameters
+    ----------
+    class_data_dir : str
+        Scratch directory handed to CLASS, ending in a separator.
+    root_name : str
+        Base name of the run.
+
+    Returns
+    -------
+    dict
+        Every parameter CLASS read, as written, values left as strings.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file is absent, which means the run did not reach the point of writing it.
+
+    Notes
+    -----
+    The cosmological parameters appear under the names CLASS uses, not the ones DRAFT uses: ``omega_c_h2`` is recorded as ``omega_cdm``, ``tau`` as ``tau_reio``, ``theta_s`` as ``100*theta_s`` and ``N_eff`` as a combination of ``N_ur``, ``N_ncdm``, ``T_ncdm`` and ``m_ncdm``. Recovering a DRAFT cosmology from this file therefore means reproducing the translation inside ``classWrapTools``, which is why it is not used to check whether a stored product matches a requested one; a manifest written alongside the product is used for that instead. This file is read only for the parameters whose names DRAFT sets directly.
+    """
+
+    #Note: ``classWrapTools`` of FisherLens sets ``write parameters``, so CLASS records what it read in ``<root_name>_parameters.ini`` and what it did not in ``<root_name>_unused_parameters``. Between them the two files account for the whole deck that was sent.
+    #``root`` is recorded as an absolute path, so it differs between machines and after any move of the working directory, and is never a meaningful thing to compare.
+
+    path = os.path.join(class_data_dir, 'output', root_name + '_parameters.ini')
+    if not os.path.exists(path):
+        raise FileNotFoundError('No %s. CLASS writes the deck it read there, so its absence means '
+                                'the run did not get that far.' % (path))
+
+    recorded = {}
+    with open(path) as handle:
+        for line in handle:
+            line = line.split('#')[0].strip()
+            if '=' in line:
+                key, value = line.split('=', 1)
+                recorded[ key.strip() ] = value.strip()
+
+    return recorded
+
+
+def derivative_flags_consumed(class_data_dir, root_name, derivative_type, include_unlensed=True):
+    r"""
+    Check that CLASS both received and consumed the flags requesting the derivative matrices.
+
+    Parameters
+    ----------
+    class_data_dir : str
+        Scratch directory handed to CLASS, ending in a separator.
+    root_name : str
+        Base name of the run.
+    derivative_type : str
+        One of :data:`DERIVATIVE_TYPES`, checked against what CLASS recorded.
+    include_unlensed : bool, optional
+        Whether the derivatives with respect to the unlensed spectra were requested. Default is ``True``.
+
+    Returns
+    -------
+    list of str
+        Complaints, one per flag that was ignored, absent or recorded with an unexpected value. Empty when everything landed.
+
+    Notes
+    -----
+    A CLASS parameter whose name it does not recognize is ignored without complaint, so a misspelled flag has no effect and raises nothing. ``calculate_derviaties_wrt_unlensed`` carries a transposition in ``classWrapTools``.
+    """
+
+    complaints = []
+    try:
+        ignored = set( unused_class_parameters(class_data_dir, root_name, among=DERIVATIVE_FLAGS) )
+    except FileNotFoundError as err:
+        return ['%s' % (err)]
+    try:
+        recorded = class_run_parameters(class_data_dir, root_name)
+    except FileNotFoundError as err:
+        return ['%s' % (err)]
+
+    expected = {'delensing derivatives': 'yes', 'output_derivatives': 'yes',
+                'derivative type': str(derivative_type)}
+    if include_unlensed:
+        expected['calculate_derviaties_wrt_unlensed'] = 'yes'
+        expected['unlensed derivative type'] = str(derivative_type)
+
+    for flag in sorted(expected):
+        if flag in ignored:
+            complaints.append('%s was passed but CLASS did not recognize it' % (flag))
+        elif flag not in recorded:
+            complaints.append('%s reached neither the read nor the ignored list' % (flag))
+        elif recorded[flag] != expected[flag]:
+            complaints.append('%s was read as %r, expected %r'
+                              % (flag, recorded[flag], expected[flag]))
+
+    return complaints
+
+
+def lensing_derivatives(cosmo_fid,
+                        lmax_calc,
+                        derivative_type='delensed',
+                        cmb_noise=None,
+                        deflection_noise=None,
+                        recon_mask=None,
+                        include_unlensed=True,
+                        extra_params=None,
+                        root_name=None,
+                        paths=None,
+                        class_wrap_tools=None,
+                        verbose=True
+                        ):
+    r"""
+    Run CLASS_delens once for the derivative matrices of the non-Gaussian covariance.
+
+    Parameters
+    ----------
+    cosmo_fid : dict
+        Cosmological parameters, validated by :func:`validate_cosmology`.
+    lmax_calc : int
+        Highest multipole CLASS is asked for.
+    derivative_type : str, optional
+        One of :data:`DERIVATIVE_TYPES`. Default is ``'delensed'``.
+    cmb_noise : dict, optional
+        Effective noise from :func:`build_effective_noise`. Required for the delensed derivatives and not used for the lensed ones. Default is ``None``.
+    deflection_noise : array_like, optional
+        Lensing-reconstruction noise. Required for the delensed derivatives. Default is ``None``.
+    recon_mask : dict, optional
+        Reconstruction cuts from :func:`reconstruction_mask`. Default is ``None``, which leaves the CLASS defaults.
+    include_unlensed : bool, optional
+        Whether to ask for the derivatives with respect to the unlensed spectra as well. Default is ``True``.
+    extra_params : dict, optional
+        Further CLASS parameters. Default is ``None``.
+    root_name : str, optional
+        Base name of the run. Default is ``None``, which generates a unique one.
+    paths : dict, optional
+        Resolved paths from :func:`resolve_paths`. Default is ``None``.
+    class_wrap_tools : module, optional
+        An already imported ``classWrapTools``. Default is ``None``.
+    verbose : bool, optional
+        Whether to report what is being run. Default is ``True``.
+
+    Returns
+    -------
+    lensing_derivs : dict
+        ``dCldCLd``, the derivatives with respect to the lensing-deflection power, keyed as :data:`LENSING_DERIVATIVE_FILES` is.
+    unlensed_derivs : dict or None
+        ``dCldCLu``, the derivatives with respect to the unlensed spectra, or ``None`` when ``include_unlensed`` is false.
+
+    Raises
+    ------
+    ValueError
+        If ``derivative_type`` is not one of :data:`DERIVATIVE_TYPES` or if the delensed derivatives are asked for without both noise arrays.
+    RuntimeError
+        If CLASS did not write the derivative files or wrote them without consuming the flags that request them.
+
+    Warns
+    -----
+    UserWarning
+        If noise is supplied for the lensed derivatives, which do not depend on it.
+
+    Notes
+    -----
+    This is a separate CLASS run from the one :func:`run_class` performs and much heavier: it produces a matrix in the spectrum multipole against the deflection multipole for each spectrum rather than one number per multipole. A run returns only the derivative matrices and discards the spectra it computed on the way, so it cannot double as a fiducial run.
+
+    The lensed derivatives do not depend on the noise, so one run serves every configuration and its result may be shared. The delensed derivatives do depend on it, through both the effective noise and the reconstruction noise, so they are per configuration. That asymmetry is what makes caching worthwhile for the first and not for the second.
+
+    ``calculate_derviaties_wrt_unlensed`` is checked against the parameters CLASS reports as unused, since a name CLASS does not recognize is ignored silently. See :func:`unused_class_parameters`.
+    """
+
+    derivative_type = str(derivative_type)
+    if derivative_type not in DERIVATIVE_TYPES:
+        raise ValueError('derivative_type must be one of %s, got %r. There is no unlensed '
+                         'derivative: the unlensed spectra do not depend on the lensing potential.'
+                         % (', '.join(DERIVATIVE_TYPES), derivative_type))
+    if lmax_calc <= 0:
+        raise ValueError('lmax_calc must be positive, got %s' % (lmax_calc))
+    lmax_calc = int(lmax_calc)
+
+    if derivative_type == 'delensed' and (cmb_noise is None or deflection_noise is None):
+        raise ValueError('The delensed derivatives depend on both the effective noise and the '
+                         'reconstruction noise, so cmb_noise and deflection_noise are both needed. '
+                         'Without them, the result would not describe any configuration.')
+    if derivative_type == 'lensed' and (cmb_noise is not None or deflection_noise is not None):
+        warnings.warn('The lensed derivatives do not depend on the noise, so supplying it makes '
+                      'this run configuration specific for no gain. One run without it serves '
+                      'every configuration.', stacklevel=2)
+
+    if cmb_noise is not None:
+        check_noise_for_class(cmb_noise, lmax_calc)
+    if class_wrap_tools is None:
+        class_wrap_tools = import_fisherlens(None if paths is None else paths['fisherlens_dir'])[0]
+    if paths is None:
+        paths = resolve_paths()
+    if root_name is None:
+        root_name = 'draft_derivs_%s' % (uuid.uuid4().hex[:10])
+    class_data_dir = paths['class_data_dir']
+    os.makedirs(class_data_dir, exist_ok=True)
+
+    if verbose:
+        print('CLASS derivative run %s' % (root_name))
+        print('  %s derivatives, lmax_calc %d, scratch %s'
+              % (derivative_type, lmax_calc, class_data_dir))
+        print('  %d matrices of (%d, %d), %.1f GB in memory'
+              % (len(LENSING_DERIVATIVE_FILES)
+                 + (len(UNLENSED_DERIVATIVE_FILES) if include_unlensed else 0),
+                 lmax_calc+1, lmax_calc+1,
+                 ng_derivative_bytes(lmax_calc, include_unlensed)/1e9))
+
+    try:
+        output = class_wrap_tools.class_generate_data(
+            cosmo_fid,
+            rootName=root_name,
+            cmbNoise=None if cmb_noise is None else noise_for_class(cmb_noise),
+            deflectionNoise=deflection_noise,
+            reconstructionMask=recon_mask,
+            lmax=lmax_calc,
+            classExecDir=paths['class_exec_dir'],
+            classDataDir=class_data_dir,
+            extraParams={} if extra_params is None else dict(extra_params),
+            calculateDerivatives=derivative_type,
+            includeUnlensedSpectraDerivatives=include_unlensed
+            )
+    except Exception as err:
+        missing = missing_class_derivatives(class_data_dir, root_name, derivative_type,
+                                            include_unlensed)
+        dropped = []
+        try:
+            dropped = unused_class_parameters(class_data_dir, root_name, among=DERIVATIVE_FLAGS)
+        except FileNotFoundError:
+            pass
+        if dropped:
+            raise RuntimeError('CLASS ignored %s, so it was never asked for these derivatives and '
+                               'did not write %s. The name is spelled by classWrapTools of '
+                               'FisherLens as CLASS is expected to spell it, so a mismatch here '
+                               'means the submodule pin and the CLASS_delens version disagree.'
+                               % (', '.join(dropped), ', '.join(missing) or 'them')) from err
+        if missing:
+            raise RuntimeError('CLASS did not write %s under %soutput/. Its own messages are '
+                               'above; a failure there is not reported by classWrapTools of '
+                               'FisherLens, which discards the return code of the command it '
+                               'launches.' % (', '.join(missing), class_data_dir)) from err
+        raise
+
+    complaints = derivative_flags_consumed(class_data_dir, root_name, derivative_type,
+                                           include_unlensed)
+    if complaints:
+        warnings.warn('CLASS did not take the derivative request as given: %s. The matrices below '
+                      'may not be what was asked for.' % ('; '.join(complaints)), stacklevel=2)
+
+    #The return is a pair when the unlensed derivatives are requested and a bare dictionary otherwise (FisherLens 652eaec).
+    if include_unlensed:
+        lensing_derivs, unlensed_derivs = output
+    else:
+        lensing_derivs, unlensed_derivs = output, None
+
+    return lensing_derivs, unlensed_derivs
+
+
 def lensing_noise_curves(powers, reconstruction, lmax=None, settings=None, extra=None):
     r"""
     Assemble the lensing-reconstruction noise product.
@@ -1197,7 +1606,8 @@ def lensing_noise_curves(powers, reconstruction, lmax=None, settings=None, extra
     """
 
     #Note: This format departs from the lensing-noise products shipped in ``products/``, which were written by an earlier pipeline.
-    #Those store the noise as ``Nl_TT``, ``Nl_EB`` and so on at the top level, in the convergence convention, as ``complex128`` arrays carrying ``nan`` below the first reconstructed multipole, and use ``Nl_ET`` where CLASS_delens says ``TE``.
+    #Those store the noise as ``Nl_TT``, ``Nl_EB`` and so on at the top level, in the convergence convention, as ``complex128`` arrays with a zero imaginary part, and use ``Nl_ET`` where CLASS_delens says ``TE``.
+    #They carry one indeterminate entry, at multipole zero and are finite everywhere above it including below their own recorded ``lmin``, so nothing in the file marks where the reconstruction actually began.
     #Here the arrays are real, free of ``nan``, grouped under a single ``'nl_dd'`` entry and named as CLASS_delens names them.
     #Readers of the older products therefore need updating rather than reusing.
 
@@ -1360,7 +1770,7 @@ def parameter_derivatives(cosmo_fid,
     if verbose:
         print('derivatives for %d parameter(s): %s' % (len(vary_params), ', '.join(vary_params)))
         print('  %d CLASS runs, root %s, scratch %s'
-              % (2*len(vary_params), root_name, class_data_dir))
+              % (2 * len(vary_params), root_name, class_data_dir))
         print('  spectra %s, types %s' % (', '.join(pol_combs), ', '.join(spectrum_types)))
 
     #``useClass`` is passed explicitly because it defaults to ``False`` in ``getPowerDerivWithParams``, which would route the calculation through CAMB rather than CLASS_delens and so produce no delensed spectra at all.
