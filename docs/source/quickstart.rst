@@ -53,7 +53,7 @@ offending bands rather than failing later in the computation.
 
 **What the ILC recovers.** ``-final_comp`` chooses the component preserved with
 unit response, one of ``cmb``, ``tsz``, ``y``, ``radio`` or ``cib``. The
-general default for standard calculations and forecasts is ``cmb''. Adding
+general default for standard calculations and forecasts is ``cmb``. Adding
 ``-null_comp`` performs a constrained ILC that additionally nulls one or more
 other components:
 

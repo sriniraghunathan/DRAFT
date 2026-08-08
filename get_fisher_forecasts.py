@@ -415,7 +415,7 @@ def load_ilc_product(ilc_fname):
     Warns
     -----
     UserWarning
-        Propagated from :func:`_load_npy_dict`.
+        Propagated from ``_load_npy_dict``.
 
     Notes
     -----

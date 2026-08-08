@@ -37,21 +37,23 @@ napoleon_numpy_docstring = True     # Turn on numpydoc strings
 napoleon_use_ivar = True            # Use :ivar: for attributes
 napoleon_use_rtype = False          # Use inline parenthesis for return type
 autodoc_member_order = 'bysource'   # Follow the grouping in each module
+napoleon_preprocess_types = True    # Cross-reference Returns types, not only Parameters
+napoleon_type_aliases = {           # numpydoc type names -> real targets
+     'array_like': ':obj:`numpy.typing.ArrayLike`',
+    'ndarray': ':class:`numpy.ndarray`',
+    'sequence': ':class:`collections.abc.Sequence`',
+    'iterable': ':class:`collections.abc.Iterable`',
+    'module': ':class:`types.ModuleType`',
+}
 
 intersphinx_mapping = {
+    'python': ('https://docs.python.org/3/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/', None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
 }
 
 nitpicky = True                     # Fail loudly on unresolved references
-nitpick_ignore_regex = [
-    ('py:class', r'optional'),      # numpydoc type qualifiers, not classes
-    ('py:class', r'array_like'),
-    ('py:class', r'ndarray'),
-    ('py:class', r'sequence'),
-    ('py:class', r"\{?'\w+'\}?"),   # literal-choice sets, e.g. {'qu', 'eb'}
-]
 
 # templates_path = ['_templates']   # unused
 exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']

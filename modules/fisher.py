@@ -2,28 +2,29 @@ r"""
 Cosmological Fisher matrices from delensed CMB spectra, driven through FisherLens.
 
 This module supplies the forecasting stage of DRAFT based on Fisher information theory.
-It takes the spectra, parameter derivatives, effective noise and lensing-reconstruction noise produced by ``delensing.py`` and forms the Fisher matrix :math:`F_{\alpha\beta}` for one survey configuration, together with the separate large-scale Fisher matrix contributed by a satellite.
-Combining those matrices into a total, applying priors, fixing parameters and reducing to the projected uncertainties :math:`\sigma(p_\alpha)` is the business of ``combine_fisher``, which is the only route to a :math:`\sigma` and is built on top of the separate matrices assembled here.
+It takes the spectra, parameter derivatives, effective noise and lensing-reconstruction noise produced by :mod:`delensing` and forms the Fisher matrix :math:`F_{\alpha\beta}` for one survey configuration, together with the separate large-scale Fisher matrix contributed by a satellite.
+Combining those matrices into a total, applying priors, fixing parameters and reducing to the projected uncertainties :math:`\sigma(p_\alpha)` is the business of :func:`combine_fisher`, which is the only route to a :math:`\sigma` and is built on top of the separate matrices assembled here.
+Mismodeled foreground residuals displace those parameters rather than inflating their uncertainties and that displacement is computed by :func:`parameter_bias`, whose implementation is still experimental.
 
 The module is grouped into the following sections:
 
-* Multipole windows: ``fisher_windows``
-* Fisher blocks: ``survey_fisher_block``, ``satellite_fisher_block``
-* Totals: ``prior_matrix``, ``invert_fisher``, ``combine_fisher``
+* Multipole windows: :func:`fisher_windows`
+* Fisher blocks: :func:`survey_fisher_block`, :func:`satellite_fisher_block`, :func:`foreground_systematic`, :func:`bias_vector`
+* Totals: :func:`prior_matrix`, :func:`invert_fisher`, :func:`combine_fisher`, :func:`parameter_bias`
 
 The functions here are named for Fisher blocks rather than Fisher matrices to signal what they do not return.
 A block is the Fisher matrix over every varied parameter for one measurement, one survey configuration or the low-ell information from a satellite, carried in a dictionary alongside the information identifying how it was formed.
 It is a summand of the total, never the total itself and never a submatrix of a larger Fisher matrix.
-Every block goes through ``combine_fisher``, including when the total consists of a single block for a single survey, since that is what ensures no double-counting, e.g. of the low-ell information or the priors.
+Every block goes through :func:`combine_fisher`, including when the total consists of a single block for a single survey, since that is what ensures no double-counting, e.g. of the low-ell information or the priors.
 
 The two kinds of block differ in more than the multipoles they cover, which is why they are separate functions rather than one with a switch.
 A survey block carries one Fisher matrix per spectrum type, since delensing is a property of the high-ell (usually ground-based) measurement and the forecast is quoted from the delensed spectra with the lensed and unlensed ones alongside for comparison.
-A satellite block carries a single matrix, formed from the lensed spectra, because delensing is essentially irrelevant for the large scales covered by a satellite; ``combine_fisher`` therefore adds that one matrix to the total of every spectrum type.
+A satellite block carries a single matrix, formed from the lensed spectra, because delensing is essentially irrelevant for the large scales covered by a satellite; :func:`combine_fisher` therefore adds that one matrix to the total of every spectrum type.
 A survey block also sums over temperature, polarization and the lensing deflection, while a satellite block inverts a one-by-one temperature covariance at each multipole, which is the likelihood of the temperature-only measurement a satellite contributes on those scales (since we add the polarization information via a tau prior).
 Each survey configuration contributes its own block, while the satellite contributes one once.
 
 FisherLens contains no sky fraction anywhere, so each block is scaled by its own :math:`f_\mathrm{sky}` here.
-Power spectra are in units of μK² throughout, matching ``delensing.py`` and the ``cl_residual`` entries of the ILC product files.
+Power spectra are in units of μK² throughout, matching :mod:`delensing` and the ``cl_residual`` entries of the ILC product files.
 Multipoles are held under ``el`` in every dictionary this module builds, as elsewhere in DRAFT, while the dictionaries handed to FisherLens keep the ``l`` that it requires.
 """
 
@@ -693,7 +694,7 @@ def satellite_fisher_block(powers,
 
     Notes
     -----
-    A single matrix is returned rather than one per spectrum type, because the block uses the lensed spectra whichever spectrum type the ground-based configuration is being evaluated for: delensing is a property of the ground-based measurement and does not apply to the large-scale temperature data of the satellite. ``combine_fisher`` therefore adds this one matrix to the total of every spectrum type. It is added once to the total and never once per configuration.
+    A single matrix is returned rather than one per spectrum type, because the block uses the lensed spectra whichever spectrum type the ground-based configuration is being evaluated for: delensing is a property of the ground-based measurement and does not apply to the large-scale temperature data of the satellite. :func:`combine_fisher` therefore adds this one matrix to the total of every spectrum type. It is added once to the total and never once per configuration.
 
     No non-Gaussian option is offered. The non-Gaussian covariance arises from lensing, whose contribution over :math:`\ell \in [2, 29]` in temperature is negligible.
     """
@@ -801,11 +802,11 @@ def foreground_systematic(ilc_dic, fractions, spectrum_types=None, pol_combs=Non
 
         \Delta C_\ell = \mathbf{w}^T \left(\mathbf{C}_\mathrm{true} - \mathbf{C}_\mathrm{assumed}\right) \mathbf{w}\, ,
 
-    with the ILC weights held at what the analyst computed, which for a multiplicative mismodeling per component reduces to a sum over the stored residuals,
+    with the ILC weights held at the values the assumed covariance produced rather than re-derived for the true one, which for a multiplicative mismodeling parameterized by the fraction :math:`f_c` per component :math:`c` reduces to a sum over the stored residuals,
 
     .. math::
 
-        \Delta C_\ell^{XY} = \sum_c \mathrm{frac}_c\, C_\ell^{\mathrm{res},\,c,\,XY}\, , \qquad XY \in \{TT,\, EE\}\, ,
+        \Delta C_\ell^{XY} = \sum_c f_c\, C_\ell^{\mathrm{res},c,XY}\, , \qquad XY \in \{TT,\, EE\}\, ,
 
     with :math:`\Delta C_\ell^{TE}` and :math:`\Delta C_\ell^{dd}` zero throughout, the first because ``fg_res_dic`` holds no TE and the second because the deflection carries no ILC residual.
 
@@ -1354,6 +1355,11 @@ def parameter_bias(combined, vectors):
     ------
     ValueError
         If no vectors are given, if a vector is not a bias vector, if the vectors and the total do not agree on the parameters or their order, or if a spectrum type is missing from either.
+
+    Warns
+    -----
+    UserWarning
+        Always, since the foreground-bias calculation has a limited implementation, is experimental and has not been checked against an independent calculation.
 
     Notes
     -----

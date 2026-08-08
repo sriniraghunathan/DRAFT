@@ -73,7 +73,7 @@ parameters for the extragalactic foregrounds are read from ``params.ini``.
 Forecasting
 -----------
 
-Not yet part of this repository (to be added):
+[Update] Not yet part of this repository (to be added):
 
 * Theoretical CMB spectra and iterative delensing, performed by
   `CLASS_delens <https://github.com/selimhotinli/class_delens>`_.
@@ -82,6 +82,14 @@ Not yet part of this repository (to be added):
 
 Both consume the ILC residuals produced by the component separation stage
 (§3.3 of |paper|).
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   get_fisher_forecasts
+   delensing
+   fisher
 
 Utilities
 ---------
