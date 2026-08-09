@@ -1,7 +1,7 @@
 DRAFT: Dark Radiation Anisotropy Flowdown Team forecasting tool
 ===============================================================
 
-The **DRAFT** (Dark Radiation Anisotropy Flowdown Team Tool) forecasting tool
+The **DRAFT** (Dark Radiation Anisotropy Flowdown Team) forecasting tool
 provides an end-to-end pipeline for cosmic microwave background (CMB)
 experiments, from experimental specifications to projected constraints on
 cosmological parameters. It was developed within the Maps-to-Power-Spectra

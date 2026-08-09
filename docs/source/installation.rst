@@ -22,6 +22,33 @@ Getting the code
    git clone https://github.com/sriniraghunathan/DRAFT.git
    cd DRAFT
 
+Most of the repository is the released products under ``products/``, so a full
+clone is large. Combining a partial clone with a sparse checkout fetches only
+the paths that are asked for:
+
+.. code-block:: bash
+
+   git clone --filter=blob:none --no-checkout https://github.com/sriniraghunathan/DRAFT.git
+   cd DRAFT
+   git sparse-checkout set modules docs data
+   git checkout
+
+This leaves the code, the documentation and the input data in place without the
+products. A product tree can be added later, fetching only what it holds:
+
+.. code-block:: bash
+
+   git sparse-checkout add products/202310xx_PBDR_config
+
+The tree named here is the two-site conceptual design described in
+:doc:`products` and its related configuration. Any other tree or subtree can be
+added in the same way.
+
+Note that ``--filter=blob:none`` on its own saves less than it appears to since
+checking out the whole tree then fetches the current version of every file
+anyway. The saving comes from skipping the history of those files and from
+restricting the checkout.
+
 Component separation
 --------------------
 

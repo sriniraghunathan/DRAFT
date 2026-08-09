@@ -107,6 +107,27 @@ tested on Python 3.12 and 3.13.</p>
 <span class="nb">cd</span><span class="w"> </span>DRAFT
 </pre></div>
 </div>
+<p>Most of the repository is the released products under <code class="docutils literal notranslate"><span class="pre">products/</span></code>, so a full
+clone is large. Combining a partial clone with a sparse checkout fetches only
+the paths that are asked for:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--filter<span class="o">=</span>blob:none<span class="w"> </span>--no-checkout<span class="w"> </span>https://github.com/sriniraghunathan/DRAFT.git
+<span class="nb">cd</span><span class="w"> </span>DRAFT
+git<span class="w"> </span>sparse-checkout<span class="w"> </span><span class="nb">set</span><span class="w"> </span>modules<span class="w"> </span>docs<span class="w"> </span>data
+git<span class="w"> </span>checkout
+</pre></div>
+</div>
+<p>This leaves the code, the documentation and the input data in place without the
+products. A product tree can be added later, fetching only what it holds:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>sparse-checkout<span class="w"> </span>add<span class="w"> </span>products/202310xx_PBDR_config
+</pre></div>
+</div>
+<p>The tree named here is the two-site conceptual design described in
+<a class="reference internal" href="products.html"><span class="doc">Data and products</span></a> and its related configuration. Any other tree or subtree can be
+added in the same way.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">--filter=blob:none</span></code> on its own saves less than it appears to since
+checking out the whole tree then fetches the current version of every file
+anyway. The saving comes from skipping the history of those files and from
+restricting the checkout.</p>
 </section>
 <section id="component-separation">
 <h2>Component separation<a class="headerlink" href="#component-separation" title="Link to this heading"></a></h2>
