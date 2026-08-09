@@ -1,7 +1,7 @@
 import pickle, gzip, numpy as np, glob, sys, os
 fname = 's4deepv3r025_202310xx_pbdr_config/lensing_noise_curves/s4deepv3r025_202310xx_pbdr_config_lmin100_lmax5000_lmaxtt3000.npy'
 #fname = 's4wide_202310xx_pbdr_config/lensing_noise_curves//s4wide_202310xx_pbdr_config_lmin100_lmax5000_lmaxtt3000.npy'
-#fname = 's4wide_acheived_performance_pbdr_202312xx/lensing_noise_curves/s4wide_acheived_performance_pbdr_202312xx_lmin100_lmax5000_lmaxtt3000.npy'
+#fname = 's4wide_achieved_performance_pbdr_202312xx/lensing_noise_curves/s4wide_achieved_performance_pbdr_202312xx_lmin100_lmax5000_lmaxtt3000.npy'
 dic = np.load(fname, allow_pickle = 1, encoding='latin1').item()
 #print(dic.keys()); sys.exit()
 els, cl_kk, nl_tt, nl_eb, nl_mv, nl_mvpol = dic['els'], dic['cl_kk'], dic['Nl_TT'], dic['Nl_EB'], dic['Nl_MV'], dic['Nl_MVpol']

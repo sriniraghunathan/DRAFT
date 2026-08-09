@@ -47,7 +47,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
 
           - ``s4wide``, and the detector-scaled variants ``s4wide_scaled_sobaseline``, ``s4wide_scaled_aso``, ``s4wide_single_chlat`` and ``s4wide_single_chlat_plus_aso``
           - ``s4wide_scaled_aso_plus_fulls4scaledsobaseline`` and ``s4wide_single_chlat_plus_aso_plus_fulls4scaledsobaseline``, which add a full SO-baseline-scaled CMB-S4. Only these two names accept that suffix
-          - ``s4wide_202310xx_pbdr_config``, ``s4deepv3r025_202310xx_pbdr_config``, ``s4wide_acheived_performance_pbdr_202312xx``, ``s4wide_chlat_el40``
+          - ``s4wide_202310xx_pbdr_config``, ``s4deepv3r025_202310xx_pbdr_config``, ``s4wide_achieved_performance_pbdr_202312xx``, ``s4wide_chlat_el40``
           - ``s4deep``, ``s4deepv3r025``, ``s4deepv3r025_tma``
           - the Chile-only revised configurations, ``s4_all_chile_config_<survey>---patch<N>[---year<Y>]``, optionally combined with an SO-like LAT by appending ``+advanced_so_baseline`` or ``+advanced_so_goal``, itself optionally suffixed ``---year<Z>``.
             ``<survey>`` is one of ``lat_wide``, ``lat_wide_phase2``, ``lat_wide_dc0``, ``lat_roman`` or ``lat_delensing``, and ``<N>`` selects a sky patch, both looked up in ``data/cmbs4_chile_opt_survey_patch_noise_levels.npy``.
@@ -363,7 +363,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
 
                 ##print(specs_dic); sys.exit()
 
-        elif expname == 's4wide_acheived_performance_pbdr_202312xx': #20231213
+        elif expname == 's4wide_achieved_performance_pbdr_202312xx': #20231213
             ##PBDR achieved performance. PBDR A.1.3.3
             specs_dic = {
             #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P]
