@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DRAFT: Dark Radiation Anisotropy Flowdown Team tool &mdash; DRAFT 1.0 documentation</title>
+  <title>DRAFT: Dark Radiation Anisotropy Flowdown Team forecasting tool &mdash; DRAFT 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
@@ -72,7 +72,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">DRAFT: Dark Radiation Anisotropy Flowdown Team tool</li>
+      <li class="breadcrumb-item active">DRAFT: Dark Radiation Anisotropy Flowdown Team forecasting tool</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -81,10 +81,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="draft-dark-radiation-anisotropy-flowdown-team-tool">
-<h1>DRAFT: Dark Radiation Anisotropy Flowdown Team tool<a class="headerlink" href="#draft-dark-radiation-anisotropy-flowdown-team-tool" title="Link to this heading"></a></h1>
-<p>The <strong>DRAFT</strong> (Dark Radiation Anisotropy Flowdown Team Tool) tool provides an
-end-to-end forecasting pipeline for cosmic microwave background (CMB)
+  <section id="draft-dark-radiation-anisotropy-flowdown-team-forecasting-tool">
+<h1>DRAFT: Dark Radiation Anisotropy Flowdown Team forecasting tool<a class="headerlink" href="#draft-dark-radiation-anisotropy-flowdown-team-forecasting-tool" title="Link to this heading"></a></h1>
+<p>The <strong>DRAFT</strong> (Dark Radiation Anisotropy Flowdown Team Tool) forecasting tool
+provides an end-to-end pipeline for cosmic microwave background (CMB)
 experiments, from experimental specifications to projected constraints on
 cosmological parameters. It was developed within the Maps-to-Power-Spectra
 analysis working group of the CMB-S4 collaboration and is described in §3.4 of
@@ -103,12 +103,12 @@ the damping tail and the acoustic peaks.</p>
 <section id="pipeline">
 <h2>Pipeline<a class="headerlink" href="#pipeline" title="Link to this heading"></a></h2>
 <figure class="align-default" id="id1">
-<a class="reference internal image-reference" href="_images/pipeline.png"><img alt="Schematic overview of the DRAFT pipeline, from inputs through sky preparation, component separation and forecasting to outputs." src="_images/pipeline.png" style="width: 100%;" />
+<a class="reference internal image-reference" href="_images/pipeline.png"><img alt="Schematic overview of the DRAFT forecasting pipeline, from inputs through sky preparation, component separation and forecasting to outputs." src="_images/pipeline.png" style="width: 100%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">Schematic overview of DRAFT and the pipeline it implements, from the
-instrumental and astrophysical inputs to the projected sensitivity to
-cosmological parameters. (Reproduced from <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>.)</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+<p><span class="caption-text">Schematic overview of the DRAFT forecasting tool and the pipeline it
+implements, from the instrumental and astrophysical inputs to the projected
+sensitivity to cosmological parameters. (Reproduced from <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>.)</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p><strong>Inputs.</strong> The fiducial cosmology together with the parameter step sizes for the
@@ -131,7 +131,7 @@ the auto- and cross-frequency spectra, and an internal linear combination
 optimally combines the frequency bands to extract the required component while
 down-weighting modes dominated by foregrounds or instrumental noise. The
 standard minimum-variance, constrained and partial variants are supported
-<em>[cross-ILC to be ported]</em>, leaving the residual power spectra
+<em>[cross-ILC still to be ported]</em>, leaving the residual power spectra
 <span class="math notranslate nohighlight">\(C_\ell^\mathrm{res}\)</span> (§3.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
 <p><strong>Forecasting.</strong> The post-ILC noise spectra are passed to
 <a class="reference external" href="https://github.com/selimhotinli/class_delens">CLASS_delens</a>, which computes
@@ -139,31 +139,34 @@ the theoretical CMB spectra and performs the iterative delensing. The delensed
 spectra and the lensing-reconstruction noise are then combined in a
 Fisher-matrix forecast performed by
 <a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a> to obtain projected
-constraints on the cosmological parameters. The same formalism can also be used
-to estimate the biases induced in those parameters by residual foregrounds
-(§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).
-<em>[A module driving both codes from within this repository is in preparation.]</em></p>
+constraints on the cosmological parameters. Both codes are driven from within
+this repository, which treats the surveys and sky patches of a configuration as
+independent experiments and sums their Fisher matrices (§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>). The
+same formalism can also be used to estimate the biases induced in those
+parameters by residual foregrounds, which is implemented but still experimental.</p>
 <p><strong>Outputs.</strong> The ILC residuals, the lensing-reconstruction noise, the Fisher
 matrix <span class="math notranslate nohighlight">\(F_{\alpha\beta}\)</span> and the projected uncertainties on the
 cosmological parameters, in particular <span class="math notranslate nohighlight">\(\sigma(N_\mathrm{eff})\)</span>.</p>
-<p>The component separation stage is already implemented in this repository, with
-the two forecasting parts currently being implemented. The intermediate ILC
+<p>All three stages are implemented in this repository. The intermediate ILC
 residual spectra are released for a range of survey configurations and can
 therefore also be used as inputs to other forecasting frameworks, as described
 in <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a>.</p>
 </section>
 <section id="where-to-go-next">
 <h2>Where to go next<a class="headerlink" href="#where-to-go-next" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> covers the requirements and how to run the driver,
-<a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a> the available arguments, <a class="reference internal" href="modules.html"><span class="doc">API reference</span></a> the API organized by
-pipeline stage, <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a> the input data, the released data products and their file
-format, and <a class="reference internal" href="references.html"><span class="doc">References</span></a> the literature underlying the models and methods.</p>
+<p><a class="reference internal" href="products.html"><span class="doc">Data and products</span></a> describes the input data and the released data products
+together with their file format, which is where to start if you want the
+released curves without running anything. <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> covers the
+requirements and the build, <a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a> how to run the two drivers and
+the arguments they take, <a class="reference internal" href="modules.html"><span class="doc">API reference</span></a> the API organized by pipeline stage,
+and <a class="reference internal" href="references.html"><span class="doc">References</span></a> the literature underlying the models and methods.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#getting-the-code">Getting the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#forecasting">Forecasting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#running-it">Running it</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-checkout">Verifying the checkout</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#planned-importable-api">Planned importable API</a></li>
@@ -173,6 +176,7 @@ format, and <a class="reference internal" href="references.html"><span class="do
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#first-ilc-run">First ILC run</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-options">Common options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#from-python">From Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#first-forecast">First forecast</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#reading-the-results">Reading the results</a></li>
 </ul>
 </li>

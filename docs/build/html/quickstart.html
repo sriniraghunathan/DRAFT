@@ -49,6 +49,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#first-ilc-run">First ILC run</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#common-options">Common options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#from-python">From Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#first-forecast">First forecast</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reading-the-results">Reading the results</a></li>
 </ul>
 </li>
@@ -89,9 +90,12 @@
              
   <section id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h1>
-<p>DRAFT is run from the repository root. Each run computes the ILC residual power
-spectra for one experiment configuration and writes them to a product file. See
-<a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> for the requirements.</p>
+<p>The DRAFT forecasting tool is run from the repository root and has two
+drivers. <code class="docutils literal notranslate"><span class="pre">get_ilc_residuals.py</span></code> computes the ILC residual power spectra for
+one experiment configuration and writes them to a product file.
+<code class="docutils literal notranslate"><span class="pre">get_fisher_forecasts.py</span></code> reads one or more of those products and turns them
+into a Fisher forecast. See <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> for the requirements, which
+differ between the two.</p>
 <section id="first-ilc-run">
 <h2>First ILC run<a class="headerlink" href="#first-ilc-run" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config
@@ -125,13 +129,14 @@ Planck GAL070, GAL080 and GAL090 masks intersected with the survey footprint.</p
 </pre></div>
 </div>
 <p>Because the galactic simulations are only available for a fixed set of bands,
-<code class="docutils literal notranslate"><span class="pre">-include_gal</span> <span class="pre">1</span></code> requires a configuration whose bands are 27, 39, 93, 145,
-225 and 278 GHz. Any other configuration raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> naming the
-offending bands rather than failing later in the computation.</p>
+<code class="docutils literal notranslate"><span class="pre">-include_gal</span> <span class="pre">1</span></code> requires every band of the configuration to be one of 27,
+39, 93, 145, 225 and 278 GHz. A configuration carrying any other band raises a
+<code class="docutils literal notranslate"><span class="pre">ValueError</span></code> naming the offending bands rather than failing later in the
+computation.</p>
 <p><strong>What the ILC recovers.</strong> <code class="docutils literal notranslate"><span class="pre">-final_comp</span></code> chooses the component preserved with
 unit response, one of <code class="docutils literal notranslate"><span class="pre">cmb</span></code>, <code class="docutils literal notranslate"><span class="pre">tsz</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">radio</span></code> or <code class="docutils literal notranslate"><span class="pre">cib</span></code>. The
-general default for standard calculations and forecasts is <code class="docutils literal notranslate"><span class="pre">cmb''.</span> <span class="pre">Adding</span>
-<span class="pre">``-null_comp</span></code> performs a constrained ILC that additionally nulls one or more
+general default for standard calculations and forecasts is <code class="docutils literal notranslate"><span class="pre">cmb</span></code>. Adding
+<code class="docutils literal notranslate"><span class="pre">-null_comp</span></code> performs a constrained ILC that additionally nulls one or more
 other components:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-final_comp<span class="w"> </span>cmb<span class="w"> </span>-null_comp<span class="w"> </span>tsz
@@ -149,12 +154,14 @@ applying the scaling twice.</p>
 <p><strong>Per-band noise scaling.</strong> <code class="docutils literal notranslate"><span class="pre">-noise_scalings_for_bands</span></code> multiplies the
 white-noise level of each band by a given factor, one value per band in band
 order, which is useful for exploring sensitivity to individual channels.</p>
-<p><strong>Diagnostics and bookkeeping.</strong> <code class="docutils literal notranslate"><span class="pre">-interactive_mode</span> <span class="pre">0</span></code> suppresses the
-diagnostic plots of the beam and noise spectra, which is what you want when
-running non-interactively. <code class="docutils literal notranslate"><span class="pre">-save_fg_res_and_weights</span> <span class="pre">0</span></code> omits the
-per-component residuals and the ILC weights from the product file.
-<code class="docutils literal notranslate"><span class="pre">-debug</span> <span class="pre">1</span></code> prints intermediate dictionary keys and progress. <code class="docutils literal notranslate"><span class="pre">-paramfile</span></code>
-points at an alternative parameter file in place of <code class="docutils literal notranslate"><span class="pre">params.ini</span></code>.</p>
+<p><strong>Diagnostics and bookkeeping.</strong> <code class="docutils literal notranslate"><span class="pre">-debug</span> <span class="pre">1</span></code> prints the intermediate
+dictionary keys and progress, and draws the diagnostic plots of the beams and
+the noise spectra. A default run draws nothing. <code class="docutils literal notranslate"><span class="pre">-interactive_mode</span> <span class="pre">0</span></code> then
+forces the non-interactive <code class="docutils literal notranslate"><span class="pre">Agg</span></code> backend rather than showing those figures; on
+its own, without <code class="docutils literal notranslate"><span class="pre">-debug</span></code>, it has no effect. <code class="docutils literal notranslate"><span class="pre">-save_fg_res_and_weights</span> <span class="pre">0</span></code>
+omits the per-component residuals and the ILC weights from the product file.
+<code class="docutils literal notranslate"><span class="pre">-paramfile</span></code> points at an alternative parameter file in place of
+<code class="docutils literal notranslate"><span class="pre">params.ini</span></code>.</p>
 </section>
 <section id="from-python">
 <h2>From Python<a class="headerlink" href="#from-python" title="Link to this heading"></a></h2>
@@ -178,14 +185,105 @@ further setup is needed when working from the repository root:</p>
 partial ILC, <code class="docutils literal notranslate"><span class="pre">freqcalib_fac</span></code> to apply a per-band gain, and <code class="docutils literal notranslate"><span class="pre">save</span></code> to return
 the result without writing a file.</p>
 </section>
+<section id="first-forecast">
+<h2>First forecast<a class="headerlink" href="#first-forecast" title="Link to this heading"></a></h2>
+<p>Forecasting needs the two companion codes built, as described in
+<a class="reference internal" href="installation.html"><span class="doc">Installation</span></a>. It reads ILC products rather than recomputing them, so the
+files above or the released ones under <code class="docutils literal notranslate"><span class="pre">products/</span></code> are its input:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_fisher_forecasts.py<span class="w"> </span>-ilc_fname<span class="w"> </span>&lt;wide<span class="w"> </span>product&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-fsky<span class="w"> </span><span class="m">0</span>.62<span class="w"> </span>-label<span class="w"> </span>s4_wide
+</pre></div>
+</div>
+<p>The product paths are long, so refer to <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a> for their grammar
+and <a class="reference internal" href="get_fisher_forecasts.html#module-get_fisher_forecasts" title="get_fisher_forecasts"><code class="xref py py-mod docutils literal notranslate"><span class="pre">get_fisher_forecasts</span></code></a> for a longer version of this command written
+out.</p>
+<p>Several products can be given at once. They are treated as independent
+experiments whose Fisher matrices are summed, which is how the surveys and sky
+patches of a configuration are combined into one forecast:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_fisher_forecasts.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ilc_fname<span class="w"> </span>&lt;wide<span class="w"> </span>product&gt;<span class="w"> </span>&lt;ultradeep<span class="w"> </span>product&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-fsky<span class="w"> </span><span class="m">0</span>.59<span class="w"> </span><span class="m">0</span>.03<span class="w"> </span>-label<span class="w"> </span>s4_conceptual<span class="w"> </span>-write_cache<span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-fsky</span></code> takes one value per <code class="docutils literal notranslate"><span class="pre">-ilc_fname</span></code>, either a number or <code class="docutils literal notranslate"><span class="pre">auto</span></code> to use
+the <code class="docutils literal notranslate"><span class="pre">fsky_val</span></code> recorded in that product. A product built with
+<code class="docutils literal notranslate"><span class="pre">-include_gal</span> <span class="pre">0</span></code> records none, so a number is required for it. <code class="docutils literal notranslate"><span class="pre">-label</span></code>
+names the output folder and the files within it, and is required once more than
+one product is given.</p>
+<p>Only what does not bear on a number is given on the command line. The
+cosmology, the step sizes, the multipole ranges, the delensing mode, the priors
+and the option flags are read from <code class="docutils literal notranslate"><span class="pre">params_fisher.ini</span></code>, so a forecast is
+reproducible from a file rather than from a shell history.</p>
+<p><strong>Caching.</strong> Each configuration costs one iterative CLASS_delens run plus two
+CLASS_delens runs per varied parameter. <code class="docutils literal notranslate"><span class="pre">-write_cache</span> <span class="pre">1</span></code> records the computed
+spectra and derivatives, and <code class="docutils literal notranslate"><span class="pre">-cache</span></code> reads them back in place of
+running CLASS, one value per <code class="docutils literal notranslate"><span class="pre">-ilc_fname</span></code> with <code class="docutils literal notranslate"><span class="pre">none</span></code> to run CLASS for that
+one. A rerun at a different sky fraction, with different priors or with a
+parameter held fixed then costs seconds and no CLASS run at all.</p>
+<p><strong>Other options.</strong> <code class="docutils literal notranslate"><span class="pre">-write_lensing_noise</span> <span class="pre">1</span></code> writes the
+lensing-reconstruction noise curves of each configuration. <code class="docutils literal notranslate"><span class="pre">-save</span> <span class="pre">0</span></code> returns
+the forecast without writing it, <code class="docutils literal notranslate"><span class="pre">-opfname</span></code> overrides the output path built
+from <code class="docutils literal notranslate"><span class="pre">-label</span></code>, <code class="docutils literal notranslate"><span class="pre">-overwrite</span> <span class="pre">1</span></code> replaces existing output files rather than
+refusing to, <code class="docutils literal notranslate"><span class="pre">-verbose</span> <span class="pre">0</span></code> silences the per-step reporting and <code class="docutils literal notranslate"><span class="pre">-paramfile</span></code>
+points at an alternative parameter file in place of <code class="docutils literal notranslate"><span class="pre">params_fisher.ini</span></code>.</p>
+<p>The same calculation is available through
+<a class="reference internal" href="get_fisher_forecasts.html#get_fisher_forecasts.run_forecast" title="get_fisher_forecasts.run_forecast"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_fisher_forecasts.run_forecast()</span></code></a>, which returns the forecast together
+with the path it would be written to:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">get_fisher_forecasts</span>
+
+<span class="n">product</span><span class="p">,</span> <span class="n">opfname</span> <span class="o">=</span> <span class="n">get_fisher_forecasts</span><span class="o">.</span><span class="n">run_forecast</span><span class="p">(</span>
+    <span class="p">[</span><span class="s1">&#39;&lt;wide product&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;ultradeep product&gt;&#39;</span><span class="p">],</span> <span class="n">fsky</span><span class="o">=</span><span class="p">[</span><span class="mf">0.59</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">],</span>
+    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;s4_conceptual&#39;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Three options are available only this way: <code class="docutils literal notranslate"><span class="pre">settings</span></code> to pass the parameters
+directly in place of reading a file, <code class="docutils literal notranslate"><span class="pre">fix_params</span></code> to hold parameters fixed
+after the total Fisher matrix is formed and <code class="docutils literal notranslate"><span class="pre">paths</span></code> to point at a FisherLens
+or CLASS_delens checkout elsewhere.</p>
+</section>
 <section id="reading-the-results">
 <h2>Reading the results<a class="headerlink" href="#reading-the-results" title="Link to this heading"></a></h2>
-<p>Products are written under <code class="docutils literal notranslate"><span class="pre">results/</span></code> in a directory tree that records the
-experiment, the mask and the spectra combined. The filename grammar and the
-contents of the product dictionary are documented in <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a>. The
-released products come with reader scripts,
-<code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/read_ilc_residuals.py</span></code> for the ILC residuals
-and <code class="docutils literal notranslate"><span class="pre">read_lensing_noise.py</span></code> for the lensing-noise curves.</p>
+<p>ILC products are written under <code class="docutils literal notranslate"><span class="pre">results/</span></code> in a directory tree that records
+the experiment, the mask and the spectra combined. The filename grammar and the
+contents of the product dictionary are documented in <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a>.</p>
+<p>Everything a forecast produces is written together under
+<code class="docutils literal notranslate"><span class="pre">results/forecasts/&lt;label&gt;/</span></code>, because a forecast combining several
+configurations belongs to no single ILC product. The run above leaves</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;label&gt;_forecast.npy</span></code></dt><dd><p>The forecast itself.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;ilc</span> <span class="pre">product</span> <span class="pre">name&gt;_cache.npy</span></code></dt><dd><p>One per configuration, written with <code class="docutils literal notranslate"><span class="pre">-write_cache</span> <span class="pre">1</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;ilc</span> <span class="pre">product</span> <span class="pre">name&gt;_lensing_noise.npy</span></code></dt><dd><p>One per configuration, written with <code class="docutils literal notranslate"><span class="pre">-write_lensing_noise</span> <span class="pre">1</span></code>.</p>
+</dd>
+</dl>
+<p>Each is read back by a function in <a class="reference internal" href="get_fisher_forecasts.html#module-get_fisher_forecasts" title="get_fisher_forecasts"><code class="xref py py-mod docutils literal notranslate"><span class="pre">get_fisher_forecasts</span></code></a> rather than by
+a script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">get_fisher_forecasts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gff</span>
+
+<span class="n">opdir</span> <span class="o">=</span> <span class="s1">&#39;results/forecasts/s4_conceptual&#39;</span>
+
+<span class="n">ilc</span>      <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">load_ilc_product</span><span class="p">(</span><span class="s1">&#39;&lt;ilc product&gt;&#39;</span><span class="p">)</span>
+<span class="n">forecast</span> <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">read_forecast_product</span><span class="p">(</span><span class="n">opdir</span> <span class="o">+</span> <span class="s1">&#39;/s4_conceptual_forecast.npy&#39;</span><span class="p">)</span>
+<span class="n">cache</span>    <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">read_forecast_cache</span><span class="p">(</span><span class="s1">&#39;&lt;cache file&gt;&#39;</span><span class="p">)</span>
+<span class="n">curves</span>   <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">read_lensing_noise_curves</span><span class="p">(</span><span class="s1">&#39;&lt;lensing-noise file&gt;&#39;</span><span class="p">)</span>
+
+<span class="n">gff</span><span class="o">.</span><span class="n">report_forecast</span><span class="p">(</span><span class="n">forecast</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="get_fisher_forecasts.html#get_fisher_forecasts.read_lensing_noise_curves" title="get_fisher_forecasts.read_lensing_noise_curves"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_fisher_forecasts.read_lensing_noise_curves()</span></code></a> also reads the older
+lensing-noise files released under <code class="docutils literal notranslate"><span class="pre">products/</span></code>, converting them to the
+current layout and warning that it has done so.</p>
+<p>A forecast product records the Fisher matrix, its inverse and its condition
+number under <code class="docutils literal notranslate"><span class="pre">fisher</span></code>, <code class="docutils literal notranslate"><span class="pre">covariance</span></code> and <code class="docutils literal notranslate"><span class="pre">condition</span></code>, each keyed by
+spectrum type, <code class="docutils literal notranslate"><span class="pre">unlensed</span></code>, <code class="docutils literal notranslate"><span class="pre">lensed</span></code> and <code class="docutils literal notranslate"><span class="pre">delensed</span></code>. <code class="docutils literal notranslate"><span class="pre">sigmas</span></code> is keyed
+by spectrum type and then by parameter name. <code class="docutils literal notranslate"><span class="pre">params</span></code> gives the surviving
+parameter order, with <code class="docutils literal notranslate"><span class="pre">params_supplied</span></code>, <code class="docutils literal notranslate"><span class="pre">params_fixed</span></code>, <code class="docutils literal notranslate"><span class="pre">priors</span></code>,
+<code class="docutils literal notranslate"><span class="pre">spectrum_types</span></code>, <code class="docutils literal notranslate"><span class="pre">survey_labels</span></code> and <code class="docutils literal notranslate"><span class="pre">satellite_label</span></code> recording how the
+total was formed, <code class="docutils literal notranslate"><span class="pre">configurations</span></code> holding one entry per input with its
+<code class="docutils literal notranslate"><span class="pre">fsky</span></code> and the files it produced, and <code class="docutils literal notranslate"><span class="pre">settings</span></code> the parameters the run
+used. <a class="reference internal" href="get_fisher_forecasts.html#get_fisher_forecasts.report_forecast" title="get_fisher_forecasts.report_forecast"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_fisher_forecasts.report_forecast()</span></code></a> prints the projected
+uncertainties of one spectrum type, <code class="docutils literal notranslate"><span class="pre">delensed</span></code> unless another is given.</p>
 </section>
 </section>
 

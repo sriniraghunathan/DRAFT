@@ -60,6 +60,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#released-products">Released products</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#filename-grammar">Filename grammar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#file-format">File format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lensing-noise-curves">Lensing-noise curves</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reading-the-products">Reading the products</a></li>
 </ul>
 </li>
@@ -105,7 +106,11 @@ configuration are read from <code class="docutils literal notranslate"><span cla
 spectra as precomputed pySM3 outputs (based on <a class="reference external" href="https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run">these simulations</a>),
 evaluated on the masked sky.
 <a class="reference external" href="https://so-pysm-models.readthedocs.io/en/latest/">PySM 3</a> itself is not run
-by this repository.</p>
+by this repository. The simulations carry no galactic <span class="math notranslate nohighlight">\(TE\)</span>, so it is
+constructed from the other two spectra as
+<span class="math notranslate nohighlight">\(C_\ell^{TE} = \rho_{TE} \sqrt{C_\ell^{TT} C_\ell^{EE}}\)</span> (§3.1 of
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>), with <span class="math notranslate nohighlight">\(\rho_{TE} = 0.35\)</span> and 0 for dust and synchrotron,
+respectively.</p>
 <p><strong>Extragalactic templates.</strong> <code class="docutils literal notranslate"><span class="pre">data/george_plot_bestfit_line.sav</span></code> contains
 the South Pole Telescope best-fit extragalactic foreground power spectra from
 George et al. (2015), which are the amplitudes and frequency scalings applied in
@@ -121,11 +126,6 @@ Sunyaev-Zel’dovich effect, <code class="docutils literal notranslate"><span cl
 white-noise levels for the CMB-S4 Chile-only revised configuration, tabulated
 in §2.4 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>. All other configurations have their specifications coded
 directly in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>.</p>
-<p><strong>Figures.</strong> <code class="docutils literal notranslate"><span class="pre">data/planck_gal_fg_masks_with_cmbs4_footprint.png</span></code> shows the
-galactic masks with the CMB-S4 footprint applied, and
-<code class="docutils literal notranslate"><span class="pre">data/s4_wide_specs_pbdr.png</span></code> and <code class="docutils literal notranslate"><span class="pre">data/s4_ultradeep_specs_pbdr.png</span></code> show
-the instrument and noise specifications of the conceptual design. The masks
-themselves are currently not included.</p>
 </section>
 <section id="released-products">
 <h2>Released products<a class="headerlink" href="#released-products" title="Link to this heading"></a></h2>
@@ -148,22 +148,26 @@ integration time, <code class="docutils literal notranslate"><span class="pre">f
 <code class="docutils literal notranslate"><span class="pre">lmax_12000/</span></code> repeats the same configurations to a higher maximum multipole,
 with the results being identical over the shared multipole range. <code class="docutils literal notranslate"><span class="pre">s4wide/</span></code>
 is the pre-PBDR baseline, which differs from <code class="docutils literal notranslate"><span class="pre">s4wide_202310xx_pbdr_config</span></code>
-only in the 27 and 39 GHz white-noise levels. <code class="docutils literal notranslate"><span class="pre">202303xx/</span></code> is an earlier
-generation of the same configuration and is superseded by its parent directory.</p>
+only in the 27 and 39 GHz beam widths and white-noise levels. <code class="docutils literal notranslate"><span class="pre">202303xx/</span></code> is
+an earlier generation of the same configuration and is superseded by its parent
+directory.</p>
 <p class="rubric">products/s4_all_chile_config/</p>
 <p>The Chile-only revised configuration of §2.4 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>. While two subtrees
 are currently included, <code class="docutils literal notranslate"><span class="pre">report/lmax_6500/</span></code> is the authoritative branch. It
-scans the survey year from <code class="docutils literal notranslate"><span class="pre">---year1.0</span></code> to <code class="docutils literal notranslate"><span class="pre">---year15.0</span></code>. <code class="docutils literal notranslate"><span class="pre">lmax_6500/</span></code>
-contains an earlier generation covering the same survey and patch combinations,
-but with its noise in polarization incorrectly being the same as in
-temperature. The <code class="docutils literal notranslate"><span class="pre">20250530_wrong_1_over_f_definitions/</span></code> subdirectory holds a
-superseded set computed with different atmospheric-noise definitions (currently
-only retained for reference and should not be used).</p>
+covers <code class="docutils literal notranslate"><span class="pre">advanced_so_goal</span></code>, <code class="docutils literal notranslate"><span class="pre">lat_delensing---patch1</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lat_wide---patch2</span></code> combined with <code class="docutils literal notranslate"><span class="pre">advanced_so_goal</span></code>, scanning the survey
+year from <code class="docutils literal notranslate"><span class="pre">---year1.0</span></code> to <code class="docutils literal notranslate"><span class="pre">---year15.0</span></code> for the SO-like telescope and from
+<code class="docutils literal notranslate"><span class="pre">---year1.0</span></code> to <code class="docutils literal notranslate"><span class="pre">---year10.0</span></code> for the CMB-S4 surveys. <code class="docutils literal notranslate"><span class="pre">lmax_6500/</span></code>
+contains an earlier generation, which covers a wider set of surveys and all
+four patches, but with its noise in polarization incorrectly being the same as
+in temperature. Inside the authoritative branch, the
+<code class="docutils literal notranslate"><span class="pre">20250530_wrong_1_over_f_definitions/</span></code> subdirectory holds a superseded set
+computed with different atmospheric-noise definitions (currently only retained
+for reference and should not be used).</p>
 <p class="rubric">products/20220726/</p>
 <p>The earliest tree, with its <code class="docutils literal notranslate"><span class="pre">s4wide</span></code> and <code class="docutils literal notranslate"><span class="pre">s4deepv3r025</span></code> being superseded by
 the PBDR tree. It also contains an <code class="docutils literal notranslate"><span class="pre">lmax_10000/</span></code> variant, lensing-noise
-curves and the plotting scripts that produced <code class="docutils literal notranslate"><span class="pre">ilc_residuals.png</span></code> <em>[with the
-latter being moved soon]</em>.</p>
+curves and the plotting scripts that produced <code class="docutils literal notranslate"><span class="pre">ilc_residuals.png</span></code>.</p>
 <p class="rubric">Coverage of the paper’s configurations</p>
 <table class="docutils align-default">
 <colgroup>
@@ -199,7 +203,8 @@ the sky where the CMB-S4 Hybrid wide survey and the SO-like large-aperture
 telescope overlap, <code class="docutils literal notranslate"><span class="pre">lat_delensing---patch&lt;N&gt;</span></code> is the CMB-S4 Hybrid Delensing
 survey, which has no SO combination, and <code class="docutils literal notranslate"><span class="pre">advanced_so_goal</span></code> alone covers the
 sky observed by the SO-like telescope but by neither CMB-S4 survey. Products
-exist for patches 1 to 4, of which the paper uses patches 1 and 2.</p>
+exist for patches 1 to 4 in <code class="docutils literal notranslate"><span class="pre">lmax_6500/</span></code>, while <code class="docutils literal notranslate"><span class="pre">report/lmax_6500/</span></code> contains
+a more restricted set.</p>
 <p>Three further survey variants are released: <code class="docutils literal notranslate"><span class="pre">lat_wide_dc0</span></code> corresponds to
 calculations based on the CMB-S4 Data Challenge 0 (DC 0), <code class="docutils literal notranslate"><span class="pre">lat_wide_phase2</span></code>
 is from a contingency-driven expansion phase of the CMB-S4 project that was
@@ -240,7 +245,7 @@ suffixes, is documented in <a class="reference internal" href="exp_specs.html#ex
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">galaxy0</span></code> / <code class="docutils literal notranslate"><span class="pre">galaxy1</span></code></dt><dd><p>Galactic foregrounds excluded or included.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">&lt;bands&gt;</span></code></dt><dd><p>Band centres in GHz, joined by hyphens, in the order used for the
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;bands&gt;</span></code></dt><dd><p>Band centers in GHz, joined by hyphens, in the order used for the
 covariance and the weights.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">&lt;spectra&gt;</span></code></dt><dd><p>The calculated spectra, <code class="docutils literal notranslate"><span class="pre">TT-EE</span></code> for every released product.</p>
@@ -249,6 +254,18 @@ covariance and the weights.</p>
 the Planck GAL070, GAL080 and GAL090 masks intersected with the CMB-S4
 footprint.</p>
 </dd>
+</dl>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="_images/planck_gal_fg_masks_with_cmbs4_footprint.png"><img alt="The three Planck galactic masks, each intersected with the CMB-S4 survey footprint." src="_images/planck_gal_fg_masks_with_cmbs4_footprint.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The Planck GAL070, GAL080 and GAL090 masks intersected with the CMB-S4
+footprint, selected by <code class="docutils literal notranslate"><span class="pre">galmask0</span></code>, <code class="docutils literal notranslate"><span class="pre">galmask1</span></code> and <code class="docutils literal notranslate"><span class="pre">galmask2</span></code>
+respectively. The masks themselves are currently not included with the
+repository.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">_AZ</span></code> / <code class="docutils literal notranslate"><span class="pre">_CU</span></code></dt><dd><p>Which set of galactic simulations was used. The driver writes <code class="docutils literal notranslate"><span class="pre">_CU</span></code> when
 the simulation folder path contains <code class="docutils literal notranslate"><span class="pre">CUmilta</span></code> and <code class="docutils literal notranslate"><span class="pre">_AZ</span></code> otherwise, i.e.
 <code class="docutils literal notranslate"><span class="pre">_AZ</span></code> is the default.</p>
@@ -270,10 +287,19 @@ filename. In <code class="docutils literal notranslate"><span class="pre">produc
 token inside the experiment name, with the <code class="docutils literal notranslate"><span class="pre">for&lt;T&gt;years</span></code> token not reflecting
 the depth, but the total survey duration from which the <code class="docutils literal notranslate"><span class="pre">year&lt;Y&gt;</span></code> noise
 levels were derived by rescaling with <span class="math notranslate nohighlight">\(\sqrt{T/Y}\)</span>.</p>
+<p>In the combined products, the experiment name carries a <code class="docutils literal notranslate"><span class="pre">---year&lt;Y&gt;</span></code> token on
+each side of the <code class="docutils literal notranslate"><span class="pre">+</span></code>, as in
+<code class="docutils literal notranslate"><span class="pre">s4_all_chile_config_lat_wide---patch2---year1.0+advanced_so_goal---year6.0</span></code>.
+The two differ by five years because the SO-like survey is planned to begin
+observations in 2028, five years before the earliest CMB-S4 operational start
+of 2033, so it has already accumulated data by the time CMB-S4 comes online
+(§2.4 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
 </section>
 <section id="file-format">
 <h2>File format<a class="headerlink" href="#file-format" title="Link to this heading"></a></h2>
-<p>Each <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file holds a single pickled dictionary with eleven keys.</p>
+<p>Each ILC product <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file holds a single pickled dictionary with at most
+the eleven keys below, which is what the current pipeline writes. Older
+products hold a subset, so a key should be checked for before it is used.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">el</span></code></dt><dd><p>Multipole array, shape <code class="docutils literal notranslate"><span class="pre">(lmax,)</span></code>, running from 0 to <code class="docutils literal notranslate"><span class="pre">lmax</span> <span class="pre">-</span> <span class="pre">1</span></code>. The array
 index equals the multipole.</p>
@@ -311,17 +337,49 @@ products, which use the standard minimum-variance form.</p>
 <p>Note that <code class="docutils literal notranslate"><span class="pre">cl_residual</span></code> is exactly zero below <span class="math notranslate nohighlight">\(\ell = 11\)</span>, i.e. the
 usable range is <span class="math notranslate nohighlight">\(11 \le \ell &lt;\)</span> <code class="docutils literal notranslate"><span class="pre">lmax</span></code>.</p>
 </section>
+<section id="lensing-noise-curves">
+<h2>Lensing-noise curves<a class="headerlink" href="#lensing-noise-curves" title="Link to this heading"></a></h2>
+<p>The files under <code class="docutils literal notranslate"><span class="pre">lensing_noise_curves/</span></code> follow a separate convention. They
+are named <code class="docutils literal notranslate"><span class="pre">&lt;expname&gt;_lmin&lt;L&gt;_lmax&lt;L&gt;[_lmaxtt&lt;L&gt;].npy</span></code> and hold a pickled
+dictionary with a different set of keys.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">els</span></code></dt><dd><p>Multipole array, running from 0 to <code class="docutils literal notranslate"><span class="pre">lmax</span></code> inclusive, so it has
+<code class="docutils literal notranslate"><span class="pre">lmax</span> <span class="pre">+</span> <span class="pre">1</span></code> entries rather than the <code class="docutils literal notranslate"><span class="pre">lmax</span></code> of the ILC products.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Nl_TT</span></code>, <code class="docutils literal notranslate"><span class="pre">Nl_EE</span></code>, <code class="docutils literal notranslate"><span class="pre">Nl_ET</span></code>, <code class="docutils literal notranslate"><span class="pre">Nl_TB</span></code>, <code class="docutils literal notranslate"><span class="pre">Nl_EB</span></code>, <code class="docutils literal notranslate"><span class="pre">Nl_MV</span></code>, <code class="docutils literal notranslate"><span class="pre">Nl_MVpol</span></code></dt><dd><p>Lensing-reconstruction noise <span class="math notranslate nohighlight">\(N_\ell^{dd}\)</span> for the individual
+quadratic estimators, for their minimum-variance combination and for the
+polarization-only combination. These are stored as complex arrays with a
+vanishing imaginary part and are undefined at <span class="math notranslate nohighlight">\(\ell = 0\)</span>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cl_kk</span></code></dt><dd><p>Fiducial lensing convergence power spectrum <span class="math notranslate nohighlight">\(C_\ell^{\kappa\kappa}\)</span>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">lmin</span></code>, <code class="docutils literal notranslate"><span class="pre">lmax</span></code>, <code class="docutils literal notranslate"><span class="pre">lmax_tt</span></code></dt><dd><p>Multipole cuts applied to the reconstruction, matching the filename tokens.
+<code class="docutils literal notranslate"><span class="pre">lmax_tt</span></code> is the separate temperature cut.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">beam_arcmins</span></code>, <code class="docutils literal notranslate"><span class="pre">noise_T_uKarmins</span></code></dt><dd><p>Unused, and left at <code class="docutils literal notranslate"><span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">0.0</span></code> in every released file, because the
+reconstruction was run from the ILC residuals rather than from a single
+beam and white-noise level.</p>
+</dd>
+</dl>
+</section>
 <section id="reading-the-products">
 <h2>Reading the products<a class="headerlink" href="#reading-the-products" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/read_ilc_residuals.py</span></code> and
-<code class="docutils literal notranslate"><span class="pre">read_lensing_noise.py</span></code> load a single file and plot it, and
-<code class="docutils literal notranslate"><span class="pre">make_ascii.py</span></code> writes the plain-text exports. All three take the filename
-from a variable at the top of the script rather than from the command line.
-<code class="docutils literal notranslate"><span class="pre">products/20220726/</span></code> contains its own plotting scripts, which glob the
-current directory and must therefore be run from inside it.
-<em>[A ``load_product()`` function in a new module, superseding these scripts and
-applicable to all three trees, is to be added.]</em></p>
-<p>Loading a product directly requires both <code class="docutils literal notranslate"><span class="pre">allow_pickle</span></code> and the <code class="docutils literal notranslate"><span class="pre">latin1</span></code>
+<p><a class="reference internal" href="get_fisher_forecasts.html#module-get_fisher_forecasts" title="get_fisher_forecasts"><code class="xref py py-mod docutils literal notranslate"><span class="pre">get_fisher_forecasts</span></code></a> supplies a reader for each kind of file, which can
+be used as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">get_fisher_forecasts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gff</span>
+
+<span class="n">ilc</span>    <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">load_ilc_product</span><span class="p">(</span><span class="s1">&#39;&lt;ilc product&gt;&#39;</span><span class="p">)</span>
+<span class="n">curves</span> <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">read_lensing_noise_curves</span><span class="p">(</span><span class="s1">&#39;&lt;lensing-noise file&gt;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="get_fisher_forecasts.html#get_fisher_forecasts.load_ilc_product" title="get_fisher_forecasts.load_ilc_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_fisher_forecasts.load_ilc_product()</span></code></a> reads a product from any of the
+three trees, whichever subset of the keys it holds, and returns the same
+dictionary that <a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.run_ilc()</span></code></a> returns in memory.
+<a class="reference internal" href="get_fisher_forecasts.html#get_fisher_forecasts.read_lensing_noise_curves" title="get_fisher_forecasts.read_lensing_noise_curves"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_fisher_forecasts.read_lensing_noise_curves()</span></code></a> converts files with
+an older layout to the current one, warning that it has done so. The forecast
+products written under <code class="docutils literal notranslate"><span class="pre">results/forecasts/</span></code> have their own readers, described
+in <a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a>.</p>
+<p>Loading a file without them requires both <code class="docutils literal notranslate"><span class="pre">allow_pickle</span></code> and the <code class="docutils literal notranslate"><span class="pre">latin1</span></code>
 encoding, the latter a compatibility setting for pickles written under
 Python 2:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -331,9 +389,16 @@ Python 2:</p>
 <span class="n">cl_residual</span> <span class="o">=</span> <span class="n">res_dic</span><span class="p">[</span><span class="s1">&#39;cl_residual&#39;</span><span class="p">][</span><span class="s1">&#39;TT&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
+<p>Each tree also carries its own scripts, which predate these readers.
+<code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/read_ilc_residuals.py</span></code> and
+<code class="docutils literal notranslate"><span class="pre">read_lensing_noise.py</span></code> load a single file and plot it, and <code class="docutils literal notranslate"><span class="pre">make_ascii.py</span></code>
+writes the plain-text exports. All three take the filename from a variable at
+the top of the script rather than from the command line, and the scripts under
+<code class="docutils literal notranslate"><span class="pre">products/20220726/</span></code> glob the current directory and must therefore be run
+from inside it.</p>
 <p>In addition, some plain-text exports accompany a subset of the products under
-<code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/</span></code>. They cover ILC residuals for <code class="docutils literal notranslate"><span class="pre">galaxy0</span></code>
-configurations and some lensing-noise curves.</p>
+<code class="docutils literal notranslate"><span class="pre">products/202310xx_PBDR_config/</span></code>, covering ILC residuals and some
+lensing-noise curves.</p>
 </section>
 </section>
 

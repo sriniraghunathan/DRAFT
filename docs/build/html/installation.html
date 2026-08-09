@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Quickstart" href="quickstart.html" />
-    <link rel="prev" title="DRAFT: Dark Radiation Anisotropy Flowdown Team tool" href="index.html" /> 
+    <link rel="prev" title="DRAFT: Dark Radiation Anisotropy Flowdown Team forecasting tool" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,8 +45,9 @@
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-the-code">Getting the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#component-separation">Component separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forecasting">Forecasting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-it">Running it</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#verifying-the-checkout">Verifying the checkout</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#planned-importable-api">Planned importable API</a></li>
@@ -90,37 +91,71 @@
              
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
-<p>DRAFT is used by cloning the repository and running the driver from the
-repository root. There is no installable package <em>yet</em> (see <a class="reference internal" href="#planned-importable-api">Planned importable
-API</a> below).</p>
-<section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p>The DRAFT forecasting tool is used by cloning the repository and running the
+drivers from the repository root. There is no installable package <em>yet</em> (see
+<a class="reference internal" href="#planned-importable-api">Planned importable API</a> below).</p>
+<p>The component separation stage needs only a few standard Python packages. The
+forecasting stage additionally needs the two companion codes, which are built
+from source. A reader who only wants ILC residuals can stop after
+<a class="reference internal" href="#component-separation">Component separation</a> or skip the build entirely and use the released
+products described in <a class="reference internal" href="products.html"><span class="doc">Data and products</span></a>.</p>
+<p>The Python versions below are what the dependencies require. DRAFT itself is
+tested on Python 3.12 and 3.13.</p>
+<section id="getting-the-code">
+<h2>Getting the code<a class="headerlink" href="#getting-the-code" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sriniraghunathan/DRAFT.git
+<span class="nb">cd</span><span class="w"> </span>DRAFT
+</pre></div>
+</div>
+</section>
+<section id="component-separation">
+<h2>Component separation<a class="headerlink" href="#component-separation" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Python 3.12+.</p></li>
-<li><p>numpy, scipy, matplotlib.</p></li>
+<li><p>Python 3.9+.</p></li>
+<li><p>numpy, scipy.</p></li>
 </ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy
+</pre></div>
+</div>
 <p>Optional:</p>
 <ul class="simple">
+<li><p>matplotlib, needed only by the diagnostic plotting helpers
+<a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.plot_beams" title="get_ilc_residuals.plot_beams"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.plot_beams()</span></code></a> and
+<a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.plot_noise_spectra" title="get_ilc_residuals.plot_noise_spectra"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.plot_noise_spectra()</span></code></a>, which import it lazily and are
+reached only when <code class="docutils literal notranslate"><span class="pre">-debug</span></code> is set. A default run draws nothing and never
+imports it.</p></li>
 <li><p>healpy, needed only by <a class="reference internal" href="misc.html#misc.healpix_rotate_coords" title="misc.healpix_rotate_coords"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.healpix_rotate_coords()</span></code></a>, which imports it
 lazily and raises <code class="docutils literal notranslate"><span class="pre">ImportError</span></code> if it is missing. The component
 separation pipeline does not use it.</p></li>
 </ul>
 <p>The galactic foreground spectra are read from precomputed pySM3 outputs shipped
-under <code class="docutils literal notranslate"><span class="pre">data/</span></code>, so pySM3 itself is not required. The delensing and
-Fisher-matrix stages are performed by two companion codes with their own
-requirements, listed in <a class="reference internal" href="modules.html"><span class="doc">API reference</span></a>.</p>
+under <code class="docutils literal notranslate"><span class="pre">data/</span></code>, so pySM3 itself is not required.</p>
 </section>
-<section id="getting-the-code">
-<h2>Getting the code<a class="headerlink" href="#getting-the-code" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sriniraghunathan/DRAFT.git
-<span class="nb">cd</span><span class="w"> </span>DRAFT
-pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib
+<section id="forecasting">
+<h2>Forecasting<a class="headerlink" href="#forecasting" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Python 3.10+, which is the floor set by CAMB.</p></li>
+<li><p>camb.</p></li>
+<li><p>A C compiler and <code class="docutils literal notranslate"><span class="pre">make</span></code>, to build CLASS_delens.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a> is a git submodule
+of this repository and brings
+<a class="reference external" href="https://github.com/selimhotinli/class_delens">CLASS_delens</a> as a submodule
+of its own, so the checkout has to be recursive:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>camb
+git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+<span class="nb">cd</span><span class="w"> </span>FisherLens/CLASS_delens
+make<span class="w"> </span>class
 </pre></div>
 </div>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">class</span></code> target rather than <code class="docutils literal notranslate"><span class="pre">make</span></code> or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">all</span></code>, which also build
+the <code class="docutils literal notranslate"><span class="pre">classy</span></code> Python wrapper and need Cython.</p>
+<p>CAMB is required even though nothing on the CLASS code path, and therefore
+nothing in DRAFT, calls it since FisherLens imports it at module scope.</p>
 </section>
 <section id="running-it">
 <h2>Running it<a class="headerlink" href="#running-it" title="Link to this heading"></a></h2>
-<p>All commands are run from the repository root, since the modules are currently
+<p>All commands are run from the repository root since the modules are currently
 imported by name rather than as an installed package:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>s4wide_202310xx_pbdr_config<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-include_gal<span class="w"> </span><span class="m">1</span><span class="w"> </span>-which_gal_mask<span class="w"> </span><span class="m">2</span><span class="w"> </span>-final_comp<span class="w"> </span>cmb
@@ -141,13 +176,23 @@ output format.</p>
 <span class="kn">import</span><span class="w"> </span><span class="nn">exp_specs</span><span class="o">,</span><span class="w"> </span><span class="nn">foregrounds</span><span class="o">,</span><span class="w"> </span><span class="nn">ilc</span><span class="o">,</span><span class="w"> </span><span class="nn">misc</span>
 </pre></div>
 </div>
+<p>Once the companion codes are built, <a class="reference internal" href="delensing.html#delensing.check_setup" title="delensing.check_setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.check_setup()</span></code></a> reports
+whether FisherLens imports, whether CLASS has been compiled and whether the
+scratch directory is writable. It collects every problem before raising, so a
+fresh checkout reports all of them at once:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;modules&#39;</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">delensing</span>
+<span class="n">delensing</span><span class="o">.</span><span class="n">check_setup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 <section id="planned-importable-api">
 <h2>Planned importable API<a class="headerlink" href="#planned-importable-api" title="Link to this heading"></a></h2>
 <p>A small importable API is planned, initially unstable, e.g. with names
 potentially changing initially. The released product files are however
 treated as stable. Until then, <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> does not work.
-<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> is incomplete. (To be added.)</p>
+<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> is incomplete. <em>[To be added.]</em></p>
 </section>
 </section>
 
@@ -155,7 +200,7 @@ treated as stable. Until then, <code class="docutils literal notranslate"><span 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="DRAFT: Dark Radiation Anisotropy Flowdown Team tool" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="DRAFT: Dark Radiation Anisotropy Flowdown Team forecasting tool" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -90,14 +90,14 @@
              
   <section id="adding-an-experiment">
 <h1>Adding an experiment<a class="headerlink" href="#adding-an-experiment" title="Link to this heading"></a></h1>
-<p>Experiment configurations are defined in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>, a
+<p>Experimental configurations are defined in <a class="reference internal" href="exp_specs.html#exp_specs.get_exp_specs" title="exp_specs.get_exp_specs"><code class="xref py py-func docutils literal notranslate"><span class="pre">exp_specs.get_exp_specs()</span></code></a>, a
 single dispatch on <code class="docutils literal notranslate"><span class="pre">expname</span></code> that returns the per-band beams, white-noise
 levels and atmospheric-noise parameters. Adding a configuration means adding
 one branch to that dispatch, with no other changes in the pipeline necessary.</p>
 <section id="required-information">
 <h2>Required information<a class="headerlink" href="#required-information" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">specs_dic</span></code></dt><dd><p>The specifications, keyed by band centre in GHz. Each value is the
+<dt><code class="docutils literal notranslate"><span class="pre">specs_dic</span></code></dt><dd><p>The specifications, keyed by band center in GHz. Each value is the
 seven-element list
 <code class="docutils literal notranslate"><span class="pre">[beam_fwhm,</span> <span class="pre">delta_T,</span> <span class="pre">elknee_T,</span> <span class="pre">alphaknee_T,</span> <span class="pre">delta_P,</span> <span class="pre">elknee_P,</span> <span class="pre">alphaknee_P]</span></code>,
 with the beam full-width at half-maximum in arcmin and the white-noise
@@ -112,7 +112,7 @@ every band to itself alone.</p>
 </dl>
 <p><code class="docutils literal notranslate"><span class="pre">Nred_dic</span></code> is initialized to an empty dictionary before the dispatch and only
 needs setting for configurations that model red noise explicitly, which at
-present is the Simons Observatory family.</p>
+present is only the <code class="docutils literal notranslate"><span class="pre">sobaseline</span></code> and <code class="docutils literal notranslate"><span class="pre">sogoal</span></code> branch.</p>
 </section>
 <section id="worked-example">
 <h2>Worked example<a class="headerlink" href="#worked-example" title="Link to this heading"></a></h2>
@@ -120,7 +120,7 @@ present is the Simons Observatory family.</p>
 self-contained configuration:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="n">expname</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;planck&#39;</span><span class="p">:</span>
     <span class="c1">#Planck instrumental noise, from Table 1 of Allison et al. 2015 (arXiv:1509.07471).</span>
-    <span class="n">no_pol_noise</span> <span class="o">=</span> <span class="mf">1e4</span>  <span class="c1">#μK-arcmin</span>
+    <span class="n">no_pol_noise</span> <span class="o">=</span> <span class="mf">1e4</span>  <span class="c1">#μK arcmin</span>
     <span class="n">specs_dic</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1">#freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P]</span>
     <span class="mi">30</span><span class="p">:</span>  <span class="p">[</span><span class="mf">33.</span><span class="p">,</span> <span class="mf">145.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">no_pol_noise</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
@@ -139,17 +139,17 @@ self-contained configuration:</p>
         <span class="n">corr_noise_bands</span><span class="p">[</span><span class="n">nu</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nu</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Two conventions are visible here. Atmospheric noise is switched off in every
-band with <code class="docutils literal notranslate"><span class="pre">elknee</span> <span class="pre">=</span> <span class="pre">-1</span></code>, since it is not relevant for a satellite, and the
+<p>Two conventions are visible here: (i) Atmospheric noise is switched off in every
+band with <code class="docutils literal notranslate"><span class="pre">elknee</span> <span class="pre">=</span> <span class="pre">-1</span></code> since it is not relevant for a satellite and (ii) the
 two channels without quoted polarization sensitivity are given a deliberately
-large <code class="docutils literal notranslate"><span class="pre">delta_P</span></code> of <span class="math notranslate nohighlight">\(10^4\)</span> μK arcmin, so that the ILC down-weights them
+large <code class="docutils literal notranslate"><span class="pre">delta_P</span></code> of <span class="math notranslate nohighlight">\(10^4\)</span> μK arcmin so that the ILC down-weights them
 in polarization rather than excluding them.</p>
 </section>
 <section id="adding-your-own">
 <h2>Adding your own<a class="headerlink" href="#adding-your-own" title="Link to this heading"></a></h2>
 <p>Insert an <code class="docutils literal notranslate"><span class="pre">elif</span></code> branch before the final <code class="docutils literal notranslate"><span class="pre">else</span></code> that raises for an
 unrecognized name, following the pattern above, then run it:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>mytelescope<span class="w"> </span>-interactive_mode<span class="w"> </span><span class="m">0</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>get_ilc_residuals.py<span class="w"> </span>-expname<span class="w"> </span>mytelescope
 </pre></div>
 </div>
 <p>The white-noise levels are printed per band, so a first check is that the
@@ -170,14 +170,15 @@ of the same configuration with different observing times write to the same path
 and the second silently overwrites the first. Until this is fixed, either
 include <code class="docutils literal notranslate"><span class="pre">s4</span></code> in the name or move each result before rerunning.</p>
 <p><strong>Galactic foregrounds need the standard bands.</strong> <code class="docutils literal notranslate"><span class="pre">-include_gal</span> <span class="pre">1</span></code> requires
-the frequency bands of the configuration to be 27, 39, 93, 145, 225 and 278 GHz
-because the precomputed simulations exist only for those. Any other set raises
-a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> naming the bands that are missing.</p>
+every band of the configuration to be one of 27, 39, 93, 145, 225 and 278 GHz
+because the precomputed simulations exist only for those. A configuration using
+fewer of them is accepted, but one carrying any other band raises a
+<code class="docutils literal notranslate"><span class="pre">ValueError</span></code> naming the bands that have no simulations.</p>
 <p><strong>Check that your branch is reachable.</strong> The dispatch is long and several parts
 of the code may be unreachable or are overwritten. After adding a branch,
 confirm the printed noise levels match your input.</p>
 <p><em>[Longer term, the specifications are to be moved out of the dispatch into a data
-file or per-experiment dictionaries, so that adding a configuration does not
+file or per-experiment dictionaries so that adding a configuration does not
 require editing a long chain.]</em></p>
 </section>
 </section>

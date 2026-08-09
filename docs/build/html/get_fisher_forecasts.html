@@ -1,0 +1,833 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>get_fisher_forecasts module &mdash; DRAFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2882ecd3"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="delensing module" href="delensing.html" />
+    <link rel="prev" title="misc module" href="misc.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DRAFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_experiment.html">Adding an experiment</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="modules.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#component-separation">Component separation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html#forecasting">Forecasting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="products.html">Data and products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DRAFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API reference</a></li>
+      <li class="breadcrumb-item active">get_fisher_forecasts module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-get_fisher_forecasts">
+<span id="get-fisher-forecasts-module"></span><h1>get_fisher_forecasts module<a class="headerlink" href="#module-get_fisher_forecasts" title="Link to this heading"></a></h1>
+<p>Compute delensed CMB spectra and Fisher forecasts from ILC residuals.</p>
+<p>This is the driver for the forecasting stage of DRAFT.
+It reads the residual power spectra produced by the component separation in <a class="reference internal" href="get_ilc_residuals.html#module-get_ilc_residuals" title="get_ilc_residuals"><code class="xref py py-mod docutils literal notranslate"><span class="pre">get_ilc_residuals</span></code></a>, combines them with the effective satellite noise, drives the iterative delensing of CLASS_delens through FisherLens, and reduces the result to a Fisher matrix and projected parameter uncertainties.</p>
+<p>Several ILC products are treated as independent experiments whose Fisher matrices are summed, which is how different surveys are combined into a single forecast.</p>
+<p>Run from the repository root (example for the CMB-S4 Wide and CMB-S4 Ultra-deep surveys of the conceptual/preliminary baseline design):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="n">get_fisher_forecasts</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">ilc_fname</span> <span class="n">products</span><span class="o">/</span><span class="mi">202310</span><span class="n">xx_PBDR_config</span><span class="o">/</span><span class="n">s4wide_202310xx_pbdr_config</span><span class="o">/</span><span class="n">s4wide_202310xx_pbdr_config_ilc_galaxy1_27</span><span class="o">-</span><span class="mi">39</span><span class="o">-</span><span class="mi">93</span><span class="o">-</span><span class="mi">145</span><span class="o">-</span><span class="mi">225</span><span class="o">-</span><span class="mi">278</span><span class="n">_TT</span><span class="o">-</span><span class="n">EE_galmask2_AZ_lmax6500_for7years</span><span class="o">.</span><span class="n">npy</span> <span class="n">products</span><span class="o">/</span><span class="mi">202310</span><span class="n">xx_PBDR_config</span><span class="o">/</span><span class="n">s4deepv3r025_202310xx_pbdr_config</span><span class="o">/</span><span class="n">s4deepv3r025_202310xx_pbdr_config_ilc_galaxy0_20</span><span class="o">-</span><span class="mi">27</span><span class="o">-</span><span class="mi">39</span><span class="o">-</span><span class="mi">93</span><span class="o">-</span><span class="mi">145</span><span class="o">-</span><span class="mi">225</span><span class="o">-</span><span class="mi">278</span><span class="n">_TT</span><span class="o">-</span><span class="n">EE_lmax6500_for7years</span><span class="o">.</span><span class="n">npy</span> <span class="o">-</span><span class="n">fsky</span> <span class="mf">0.59</span> <span class="mf">0.03</span> <span class="o">-</span><span class="n">label</span> <span class="n">s4_conceptual</span> <span class="o">-</span><span class="n">write_cache</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>Only what does not bear on a number is given on the command line. The cosmology, the step sizes, the multipole ranges, the delensing mode, the priors and the option flags are read from <code class="docutils literal notranslate"><span class="pre">params_fisher.ini</span></code> so that a forecast is reproducible from a file rather than from a shell history.</p>
+<p>The same calculation is available to other scripts through <a class="reference internal" href="#get_fisher_forecasts.run_forecast" title="get_fisher_forecasts.run_forecast"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_forecast()</span></code></a>, which accepts the command line options as keyword arguments and returns the forecast together with the path it would be written to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">get_fisher_forecasts</span>
+
+<span class="n">product</span><span class="p">,</span> <span class="n">opfname</span> <span class="o">=</span> <span class="n">get_fisher_forecasts</span><span class="o">.</span><span class="n">run_forecast</span><span class="p">([</span><span class="s1">&#39;products/.../s4wide_..._for7years.npy&#39;</span><span class="p">,</span> <span class="s1">&#39;products/.../s4deepv3r025_..._for7years.npy&#39;</span><span class="p">],</span> <span class="n">fsky</span><span class="o">=</span><span class="p">[</span><span class="mf">0.59</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;s4_conceptual&#39;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each configuration costs one iterative CLASS_delens run plus two per varied parameter since the delensed spectra and their derivatives depend on the noise of that configuration.
+Those derivatives are therefore the expensive part of any forecast and <a class="reference internal" href="#get_fisher_forecasts.write_forecast_cache" title="get_fisher_forecasts.write_forecast_cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_forecast_cache()</span></code></a> records them so that <code class="docutils literal notranslate"><span class="pre">-cache</span></code> can read them back: a rerun at a different sky fraction, with different priors or with a parameter held fixed then costs seconds and no CLASS run at all.</p>
+<p>Nothing need be written to disk: <a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.run_ilc()</span></code></a> returns the same dictionary that <a class="reference internal" href="#get_fisher_forecasts.load_ilc_product" title="get_fisher_forecasts.load_ilc_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_ilc_product()</span></code></a> reads back, so a script can run component separation and forecasting in one process:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">get_ilc_residuals</span>
+
+<span class="n">ilc_dic</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_ilc_residuals</span><span class="o">.</span><span class="n">run_ilc</span><span class="p">(</span><span class="s1">&#39;s4wide_202310xx_pbdr_config&#39;</span><span class="p">,</span> <span class="n">include_gal</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">which_gal_mask</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">product</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_fisher_forecasts</span><span class="o">.</span><span class="n">run_forecast</span><span class="p">(</span><span class="n">ilc_dic</span><span class="p">,</span> <span class="n">fsky</span><span class="o">=</span><span class="mf">0.59</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;s4wide&#39;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<p>Effective noise assembly and the CLASS_delens calls live in <a class="reference internal" href="delensing.html#module-delensing" title="delensing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">delensing</span></code></a>, and the Fisher algebra in <a class="reference internal" href="fisher.html#module-fisher" title="fisher"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fisher</span></code></a>.
+This module holds only the input and output handling, the parameter file and the command line so that neither of those modules depends on a file format.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.PARAMFILE">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">PARAMFILE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'&lt;repository</span> <span class="pre">root&gt;/params_fisher.ini'</span></span><a class="headerlink" href="#get_fisher_forecasts.PARAMFILE" title="Link to this definition"></a></dt>
+<dd><p>Default parameter file for the forecasting stage, kept separate from the <code class="docutils literal notranslate"><span class="pre">params.ini</span></code> that configures the component separation.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.FID_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">FID_PREFIX</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'fid_'</span></span><a class="headerlink" href="#get_fisher_forecasts.FID_PREFIX" title="Link to this definition"></a></dt>
+<dd><p>Prefix marking a fiducial cosmological parameter value in the parameter file.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.STEP_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">STEP_PREFIX</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'step_'</span></span><a class="headerlink" href="#get_fisher_forecasts.STEP_PREFIX" title="Link to this definition"></a></dt>
+<dd><p>Prefix marking a derivative step size in the parameter file.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.FG_BIAS_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">FG_BIAS_PREFIX</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'fg_bias_'</span></span><a class="headerlink" href="#get_fisher_forecasts.FG_BIAS_PREFIX" title="Link to this definition"></a></dt>
+<dd><p>Prefix marking a foreground mismodeling fraction in the parameter file.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.PRIOR_PREFIX">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">PRIOR_PREFIX</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'prior_'</span></span><a class="headerlink" href="#get_fisher_forecasts.PRIOR_PREFIX" title="Link to this definition"></a></dt>
+<dd><p>Prefix marking a Gaussian prior width in the parameter file.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.LEGACY_LENSING_ESTIMATORS">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">LEGACY_LENSING_ESTIMATORS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'Nl_EB':</span> <span class="pre">'EB',</span> <span class="pre">'Nl_EE':</span> <span class="pre">'EE',</span> <span class="pre">'Nl_ET':</span> <span class="pre">'TE',</span> <span class="pre">'Nl_MV':</span> <span class="pre">'MV',</span> <span class="pre">'Nl_MVpol':</span> <span class="pre">'MVpol',</span> <span class="pre">'Nl_TB':</span> <span class="pre">'TB',</span> <span class="pre">'Nl_TT':</span> <span class="pre">'TT'}</span></span><a class="headerlink" href="#get_fisher_forecasts.LEGACY_LENSING_ESTIMATORS" title="Link to this definition"></a></dt>
+<dd><p>Estimator names in the lensing-noise products under <code class="docutils literal notranslate"><span class="pre">products/</span></code>, against the names used since.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.LEGACY_LENSING_SETTINGS">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">LEGACY_LENSING_SETTINGS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'lmax':</span> <span class="pre">'lmax_P_lensing',</span> <span class="pre">'lmax_tt':</span> <span class="pre">'lmax_T_lensing',</span> <span class="pre">'lmin':</span> <span class="pre">'lmin_lensing'}</span></span><a class="headerlink" href="#get_fisher_forecasts.LEGACY_LENSING_SETTINGS" title="Link to this definition"></a></dt>
+<dd><p>Multipole cuts recorded in the older lensing-noise products, against the names used since.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.FORECAST_DIR">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">FORECAST_DIR</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'&lt;repository</span> <span class="pre">root&gt;/results/forecasts'</span></span><a class="headerlink" href="#get_fisher_forecasts.FORECAST_DIR" title="Link to this definition"></a></dt>
+<dd><p>Folder the forecast products are written under, one subfolder per forecast.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.FSKY_AUTO">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">FSKY_AUTO</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'auto'</span></span><a class="headerlink" href="#get_fisher_forecasts.FSKY_AUTO" title="Link to this definition"></a></dt>
+<dd><p>Value of <code class="docutils literal notranslate"><span class="pre">-fsky</span></code> asking for the sky fraction recorded in that ILC product rather than a supplied one.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.CACHE_NONE">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">CACHE_NONE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'none'</span></span><a class="headerlink" href="#get_fisher_forecasts.CACHE_NONE" title="Link to this definition"></a></dt>
+<dd><p>Value of <code class="docutils literal notranslate"><span class="pre">-cache</span></code> asking for CLASS to be run for that configuration rather than a cache read.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="get_fisher_forecasts.LBUFFER_FRACTION">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">LBUFFER_FRACTION</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.05</span></span><a class="headerlink" href="#get_fisher_forecasts.LBUFFER_FRACTION" title="Link to this definition"></a></dt>
+<dd><p>Fraction of <code class="docutils literal notranslate"><span class="pre">lmax</span></code> below which <code class="docutils literal notranslate"><span class="pre">lbuffer</span></code> is reported as leaving too little margin (guard against a mistyped parameter file rather than a convergence criterion).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.parse_args">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.parse_args" title="Link to this definition"></a></dt>
+<dd><p>Parse the command line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Argument list. Default is <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">argparse.Namespace</span></code></a> – Parsed arguments. The attribute names match the keyword arguments of <a class="reference internal" href="#get_fisher_forecasts.run_forecast" title="get_fisher_forecasts.run_forecast"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_forecast()</span></code></a>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Only the arguments that do not change a number appear here: which products to read, how much sky each covers, where the output goes and how loud the run is.
+Everything that bears on the physics, meaning the cosmology, the step sizes, the multipole ranges, the delensing mode, the priors and the option flags, is read from the parameter file so that a forecast is reproducible from a file rather than from a shell history.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.check_lbuffer">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">check_lbuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lbuffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">LBUFFER_FRACTION</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.check_lbuffer" title="Link to this definition"></a></dt>
+<dd><p>Warn when the buffer above <code class="docutils literal notranslate"><span class="pre">lmax</span></code> leaves too little margin for the lensing convolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lbuffer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Multipoles CLASS is asked to compute beyond <code class="docutils literal notranslate"><span class="pre">lmax</span></code>.</p></li>
+<li><p><strong>lmax</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Highest multipole entering the Fisher sum.</p></li>
+<li><p><strong>fraction</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Fraction of <code class="docutils literal notranslate"><span class="pre">lmax</span></code> below which the buffer is reported. Default is <a class="reference internal" href="#get_fisher_forecasts.LBUFFER_FRACTION" title="get_fisher_forecasts.LBUFFER_FRACTION"><code class="xref py py-data docutils literal notranslate"><span class="pre">LBUFFER_FRACTION</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> – The buffer below which the warning fires, for reporting.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">lbuffer</span></code> is negative or <code class="docutils literal notranslate"><span class="pre">lmax</span></code> is not positive.</p>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – If <code class="docutils literal notranslate"><span class="pre">lbuffer</span></code> falls below <code class="docutils literal notranslate"><span class="pre">fraction</span></code> times <code class="docutils literal notranslate"><span class="pre">lmax</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Lensing mixes neighboring multipoles, so <span class="math notranslate nohighlight">\(C_\ell\)</span> at <span class="math notranslate nohighlight">\(\ell_\mathrm{max}\)</span> is only accurate if CLASS computed some way past it.
+<a class="reference internal" href="delensing.html#delensing.check_ilc_product" title="delensing.check_ilc_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.check_ilc_product()</span></code></a> already refuses an ILC product that does not reach <code class="docutils literal notranslate"><span class="pre">lmax</span> <span class="pre">+</span> <span class="pre">lbuffer</span></code>, but the buffer itself is not checked, so spectra that are wrong at the top of the range may be calculated incorrectly with no complaint anywhere.</p>
+<p>The threshold is a guard against a mistyped parameter file and not a convergence criterion.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.load_fisher_params">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">load_fisher_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paramfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PARAMFILE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.load_fisher_params" title="Link to this definition"></a></dt>
+<dd><p>Read and validate the forecasting parameter file.</p>
+<p>The file uses the same flat <code class="docutils literal notranslate"><span class="pre">key</span> <span class="pre">=</span> <span class="pre">value</span></code> dialect as <code class="docutils literal notranslate"><span class="pre">params.ini</span></code> and is read with <a class="reference internal" href="misc.html#misc.get_param_dict" title="misc.get_param_dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_param_dict()</span></code></a>.
+Three groups of entries are collected by prefix rather than by section since that dialect has none: <code class="docutils literal notranslate"><span class="pre">fid_&lt;name&gt;</span></code> gives a fiducial cosmological parameter, <code class="docutils literal notranslate"><span class="pre">step_&lt;name&gt;</span></code> its derivative step size and <code class="docutils literal notranslate"><span class="pre">prior_&lt;name&gt;</span></code> the width of a Gaussian prior on it.
+Everything else is passed through as a setting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>paramfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Path to the parameter file. Default is <a class="reference internal" href="#get_fisher_forecasts.PARAMFILE" title="get_fisher_forecasts.PARAMFILE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PARAMFILE</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Settings, with the prefixed groups gathered into the entries <code class="docutils literal notranslate"><span class="pre">'cosmo_fid'</span></code>, <code class="docutils literal notranslate"><span class="pre">'step_sizes'</span></code> and <code class="docutils literal notranslate"><span class="pre">'priors'</span></code>, the varied parameters as a list under <code class="docutils literal notranslate"><span class="pre">'vary_params'</span></code>, and every remaining entry of the file left as it was read.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.14)"><strong>FileNotFoundError</strong></a> – If the parameter file does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">vary_params</span></code> is absent or propagated from <a class="reference internal" href="delensing.html#delensing.validate_cosmology" title="delensing.validate_cosmology"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.validate_cosmology()</span></code></a>.
+    Also if the non-Gaussian covariance is requested without saying how the derivative matrices are to be obtained.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – Propagated from <a class="reference internal" href="delensing.html#delensing.validate_cosmology" title="delensing.validate_cosmology"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.validate_cosmology()</span></code></a> and if a prior names a parameter that is not being varied since such a prior has no effect.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Cosmological values and step sizes are coerced to <code class="docutils literal notranslate"><span class="pre">float</span></code> by <a class="reference internal" href="delensing.html#delensing.validate_cosmology" title="delensing.validate_cosmology"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.validate_cosmology()</span></code></a>.
+That matters because <a class="reference internal" href="misc.html#misc.get_param_dict" title="misc.get_param_dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">misc.get_param_dict()</span></code></a> returns an <code class="docutils literal notranslate"><span class="pre">int</span></code> for any value written without a fractional part, so <code class="docutils literal notranslate"><span class="pre">fid_N_eff</span> <span class="pre">=</span> <span class="pre">3.0</span></code> would otherwise arrive as an integer.
+Coercing here rather than asking for a particular way of writing the file keeps that detail out of the user’s way.</p>
+<p>Multipole ranges, the lensing reconstruction cuts, the satellite block and the option flags are returned unchanged since they are consumed by <a class="reference internal" href="fisher.html#module-fisher" title="fisher"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fisher</span></code></a> and by <a class="reference internal" href="delensing.html#delensing.run_class" title="delensing.run_class"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.run_class()</span></code></a> rather than here.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.load_ilc_product">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">load_ilc_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ilc_fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.load_ilc_product" title="Link to this definition"></a></dt>
+<dd><p>Read an ILC product file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ilc_fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to a <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file written by <a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.run_ilc()</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Contents of the product file. The entries used downstream are <code class="docutils literal notranslate"><span class="pre">'el'</span></code>, <code class="docutils literal notranslate"><span class="pre">'cl_residual'</span></code> and, where present, <code class="docutils literal notranslate"><span class="pre">'param_dict'</span></code>, <code class="docutils literal notranslate"><span class="pre">'fsky_val'</span></code> and <code class="docutils literal notranslate"><span class="pre">'fg_res_dic'</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.14)"><strong>FileNotFoundError</strong></a> – If the file does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file does not hold a single dictionary, which is how ILC products are written.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – Propagated from <code class="docutils literal notranslate"><span class="pre">_load_npy_dict</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This loader is deliberately the only place that knows the product layout; <a class="reference internal" href="delensing.html#delensing.build_effective_noise" title="delensing.build_effective_noise"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.build_effective_noise()</span></code></a> and the routines in <a class="reference internal" href="fisher.html#module-fisher" title="fisher"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fisher</span></code></a> take the dictionary itself so that they can equally be handed the return value of <a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.run_ilc()</span></code></a> without anything having been written to disk.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.get_fsky">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">get_fsky</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ilc_dic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fsky</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.get_fsky" title="Link to this definition"></a></dt>
+<dd><p>Determine the sky fraction to use for one configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ilc_dic</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – ILC product, which carries <code class="docutils literal notranslate"><span class="pre">'fsky_val'</span></code> when galactic foregrounds were included.</p></li>
+<li><p><strong>fsky</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Sky fraction supplied by the user, which takes precedence over the stored value.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which uses the stored value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> – Sky fraction to scale the Fisher matrix of this configuration by.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If no sky fraction is available, which happens when the ILC was run without galactic foregrounds, or if the value is outside <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>.</p>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – If a supplied value overrides a stored one since the stored value is the sky fraction the foreground spectra were computed on.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.build_output_dic" title="get_ilc_residuals.build_output_dic"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.build_output_dic()</span></code></a> records <code class="docutils literal notranslate"><span class="pre">'fsky_val'</span></code> only when <code class="docutils literal notranslate"><span class="pre">include_gal</span></code> is set, so a product built without galactic foregrounds carries no sky fraction and one must be supplied.
+The stored value is the fraction remaining after the galactic mask has been intersected with the survey footprint, which is usually the relevant area for the Fisher sum.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.check_cache_consistency">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">check_cache_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">caches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.check_cache_consistency" title="Link to this definition"></a></dt>
+<dd><p>Refuse forecast caches that do not describe the same theory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>caches</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Caches from <a class="reference internal" href="#get_fisher_forecasts.forecast_cache" title="get_fisher_forecasts.forecast_cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">forecast_cache()</span></code></a> or <a class="reference internal" href="#get_fisher_forecasts.read_forecast_cache" title="get_fisher_forecasts.read_forecast_cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forecast_cache()</span></code></a>, one per configuration.</p></li>
+<li><p><strong>labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Names to report the caches by. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which numbers them from zero.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> – The parameters every cache varies, in their common order.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If no caches are given, if they disagree on the varied parameters or their order, on the fiducial cosmology, on the step sizes of the varied parameters, on <code class="docutils literal notranslate"><span class="pre">lmax_calc</span></code>, or on the unlensed or lensed spectra.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Fisher matrices of separate configurations are summed as independent experiments, which is only meaningful if they are derivatives of the same theory about the same fiducial point.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.write_lensing_noise_curves">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">write_lensing_noise_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.write_lensing_noise_curves" title="Link to this definition"></a></dt>
+<dd><p>Write a lensing-reconstruction noise product to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>curves</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Product assembled by <a class="reference internal" href="delensing.html#delensing.lensing_noise_curves" title="delensing.lensing_noise_curves"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.lensing_noise_curves()</span></code></a>.</p></li>
+<li><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Destination path. Parent directories are created as needed.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Replace an existing file. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>, which refuses rather than discarding a previous result.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> – The path written.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileExistsError" title="(in Python v3.14)"><strong>FileExistsError</strong></a> – If the destination exists and <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> is not set.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">curves</span></code> lacks the entries a reader would expect.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The layout differs from the lensing-noise products under <code class="docutils literal notranslate"><span class="pre">products/</span></code>, which an earlier pipeline wrote, so a reader of those needs updating rather than reusing.
+The differences are deliberate:</p>
+<ul class="simple">
+<li><p>multipoles are under <code class="docutils literal notranslate"><span class="pre">'el'</span></code>, as in the ILC products, rather than <code class="docutils literal notranslate"><span class="pre">'els'</span></code>;</p></li>
+<li><p>the reconstruction noise is grouped under <code class="docutils literal notranslate"><span class="pre">'nl_dd'</span></code> and keyed by estimator, rather than spread over top-level <code class="docutils literal notranslate"><span class="pre">Nl_TT</span></code>, <code class="docutils literal notranslate"><span class="pre">Nl_EB</span></code> and so on;</p></li>
+<li><p>the estimator combining temperature and polarization is <code class="docutils literal notranslate"><span class="pre">'TE'</span></code>, as CLASS_delens names it, not <code class="docutils literal notranslate"><span class="pre">Nl_ET</span></code>;</p></li>
+<li><p>arrays are real and finite, rather than <code class="docutils literal notranslate"><span class="pre">complex128</span></code> carrying <code class="docutils literal notranslate"><span class="pre">nan</span></code> below the first reconstructed multipole;</p></li>
+<li><p>everything is in the deflection convention that CLASS_delens works in and the Fisher sum uses, with <span class="math notranslate nohighlight">\(C_\ell^{dd} = \ell(\ell+1) C_\ell^{\phi\phi}\)</span>, rather than the convergence convention.</p></li>
+</ul>
+<p>Convert to convergence with <span class="math notranslate nohighlight">\(N_\ell^{\kappa\kappa} = \ell(\ell+1) N_\ell^{dd}/4\)</span>; <code class="docutils literal notranslate"><span class="pre">'cl_kk'</span></code> is stored alongside so a signal-to-noise ratio needs no conversion at all.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.convert_legacy_lensing_noise">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">convert_legacy_lensing_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.convert_legacy_lensing_noise" title="Link to this definition"></a></dt>
+<dd><p>Convert a lensing-noise product from the layout used under <code class="docutils literal notranslate"><span class="pre">products/</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>product</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Contents of an older product, holding <code class="docutils literal notranslate"><span class="pre">'els'</span></code>, <code class="docutils literal notranslate"><span class="pre">'cl_kk'</span></code> and the <code class="docutils literal notranslate"><span class="pre">Nl_</span></code> entries.</p></li>
+<li><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Path it came from, for the messages. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – The same information in the layout <a class="reference internal" href="delensing.html#delensing.lensing_noise_curves" title="delensing.lensing_noise_curves"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.lensing_noise_curves()</span></code></a> produces, with <code class="docutils literal notranslate"><span class="pre">'legacy'</span></code> set to record the conversion.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the product holds none of the expected estimators or has no multipole array.</p>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – If an estimator has an imaginary part that is not zero, which would mean the conversion is discarding information rather than a stored type.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The noise is stored in the convergence convention and is converted to the deflection convention used since, by</p>
+<div class="math notranslate nohighlight">
+\[N_\ell^{dd} = \frac{4}{\ell(\ell+1)}\, N_\ell^{\kappa\kappa}\, ,\]</div>
+<p>and likewise for the signal, from which <code class="docutils literal notranslate"><span class="pre">'cl_phiphi'</span></code> and <code class="docutils literal notranslate"><span class="pre">'cl_dd'</span></code> are formed. The stored <code class="docutils literal notranslate"><span class="pre">'cl_kk'</span></code> is carried through unchanged. Multipoles below 2 are dropped, both because the conversion is not defined there and because the current products start at 2.</p>
+<p>The arrays are stored as <code class="docutils literal notranslate"><span class="pre">complex128</span></code> with the imaginary part zero and are returned as real.</p>
+<p>The older products name the recorded multipole cuts <code class="docutils literal notranslate"><span class="pre">lmin</span></code>, <code class="docutils literal notranslate"><span class="pre">lmax</span></code> and <code class="docutils literal notranslate"><span class="pre">lmax_tt</span></code>, but they are the cuts on the fields entering the quadratic estimator, whereas <code class="docutils literal notranslate"><span class="pre">lmin</span></code>, <code class="docutils literal notranslate"><span class="pre">lmax</span></code> and <code class="docutils literal notranslate"><span class="pre">lmax_TT</span></code> in the current settings are the windows of the Fisher sum. They are renamed here through <a class="reference internal" href="#get_fisher_forecasts.LEGACY_LENSING_SETTINGS" title="get_fisher_forecasts.LEGACY_LENSING_SETTINGS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LEGACY_LENSING_SETTINGS</span></code></a> rather than carried across since carrying them across would put reconstruction cuts where a later stage reads Fisher windows.</p>
+<p>Reading one of these files emits several <code class="docutils literal notranslate"><span class="pre">VisibleDeprecationWarning</span></code> from NumPy about <code class="docutils literal notranslate"><span class="pre">align=0</span></code>. That comes from unpickling arrays written under an older NumPy and is not suppressed here since suppressing it would also hide the same warning raised for other reasons.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.read_lensing_noise_curves">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">read_lensing_noise_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.read_lensing_noise_curves" title="Link to this definition"></a></dt>
+<dd><p>Read a lensing-reconstruction noise product written by <a class="reference internal" href="#get_fisher_forecasts.write_lensing_noise_curves" title="get_fisher_forecasts.write_lensing_noise_curves"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_lensing_noise_curves()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the product.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Contents of the product.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.14)"><strong>FileNotFoundError</strong></a> – If the file does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file does not hold a single dictionary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – If the file is in the older layout under <code class="docutils literal notranslate"><span class="pre">products/</span></code> and has been converted on read.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The older products under <code class="docutils literal notranslate"><span class="pre">products/</span></code> are recognized by their <code class="docutils literal notranslate"><span class="pre">'els'</span></code> entry and converted by <a class="reference internal" href="#get_fisher_forecasts.convert_legacy_lensing_noise" title="get_fisher_forecasts.convert_legacy_lensing_noise"><code class="xref py py-func docutils literal notranslate"><span class="pre">convert_legacy_lensing_noise()</span></code></a>. The conversion changes both the names and the convention of what is returned, which is why it is warned about.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.forecast_cache">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">forecast_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">powers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_derivs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deflection_noise</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reconstruction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.forecast_cache" title="Link to this definition"></a></dt>
+<dd><p>Gather everything needed to rebuild a Fisher matrix without rerunning CLASS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>powers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Fiducial spectra from <a class="reference internal" href="delensing.html#delensing.run_class" title="delensing.run_class"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.run_class()</span></code></a>.</p></li>
+<li><p><strong>param_derivs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Derivatives from <a class="reference internal" href="delensing.html#delensing.parameter_derivatives" title="delensing.parameter_derivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.parameter_derivatives()</span></code></a>.</p></li>
+<li><p><strong>noise</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Effective noise from <a class="reference internal" href="delensing.html#delensing.build_effective_noise" title="delensing.build_effective_noise"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.build_effective_noise()</span></code></a>, in its canonical form with multipoles under <code class="docutils literal notranslate"><span class="pre">'el'</span></code> starting at zero.</p></li>
+<li><p><strong>deflection_noise</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.typing.ArrayLike</span></code></a>) – Reconstruction noise as it was handed to CLASS, from <a class="reference internal" href="delensing.html#delensing.deflection_noise_for_class" title="delensing.deflection_noise_for_class"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.deflection_noise_for_class()</span></code></a>.</p></li>
+<li><p><strong>reconstruction</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Per-estimator reconstruction noise from <a class="reference internal" href="delensing.html#delensing.run_class" title="delensing.run_class"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.run_class()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>settings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Forecasting settings, recorded so the cache is self describing. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>extra</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Further entries, such as the ILC product the noise came from. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Entries <code class="docutils literal notranslate"><span class="pre">'powers'</span></code>, <code class="docutils literal notranslate"><span class="pre">'param_derivs'</span></code>, <code class="docutils literal notranslate"><span class="pre">'noise'</span></code>, <code class="docutils literal notranslate"><span class="pre">'deflection_noise'</span></code> and, where given, <code class="docutils literal notranslate"><span class="pre">'reconstruction'</span></code>, <code class="docutils literal notranslate"><span class="pre">'settings'</span></code> and whatever <code class="docutils literal notranslate"><span class="pre">extra</span></code> holds.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The expensive part of a forecast is the CLASS runs and nothing in the Fisher stage needs to repeat them: changing the multipole windows, the sky fraction, the priors or which parameters are held fixed all act on quantities this cache already holds.
+Keeping it therefore turns a scan over any of those into seconds rather than potentially hours.</p>
+<p>The noise is stored in the canonical form rather than either of the re-indexed views since <a class="reference internal" href="delensing.html#delensing.noise_for_fisher" title="delensing.noise_for_fisher"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.noise_for_fisher()</span></code></a> and <a class="reference internal" href="delensing.html#delensing.noise_for_class" title="delensing.noise_for_class"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.noise_for_class()</span></code></a> derive those cheaply and storing one of them would invite using it in the wrong place.</p>
+<p>Written and read with <a class="reference internal" href="#get_fisher_forecasts.write_forecast_cache" title="get_fisher_forecasts.write_forecast_cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_forecast_cache()</span></code></a> and <a class="reference internal" href="#get_fisher_forecasts.read_forecast_cache" title="get_fisher_forecasts.read_forecast_cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forecast_cache()</span></code></a>. These files are large since they hold every derivative at every multipole, so they belong under <code class="docutils literal notranslate"><span class="pre">results/</span></code> rather than in the repository.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.write_forecast_cache">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">write_forecast_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.write_forecast_cache" title="Link to this definition"></a></dt>
+<dd><p>Write a forecast cache to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Assembled by <a class="reference internal" href="#get_fisher_forecasts.forecast_cache" title="get_fisher_forecasts.forecast_cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">forecast_cache()</span></code></a>.</p></li>
+<li><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Destination path. Parent directories are created as needed.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Replace an existing file. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> – The path written.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileExistsError" title="(in Python v3.14)"><strong>FileExistsError</strong></a> – If the destination exists and <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> is not set.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the cache lacks an entry the Fisher stage needs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.read_forecast_cache">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">read_forecast_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.read_forecast_cache" title="Link to this definition"></a></dt>
+<dd><p>Read a forecast cache written by <a class="reference internal" href="#get_fisher_forecasts.write_forecast_cache" title="get_fisher_forecasts.write_forecast_cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_forecast_cache()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the cache.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Contents of the cache.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.14)"><strong>FileNotFoundError</strong></a> – If the file does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file does not hold a single dictionary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.forecast_product">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">forecast_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configurations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">biases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.forecast_product" title="Link to this definition"></a></dt>
+<dd><p>Assemble the forecast for output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>total</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Combined Fisher matrix and uncertainties from <a class="reference internal" href="fisher.html#fisher.combine_fisher" title="fisher.combine_fisher"><code class="xref py py-func docutils literal notranslate"><span class="pre">fisher.combine_fisher()</span></code></a>.</p></li>
+<li><p><strong>configurations</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – One entry per configuration, recording at least its <code class="docutils literal notranslate"><span class="pre">'ilc_fname'</span></code>, <code class="docutils literal notranslate"><span class="pre">'fsky'</span></code> and <code class="docutils literal notranslate"><span class="pre">'label'</span></code>, and where written its <code class="docutils literal notranslate"><span class="pre">'cache_fname'</span></code> and <code class="docutils literal notranslate"><span class="pre">'lensing_noise_fname'</span></code>.</p></li>
+<li><p><strong>settings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Settings the forecast was run under, from <a class="reference internal" href="#get_fisher_forecasts.load_fisher_params" title="get_fisher_forecasts.load_fisher_params"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_fisher_params()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>windows</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Multipole windows from <a class="reference internal" href="fisher.html#fisher.fisher_windows" title="fisher.fisher_windows"><code class="xref py py-func docutils literal notranslate"><span class="pre">fisher.fisher_windows()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>biases</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Foreground-induced parameter biases from <a class="reference internal" href="fisher.html#fisher.parameter_bias" title="fisher.parameter_bias"><code class="xref py py-func docutils literal notranslate"><span class="pre">fisher.parameter_bias()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>extra</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Further entries to record. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Every entry of <code class="docutils literal notranslate"><span class="pre">total</span></code> plus <code class="docutils literal notranslate"><span class="pre">'configurations'</span></code> and, where given, <code class="docutils literal notranslate"><span class="pre">'settings'</span></code>, <code class="docutils literal notranslate"><span class="pre">'windows'</span></code>, <code class="docutils literal notranslate"><span class="pre">'bias'</span></code>, <code class="docutils literal notranslate"><span class="pre">'bias_in_sigma'</span></code> and whatever <code class="docutils literal notranslate"><span class="pre">extra</span></code> holds.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">total</span></code> is not a combined Fisher matrix or no configurations are given.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.write_forecast_product">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">write_forecast_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.write_forecast_product" title="Link to this definition"></a></dt>
+<dd><p>Write a forecast product to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>product</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Assembled by <a class="reference internal" href="#get_fisher_forecasts.forecast_product" title="get_fisher_forecasts.forecast_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">forecast_product()</span></code></a>.</p></li>
+<li><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Destination path. Parent directories are created as needed.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Replace an existing file. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> – The path written.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileExistsError" title="(in Python v3.14)"><strong>FileExistsError</strong></a> – If the destination exists and <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> is not set.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the product lacks an entry that makes it a forecast.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.read_forecast_product">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">read_forecast_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.read_forecast_product" title="Link to this definition"></a></dt>
+<dd><p>Read a forecast product written by <a class="reference internal" href="#get_fisher_forecasts.write_forecast_product" title="get_fisher_forecasts.write_forecast_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_forecast_product()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the product.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Contents of the product.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.14)"><strong>FileNotFoundError</strong></a> – If the file does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file does not hold a single dictionary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.array_fingerprint">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">array_fingerprint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">arrays</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.array_fingerprint" title="Link to this definition"></a></dt>
+<dd><p>Reduce one or more arrays to a short string that changes when their contents do.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>*arrays</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.typing.ArrayLike</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – Arrays to fingerprint. A dictionary is folded in by sorted key, so the result does not depend on insertion order. <code class="docutils literal notranslate"><span class="pre">None</span></code> contributes nothing.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> – Sixteen hexadecimal characters, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if nothing was supplied.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Used to record which noise a set of non-Gaussian derivative matrices was computed with so that a stored set can be refused when it does not match the one being asked for.
+Everything is coerced to <code class="docutils literal notranslate"><span class="pre">float64</span></code> and to C order before hashing so that a view, a byte order or a stride cannot change the answer for the same numbers.
+This identifies contents, not provenance; it is not a checksum against corruption and makes no cryptographic claim.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.ng_derivative_product">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">ng_derivative_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lensing_derivs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unlensed_derivs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmo_fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmax_calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmb_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deflection_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.ng_derivative_product" title="Link to this definition"></a></dt>
+<dd><p>Gather a set of non-Gaussian derivative matrices with the record of how it was made.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lensing_derivs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">dCldCLd</span></code> from <a class="reference internal" href="delensing.html#delensing.lensing_derivatives" title="delensing.lensing_derivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.lensing_derivatives()</span></code></a>.</p></li>
+<li><p><strong>unlensed_derivs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">dCldCLu</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it was not requested.</p></li>
+<li><p><strong>cosmo_fid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Cosmology the matrices were computed at.</p></li>
+<li><p><strong>lmax_calc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Highest multipole they cover.</p></li>
+<li><p><strong>derivative_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – One of <a class="reference internal" href="delensing.html#delensing.DERIVATIVE_TYPES" title="delensing.DERIVATIVE_TYPES"><code class="xref py py-data docutils literal notranslate"><span class="pre">delensing.DERIVATIVE_TYPES</span></code></a>.</p></li>
+<li><p><strong>cmb_noise</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Effective noise the run was given, recorded as a fingerprint rather than in full. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>deflection_noise</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.typing.ArrayLike</span></code></a>, <em>optional</em>) – Reconstruction noise the run was given, likewise. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>class_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – The deck CLASS recorded, from <a class="reference internal" href="delensing.html#delensing.class_run_parameters" title="delensing.class_run_parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.class_run_parameters()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>extra</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Further entries for the manifest. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Entries <code class="docutils literal notranslate"><span class="pre">'lensing_derivs'</span></code>, <code class="docutils literal notranslate"><span class="pre">'unlensed_derivs'</span></code> where present, and <code class="docutils literal notranslate"><span class="pre">'manifest'</span></code>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The manifest records the DRAFT-side inputs rather than the CLASS deck because the deck names the cosmology as CLASS names it and recovering a DRAFT cosmology from it would mean reproducing the translation inside <code class="docutils literal notranslate"><span class="pre">classWrapTools</span></code>. The deck is stored alongside as provenance when it is supplied, but is not what <a class="reference internal" href="#get_fisher_forecasts.check_ng_derivatives" title="get_fisher_forecasts.check_ng_derivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_ng_derivatives()</span></code></a> compares.</p>
+<p>The noise enters only as a fingerprint. Storing it in full would add little and invite reading it back as though it were the canonical copy, which belongs in the forecast cache.</p>
+<p>The lensed matrices do not depend on the noise, so one product serves every configuration; the delensed ones do, so a product is specific to the configuration named in its manifest.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.write_ng_derivatives">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">write_ng_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.write_ng_derivatives" title="Link to this definition"></a></dt>
+<dd><p>Write a set of non-Gaussian derivative matrices to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>product</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Assembled by <a class="reference internal" href="#get_fisher_forecasts.ng_derivative_product" title="get_fisher_forecasts.ng_derivative_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">ng_derivative_product()</span></code></a>.</p></li>
+<li><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Destination path. Parent directories are created as needed.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Replace an existing file. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> – The path written.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileExistsError" title="(in Python v3.14)"><strong>FileExistsError</strong></a> – If the destination exists and <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> is not set.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the product lacks an entry or holds a matrix that is not square in the multipole.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>These files are the largest DRAFT writes, some 2.4 GB per derivative type at lmax = 5000 and quadratic in it.
+The matrices are kept at <code class="docutils literal notranslate"><span class="pre">float64</span></code>, which is what CLASS writes and what they are held at in memory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.read_ng_derivatives">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">read_ng_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.read_ng_derivatives" title="Link to this definition"></a></dt>
+<dd><p>Read a set of non-Gaussian derivative matrices written by <a class="reference internal" href="#get_fisher_forecasts.write_ng_derivatives" title="get_fisher_forecasts.write_ng_derivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_ng_derivatives()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the product.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> – Contents of the product.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.14)"><strong>FileNotFoundError</strong></a> – If the file does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file does not hold a product with a manifest.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.check_ng_derivatives">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">check_ng_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmo_fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmax_calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_unlensed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmb_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deflection_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.check_ng_derivatives" title="Link to this definition"></a></dt>
+<dd><p>Report why a stored set of derivative matrices does not match the one being asked for.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>product</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Read by <a class="reference internal" href="#get_fisher_forecasts.read_ng_derivatives" title="get_fisher_forecasts.read_ng_derivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_ng_derivatives()</span></code></a>.</p></li>
+<li><p><strong>cosmo_fid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Cosmology being asked for.</p></li>
+<li><p><strong>lmax_calc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Highest multipole being asked for.</p></li>
+<li><p><strong>derivative_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – One of <a class="reference internal" href="delensing.html#delensing.DERIVATIVE_TYPES" title="delensing.DERIVATIVE_TYPES"><code class="xref py py-data docutils literal notranslate"><span class="pre">delensing.DERIVATIVE_TYPES</span></code></a>.</p></li>
+<li><p><strong>include_unlensed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Whether the derivatives with respect to the unlensed spectra are needed. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>cmb_noise</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Effective noise being asked for. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which does not compare it.</p></li>
+<li><p><strong>deflection_noise</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.typing.ArrayLike</span></code></a>, <em>optional</em>) – Reconstruction noise being asked for. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> – Complaints, one per mismatch, empty when the stored set can be used as it is.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>A stored set is refused rather than silently reused because nothing about the matrices themselves reveals the cosmology or the noise they were computed at and CLASS leaves its own output in place indefinitely.
+The noise is compared only when it is supplied since the lensed matrices do not depend on it and a lensed product is deliberately shared across configurations.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.obtain_ng_derivatives">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">obtain_ng_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmo_fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmax_calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmb_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deflection_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recon_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_unlensed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.obtain_ng_derivatives" title="Link to this definition"></a></dt>
+<dd><p>Obtain the non-Gaussian derivative matrices by the route the parameter file asks for.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – One of <a class="reference internal" href="delensing.html#delensing.NG_DERIVATIVE_MODES" title="delensing.NG_DERIVATIVE_MODES"><code class="xref py py-data docutils literal notranslate"><span class="pre">delensing.NG_DERIVATIVE_MODES</span></code></a>, as <code class="docutils literal notranslate"><span class="pre">ng_derivatives</span></code> in the parameter file.</p></li>
+<li><p><strong>cosmo_fid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Cosmology to compute at or to check a stored set against.</p></li>
+<li><p><strong>lmax_calc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Highest multipole.</p></li>
+<li><p><strong>derivative_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – One of <a class="reference internal" href="delensing.html#delensing.DERIVATIVE_TYPES" title="delensing.DERIVATIVE_TYPES"><code class="xref py py-data docutils literal notranslate"><span class="pre">delensing.DERIVATIVE_TYPES</span></code></a>.</p></li>
+<li><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Product to write or read. Required for <code class="docutils literal notranslate"><span class="pre">'save'</span></code> and <code class="docutils literal notranslate"><span class="pre">'load'</span></code>, unused for <code class="docutils literal notranslate"><span class="pre">'recompute'</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>cmb_noise</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Effective noise, needed for the delensed derivatives. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>deflection_noise</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.typing.ArrayLike</span></code></a>, <em>optional</em>) – Reconstruction noise, likewise. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>recon_mask</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Reconstruction cuts from <a class="reference internal" href="delensing.html#delensing.reconstruction_mask" title="delensing.reconstruction_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.reconstruction_mask()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>include_unlensed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Whether the derivatives with respect to the unlensed spectra are wanted. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>root_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Base name for the CLASS run. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which generates a unique one.</p></li>
+<li><p><strong>paths</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Resolved paths from <a class="reference internal" href="delensing.html#delensing.resolve_paths" title="delensing.resolve_paths"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.resolve_paths()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Replace an existing product when saving. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Whether to report what is being done. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>lensing_derivs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">dCldCLd</span></code>.</p></li>
+<li><p><strong>unlensed_derivs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">dCldCLu</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it was not requested.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">mode</span></code> is not recognized, if a path is needed and was not given, or if a stored set does not match what is being asked for.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The three modes trade a large file against a long calculation, which is why the parameter file has no default for them: <code class="docutils literal notranslate"><span class="pre">'recompute'</span></code> runs CLASS and keeps nothing, <code class="docutils literal notranslate"><span class="pre">'save'</span></code> runs CLASS and writes the matrices for reuse, <code class="docutils literal notranslate"><span class="pre">'load'</span></code> reads them back without running CLASS at all.</p>
+<p>A stored set is checked against the cosmology, the multipole range, the derivative type and the noise before it is used, and refused with the reason rather than reused silently. That check is the whole point of the manifest: CLASS leaves its output in place indefinitely and the matrices themselves carry no record of what produced them.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.report_forecast">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">report_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'delensed'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.report_forecast" title="Link to this definition"></a></dt>
+<dd><p>Print the projected uncertainties of a forecast.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>product</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Forecast from <a class="reference internal" href="#get_fisher_forecasts.forecast_product" title="get_fisher_forecasts.forecast_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">forecast_product()</span></code></a> or <a class="reference internal" href="#get_fisher_forecasts.read_forecast_product" title="get_fisher_forecasts.read_forecast_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forecast_product()</span></code></a>.</p></li>
+<li><p><strong>spectrum</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Spectrum type to report. Default is <code class="docutils literal notranslate"><span class="pre">'delensed'</span></code>; <code class="docutils literal notranslate"><span class="pre">'lensed'</span></code> and <code class="docutils literal notranslate"><span class="pre">'unlensed'</span></code> also available.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the product holds no uncertainties for <code class="docutils literal notranslate"><span class="pre">spectrum</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.run_forecast">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">run_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ilc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fsky</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opfname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paramfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PARAMFILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_lensing_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.run_forecast" title="Link to this definition"></a></dt>
+<dd><p>Forecast one or more survey configurations and combine them into projected uncertainties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ilc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></a>) – ILC product to forecast from, either a path to a <code class="docutils literal notranslate"><span class="pre">.npy</span></code> product or the dictionary <a class="reference internal" href="get_ilc_residuals.html#get_ilc_residuals.run_ilc" title="get_ilc_residuals.run_ilc"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_ilc_residuals.run_ilc()</span></code></a> returns, or a sequence of either.
+Several are treated as independent experiments whose Fisher matrices are summed.</p></li>
+<li><p><strong>fsky</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></a>, <em>optional</em>) – Sky fraction of each configuration, one per entry of <code class="docutils literal notranslate"><span class="pre">ilc</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> or <a class="reference internal" href="#get_fisher_forecasts.FSKY_AUTO" title="get_fisher_forecasts.FSKY_AUTO"><code class="xref py py-data docutils literal notranslate"><span class="pre">FSKY_AUTO</span></code></a> to use the <code class="docutils literal notranslate"><span class="pre">fsky_val</span></code> recorded in that product. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></a>, <em>optional</em>) – Forecast cache to read for each configuration in place of running CLASS, one per entry of <code class="docutils literal notranslate"><span class="pre">ilc</span></code>, with <code class="docutils literal notranslate"><span class="pre">None</span></code> or <a class="reference internal" href="#get_fisher_forecasts.CACHE_NONE" title="get_fisher_forecasts.CACHE_NONE"><code class="xref py py-data docutils literal notranslate"><span class="pre">CACHE_NONE</span></code></a> to run CLASS for that one. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Name of this forecast. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which uses the product name when there is one configuration and is required when there are several.</p></li>
+<li><p><strong>opfname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Path of the forecast product. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which builds one under <a class="reference internal" href="#get_fisher_forecasts.FORECAST_DIR" title="get_fisher_forecasts.FORECAST_DIR"><code class="xref py py-data docutils literal notranslate"><span class="pre">FORECAST_DIR</span></code></a>.</p></li>
+<li><p><strong>paramfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Parameter file to read. Default is <a class="reference internal" href="#get_fisher_forecasts.PARAMFILE" title="get_fisher_forecasts.PARAMFILE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PARAMFILE</span></code></a>. Ignored when <code class="docutils literal notranslate"><span class="pre">settings</span></code> is given.</p></li>
+<li><p><strong>settings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Settings from <a class="reference internal" href="#get_fisher_forecasts.load_fisher_params" title="get_fisher_forecasts.load_fisher_params"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_fisher_params()</span></code></a>, in place of reading a parameter file. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>fix_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Parameters to hold fixed after the total is formed, passed to <a class="reference internal" href="fisher.html#fisher.combine_fisher" title="fisher.combine_fisher"><code class="xref py py-func docutils literal notranslate"><span class="pre">fisher.combine_fisher()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>write_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Write the forecast cache of each configuration. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>write_lensing_noise</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Write the lensing-noise curves of each configuration. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>save</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Write the forecast product. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Replace existing output files. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>paths</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <em>optional</em>) – Resolved paths from <a class="reference internal" href="delensing.html#delensing.resolve_paths" title="delensing.resolve_paths"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.resolve_paths()</span></code></a>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which resolves them and, when any configuration is to be run rather than read from a cache, checks the setup with <a class="reference internal" href="delensing.html#delensing.check_setup" title="delensing.check_setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.check_setup()</span></code></a> first.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Report each step as it runs. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>product</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Contents of the forecast product, from <a class="reference internal" href="#get_fisher_forecasts.forecast_product" title="get_fisher_forecasts.forecast_product"><code class="xref py py-func docutils literal notranslate"><span class="pre">forecast_product()</span></code></a>.</p></li>
+<li><p><strong>opfname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path the result was or would have been written to.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If no configurations are given, if a per-configuration argument does not match them in number, or if several configurations are given without a label or propagated from the routines below.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – Propagated from <a class="reference internal" href="delensing.html#delensing.check_setup" title="delensing.check_setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">delensing.check_setup()</span></code></a> when a configuration is to be run and FisherLens or a compiled CLASS_delens is not usable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Warns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>UserWarning</strong> – If a cache was built from a different ILC product than the one supplied alongside it, and propagated from the routines below.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Each configuration costs one iterative CLASS_delens run plus two per varied parameter because the delensed spectra and their derivatives depend on the noise of that configuration.
+The cache of each is therefore written as soon as it is complete rather than at the end so that a failure part way through a multi-configuration run does not discard the configurations that already succeeded.</p>
+<p>The satellite block is built from the first configuration’s cache and added once.
+It may be built from any of them: it spans multipoles below <code class="docutils literal notranslate"><span class="pre">lmin_ilc</span></code>, where the effective noise holds no ILC residual and is the satellite’s own, and it uses the lensed spectra, which do not depend on the noise. Both were verified by perturbing each in turn and finding the block unchanged.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="get_fisher_forecasts.main">
+<span class="sig-prename descclassname"><span class="pre">get_fisher_forecasts.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#get_fisher_forecasts.main" title="Link to this definition"></a></dt>
+<dd><p>Parse the command line and run the forecast.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Argument list. Default is <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="misc.html" class="btn btn-neutral float-left" title="misc module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="delensing.html" class="btn btn-neutral float-right" title="delensing module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Srini Raghunathan.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
