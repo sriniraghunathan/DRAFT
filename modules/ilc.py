@@ -1,23 +1,24 @@
 r"""
-Internal linear combination (ILC) of multi-frequency CMB data supporting the residual calculation in get_ilc_residuals.py.
+Internal linear combination (ILC) of multi-frequency CMB data supporting the residual calculation in :mod:`get_ilc_residuals`.
 
 The multi-frequency CMB observations are combined into a single estimate of the CMB signal using a harmonic-space internal linear combination.
 The ILC exploits the known frequency independence of the CMB signal (in thermodynamic temperature units), together with the distinct frequency dependence of the foregrounds, to construct an optimal estimate by linearly combining the maps from all available frequency channels, while down-weighting modes that are dominated by foreground emission or instrumental noise.
 
 The module is grouped into four sections:
 
-* Covariance: ``get_analytic_covariance``
-* Frequency response: ``get_cib_freq_dep``, ``get_radio_freq_dep``, ``get_acap``
-* Covariance assembly: ``get_teb_spec_combination``, ``create_clmat``, ``get_clinv``, ``corr_from_cov``
-* ILC residuals: ``residual_power``
+* Covariance: :func:`get_analytic_covariance`
+* Frequency response: :func:`get_cib_freq_dep`, :func:`get_radio_freq_dep`, :func:`get_acap`
+* Covariance assembly: :func:`get_teb_spec_combination`, :func:`create_clmat`, :func:`get_clinv`, :func:`corr_from_cov`
+* ILC residuals: :func:`residual_power`
 
-``get_analytic_covariance``, ``residual_power`` and ``create_clmat`` are called by ``get_ilc_residuals.py``.
-``corr_from_cov`` is a standalone utility that is currently not used elsewhere in this repository.
+:func:`get_analytic_covariance`, :func:`residual_power` and :func:`create_clmat` are called by :mod:`get_ilc_residuals`.
+:func:`corr_from_cov` is a standalone utility that is currently not used elsewhere in this repository.
 The remaining routines are internal helpers.
 
 In harmonic space, the ILC estimate of the CMB signal at multipole :math:`\ell` is
 
 .. math::
+
     S_\ell = \sum_{i=1}^{N_f} w_\ell^i\, M_\ell^i\, ,
 
 where :math:`M_\ell^i` is the harmonic-space representation of the observed map in frequency channel :math:`i` and the sum runs over all :math:`N_f` frequency channels.
@@ -28,6 +29,7 @@ For the CMB, the target signal is frequency independent, so :math:`A_s = A_\math
 The constrained-ILC weights then take the form
 
 .. math::
+
     w_\ell = \mathbf{C}_\ell^{-1} \mathcal{F} \left( \mathcal{F}^\mathrm{T} \mathbf{C}_\ell^{-1} \mathcal{F} \right)^{\!-1} U\, ,
 
 where the constraint vector :math:`U = [1, 0, \ldots, 0]` has length :math:`N_c` and selects :math:`A_\mathrm{CMB}` as the preserved component.
@@ -36,11 +38,13 @@ The :math:`N_f \times N_f` covariance matrix :math:`\mathbf{C}_\ell` of the nois
 In the limit where no additional components are nulled, :math:`\mathcal{F}` reduces to the :math:`N_f \times 1` frequency response vector :math:`A_\mathrm{CMB}` and the weights simplify to the standard minimum-variance form,
 
 .. math::
+
     w_\ell^\mathrm{MV} = \frac{\mathbf{C}_\ell^{-1} A_\mathrm{CMB}}{A_\mathrm{CMB}^\mathrm{T} \mathbf{C}_\ell^{-1} A_\mathrm{CMB}}\, .
 
 The corresponding residual power spectrum after component separation is
 
 .. math::
+
     C_\ell^\mathrm{res} = \left( A_\mathrm{CMB}^\mathrm{T} \mathbf{C}_\ell^{-1} A_\mathrm{CMB} \right)^{-1}\, ,
 
 which represents the effective noise that includes residuals from both the experimental noise and the foreground signals in the component-separated CMB map.
@@ -48,13 +52,13 @@ which represents the effective noise that includes residuals from both the exper
 The framework defines four forms of the ILC:
 
 * Standard minimum-variance ILC minimizes the variance subject to unit response for the required component. This is the form used for the forecasts in the accompanying paper (arXiv:2608.XXXXX).
-* Constrained ILC additionally nulls the frequency response of one or more other sky components, selected with the ``null_comp`` argument of ``residual_power``.
-* Partial ILC suppresses the targeted component by artificially rescaling the covariance of that component rather than imposing an explicit nulling constraint, selected with the ``cl_multiplier_dic`` argument of ``get_analytic_covariance``. This is useful when the frequency response of an unwanted component is not known a priori or cannot be captured by a single spectral energy distribution, as is the case for the cosmic infrared background.
+* Constrained ILC additionally nulls the frequency response of one or more other sky components, selected with the ``null_comp`` argument of :func:`residual_power`.
+* Partial ILC suppresses the targeted component by artificially rescaling the covariance of that component rather than imposing an explicit nulling constraint, selected with the ``cl_multiplier_dic`` argument of :func:`get_analytic_covariance`. This is useful when the frequency response of an unwanted component is not known a priori or cannot be captured by a single spectral energy distribution, as is the case for the cosmic infrared background.
 * Cross-ILC constructs two separate constrained-ILC maps that null different sky components and estimates the CMB power spectrum from their cross-correlation. *[To be ported.]*
 
-``get_analytic_covariance`` builds :math:`\mathbf{C}_\ell`, ``get_acap`` builds :math:`A_\mathrm{CMB}` and ``residual_power`` combines them.
+:func:`get_analytic_covariance` builds :math:`\mathbf{C}_\ell`, :func:`get_acap` builds :math:`A_\mathrm{CMB}` and :func:`residual_power` combines them.
 Power spectra are in units of μK² and frequencies are in GHz.
-Band ordering follows the ``freqarr`` supplied by the caller: ``get_acap``, ``create_clmat`` and the returned weights are all indexed in that order, so ``freqarr``, ``freqcalib_fac`` and the covariance must be consistent.
+Band ordering follows the ``freqarr`` supplied by the caller: :func:`get_acap`, :func:`create_clmat` and the returned weights are all indexed in that order, so ``freqarr``, ``freqcalib_fac`` and the covariance must be consistent.
 Component names follow the spelling used in the returned foreground dictionary, namely ``cib`` for the cosmic infrared background and ``galdust``/``galsync`` for the galactic terms.
 Various parameter values and data locations are taken from ``param_dict``, which is populated from ``params.ini``.
 """
@@ -111,7 +115,7 @@ def get_analytic_covariance(
     Parameters
     ----------
     param_dict : dict
-        Parameter dictionary, as returned by ``misc.get_param_dict``.
+        Parameter dictionary, as returned by :func:`misc.get_param_dict`.
         Must contain ``freq0``, ``fg_model``, ``spec_index_rg``, ``spec_index_dg_po``, ``spec_index_dg_clus`` and ``Tcib``, and the galactic file names when ``include_gal`` is set.
     freqarr : array_like
         Frequency bands in GHz. The returned dictionary is keyed by pairs drawn from this list and the ordering is the one used throughout the ILC.
@@ -836,7 +840,7 @@ def get_clinv(freqarr, elcnt, cl_dic, return_clmat=False):
     Warns
     -----
     UserWarning
-        If the covariance contains non-finite entries. ``numpy.linalg.pinv`` returns zeros for an infinite entry without raising, which would otherwise silently zero the weights at that multipole.
+        If the covariance contains non-finite entries. :func:`numpy.linalg.pinv` returns zeros for an infinite entry without raising, which would otherwise silently zero the weights at that multipole, and raises :exc:`numpy.linalg.LinAlgError` for a NaN one.
 
     Notes
     -----
@@ -847,7 +851,7 @@ def get_clinv(freqarr, elcnt, cl_dic, return_clmat=False):
     clmat = create_clmat(freqarr, elcnt, cl_dic)
     if not np.all( np.isfinite(clmat) ):
         #np.linalg.pinv silently returns zeros for inf and raises LinAlgError for nan
-        warnings.warn('The covariance contains non-finite values, i.e. the ILC weights at those multipoles will be zero')
+        warnings.warn('The covariance contains non-finite values. Infinities give zero ILC weights at those multipoles and NaNs make the inversion fail.', stacklevel=2)
     clinv = np.linalg.pinv(clmat)
 
     if return_clmat:

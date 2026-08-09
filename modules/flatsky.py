@@ -3,16 +3,16 @@ Flat-sky routines for simulating and analyzing small patches of sky in the flat-
 
 The module is grouped into four sections:
 
-* Fourier grid: ``get_lxly``, ``get_lxly_az_angle``, ``cl_to_cl2d``
-* Filters: ``get_lpf_hpf``, ``wiener_filter``
-* Simulations: ``convert_eb_qu``, ``cl2map``, ``make_gaussian_realization``
-* Power spectra: ``radial_profile``, ``map2cl``
+* Fourier grid: :func:`get_lxly`, :func:`get_lxly_az_angle`, :func:`cl_to_cl2d`
+* Filters: :func:`get_lpf_hpf`, :func:`wiener_filter`
+* Simulations: :func:`convert_eb_qu`, :func:`cl2map`, :func:`make_gaussian_realization`
+* Power spectra: :func:`radial_profile`, :func:`map2cl`
 
-``cl_to_cl2d`` is referenced by ``misc.get_beam_dic``, which calls it only when its ``make_2d`` option is set.
+:func:`cl_to_cl2d` is referenced by :func:`misc.get_beam_dic`, which calls it only when its ``make_2d`` option is set.
 The remaining routines are standalone utilities that are currently not used elsewhere in this repository.
 
 A flat-sky patch is described by ``mapparams = [nx, ny, dx, dy]``, where ``nx`` and ``ny`` are the number of pixels along each axis and ``dx`` and ``dy`` are the pixel sizes in arcmin.
-Multipoles follow the flat-sky convention :math:`\ell = \sqrt{\ell_x^2 + \ell_y^2}`, with the 2-D Fourier grid supplied by ``get_lxly``.
+Multipoles follow the flat-sky convention :math:`\ell = \sqrt{\ell_x^2 + \ell_y^2}`, with the 2-D Fourier grid supplied by :func:`get_lxly`.
 Power spectra carry whatever units the input ``cl`` is given in and maps carry its square root.
 """
 
@@ -186,7 +186,7 @@ def wiener_filter(mapparams, cl_signal, cl_noise, el=None):
     cl_noise : array_like
         Noise power spectrum :math:`C_\ell^\mathrm{N}`, the same length as ``cl_signal``.
     el : array_like, optional
-        Multipoles at which both spectra are defined. Default is ``np.arange(len(cl_signal))``.
+        Multipoles at which both spectra are defined. Default is ``None``, which uses ``np.arange(len(cl_signal))``.
 
     Returns
     -------
@@ -273,7 +273,7 @@ def cl2map(mapparams, cl, el=None):
     cl : array_like
         Power spectrum :math:`C_\ell` to realize.
     el : array_like, optional
-        Multipoles at which ``cl`` is defined. Default is ``np.arange(len(cl))``.
+        Multipoles at which ``cl`` is defined. Default is ``None``, which uses ``np.arange(len(cl))``.
 
     Returns
     -------
@@ -449,7 +449,7 @@ def radial_profile(z, xy=None, bin_size=1., minbin=0., maxbin=10., to_arcmins=1)
     z : array_like
         Field to profile, real or complex. Must be 2-D when ``xy`` is not given.
     xy : tuple of ndarray, optional
-        Coordinate grids ``(x, y)``, each the same shape as ``z``. Default is :func:`numpy.indices`, i.e. pixel indices.
+        Coordinate grids ``(x, y)``, each the same shape as ``z``. Default is ``None``, which uses :func:`numpy.indices`, i.e. pixel indices.
     bin_size : float, optional
         Width of the radial bins, in the units of ``xy``. Default is 1.
     minbin, maxbin : float, optional
@@ -506,7 +506,7 @@ def radial_profile(z, xy=None, bin_size=1., minbin=0., maxbin=10., to_arcmins=1)
 
     hit_count = np.asarray(hit_count)
     std_mean = np.sum(radprf[:, 2] * hit_count) / np.sum(hit_count)
-    errval = std_mean / (hit_count)**0.5  #NOTE: inf for empty bins and std_mean is pooled across all bins, not per bin
+    errval = std_mean / (hit_count)**0.5  #NOTE: empty bins give inf when std_mean is non-zero and nan when it is zero, and std_mean is pooled across all bins, not per bin
     radprf[:, 2] = errval
 
     return radprf
@@ -533,7 +533,7 @@ def map2cl(mapparams, flatskymap1, flatskymap2=None, binsize=None, minbin=100, m
     flatskymap2 : array_like, optional
         Second map, of the same shape. If given, the cross spectrum is returned in place of the auto spectrum. Default is ``None``.
     binsize : float, optional
-        Width of the :math:`\ell` bins. Default is the :math:`\ell_x` grid spacing, i.e. along the second axis.
+        Width of the :math:`\ell` bins. Default is ``None``, which uses the :math:`\ell_x` grid spacing, i.e. along the second axis.
     minbin, maxbin : float, optional
         Lowest and highest :math:`\ell` of the binning. Defaults are 100 and 10000.
     mask : array_like, optional

@@ -1,15 +1,16 @@
 API reference
 =============
 
-**DRAFT** provides an end-to-end forecasting pipeline from experimental
-specifications to projected parameter constraints, covering foreground modeling,
-sky masking, ILC-based component separation, delensing and the Fisher-matrix
-calculation. The pipeline as a whole is described in §3.4 of |paper|, with the
-underlying formalism in §3.1 to §3.3.
+The **DRAFT** forecasting tool provides an end-to-end pipeline from
+experimental specifications to projected parameter constraints, covering
+foreground modeling, sky masking, ILC-based component separation, delensing and
+the Fisher-matrix calculation. The pipeline as a whole is described in §3.4 of
+|paper|, with the underlying formalism in §3.1 to §3.3.
 
-The component separation stage is implemented in this repository. The delensing
-and Fisher-matrix stages are performed by two companion codes and are not yet
-integrated here.
+All these pipeline stages are implemented in this repository. The delensing and
+the Fisher-matrix calculation are carried out by two companion codes, which
+DRAFT drives rather than reimplements. See :doc:`installation` for how to build
+them.
 
 .. note::
 
@@ -73,15 +74,31 @@ parameters for the extragalactic foregrounds are read from ``params.ini``.
 Forecasting
 -----------
 
-[Update] Not yet part of this repository (to be added):
+:doc:`get_fisher_forecasts`
+   Driver for this stage. Reads one or more ILC products, treats each survey
+   and sky patch as an independent experiment whose Fisher matrices are summed,
+   drives the delensing and the Fisher-matrix calculation, and writes the
+   forecast together with the projected parameter uncertainties.
 
-* Theoretical CMB spectra and iterative delensing, performed by
-  `CLASS_delens <https://github.com/selimhotinli/class_delens>`_.
-* Fisher-matrix forecast, performed by
-  `FisherLens <https://github.com/ctrendafilova/FisherLens>`_.
+:doc:`delensing`
+   Iterative delensing. Combines the residual spectra with the effective Planck
+   noise and hands the result to `CLASS_delens
+   <https://github.com/selimhotinli/class_delens>`_, which reconstructs the
+   lensing potential and returns the delensed spectra together with the
+   lensing-reconstruction noise :math:`N_\ell^{dd}`.
 
-Both consume the ILC residuals produced by the component separation stage
+:doc:`fisher`
+   The Fisher matrix :math:`F_{\alpha\beta}` for one survey configuration and
+   the separate large-scale contribution from a satellite, reduced to the
+   projected uncertainties :math:`\sigma(p_\alpha)`.
+
+Both companion codes are reached through `FisherLens
+<https://github.com/ctrendafilova/FisherLens>`_, a git submodule of this
+repository which brings CLASS_delens as a submodule of its own
 (§3.3 of |paper|).
+
+The fiducial cosmology, the parameter step sizes, the multipole ranges, the
+priors and the option flags are read from ``params_fisher.ini``.
 
 .. toctree::
    :hidden:

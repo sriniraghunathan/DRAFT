@@ -1,7 +1,7 @@
 Adding an experiment
 ====================
 
-Experiment configurations are defined in :func:`exp_specs.get_exp_specs`, a
+Experimental configurations are defined in :func:`exp_specs.get_exp_specs`, a
 single dispatch on ``expname`` that returns the per-band beams, white-noise
 levels and atmospheric-noise parameters. Adding a configuration means adding
 one branch to that dispatch, with no other changes in the pipeline necessary.
@@ -10,7 +10,7 @@ Required information
 --------------------
 
 ``specs_dic``
-   The specifications, keyed by band centre in GHz. Each value is the
+   The specifications, keyed by band center in GHz. Each value is the
    seven-element list
    ``[beam_fwhm, delta_T, elknee_T, alphaknee_T, delta_P, elknee_P, alphaknee_P]``,
    with the beam full-width at half-maximum in arcmin and the white-noise
@@ -25,7 +25,7 @@ Required information
 
 ``Nred_dic`` is initialized to an empty dictionary before the dispatch and only
 needs setting for configurations that model red noise explicitly, which at
-present is the Simons Observatory family.
+present is only the ``sobaseline`` and ``sogoal`` branch.
 
 Worked example
 --------------
@@ -37,7 +37,7 @@ self-contained configuration:
 
    elif expname.lower() == 'planck':
        #Planck instrumental noise, from Table 1 of Allison et al. 2015 (arXiv:1509.07471).
-       no_pol_noise = 1e4  #μK-arcmin
+       no_pol_noise = 1e4  #μK arcmin
        specs_dic = {
        #freq: [beam_arcmins, white_noise_T, elknee_T, alphaknee_T, whitenoise_P, elknee_P, alphaknee_P]
        30:  [33., 145., -1., 0., no_pol_noise, -1., 0.],
@@ -55,10 +55,10 @@ self-contained configuration:
        for nu in specs_dic:
            corr_noise_bands[nu] = [nu]
 
-Two conventions are visible here. Atmospheric noise is switched off in every
-band with ``elknee = -1``, since it is not relevant for a satellite, and the
+Two conventions are visible here: (i) Atmospheric noise is switched off in every
+band with ``elknee = -1`` since it is not relevant for a satellite and (ii) the
 two channels without quoted polarization sensitivity are given a deliberately
-large ``delta_P`` of :math:`10^4` μK arcmin, so that the ILC down-weights them
+large ``delta_P`` of :math:`10^4` μK arcmin so that the ILC down-weights them
 in polarization rather than excluding them.
 
 Adding your own
@@ -69,7 +69,7 @@ unrecognized name, following the pattern above, then run it:
 
 .. code-block:: bash
 
-   python3 get_ilc_residuals.py -expname mytelescope -interactive_mode 0
+   python3 get_ilc_residuals.py -expname mytelescope
 
 The white-noise levels are printed per band, so a first check is that the
 printed ``Delta T`` and ``Delta P`` are what you intended after any
@@ -94,16 +94,17 @@ include ``s4`` in the name or move each result before rerunning.
 .. TODO: address the above?
 
 **Galactic foregrounds need the standard bands.** ``-include_gal 1`` requires
-the frequency bands of the configuration to be 27, 39, 93, 145, 225 and 278 GHz
-because the precomputed simulations exist only for those. Any other set raises
-a ``ValueError`` naming the bands that are missing.
+every band of the configuration to be one of 27, 39, 93, 145, 225 and 278 GHz
+because the precomputed simulations exist only for those. A configuration using
+fewer of them is accepted, but one carrying any other band raises a
+``ValueError`` naming the bands that have no simulations.
 
 **Check that your branch is reachable.** The dispatch is long and several parts
 of the code may be unreachable or are overwritten. After adding a branch,
 confirm the printed noise levels match your input.
 
 *[Longer term, the specifications are to be moved out of the dispatch into a data
-file or per-experiment dictionaries, so that adding a configuration does not
+file or per-experiment dictionaries so that adding a configuration does not
 require editing a long chain.]*
 
-.. TODO
+.. TODO: Implement this

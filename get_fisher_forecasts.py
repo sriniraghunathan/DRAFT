@@ -2,7 +2,7 @@ r"""
 Compute delensed CMB spectra and Fisher forecasts from ILC residuals.
 
 This is the driver for the forecasting stage of DRAFT.
-It reads the residual power spectra produced by the component separation in ``get_ilc_residuals.py``, combines them with the effective satellite noise, drives the iterative delensing of CLASS_delens through FisherLens, and reduces the result to a Fisher matrix and projected parameter uncertainties.
+It reads the residual power spectra produced by the component separation in :mod:`get_ilc_residuals`, combines them with the effective satellite noise, drives the iterative delensing of CLASS_delens through FisherLens, and reduces the result to a Fisher matrix and projected parameter uncertainties.
 
 Several ILC products are treated as independent experiments whose Fisher matrices are summed, which is how different surveys are combined into a single forecast.
 
@@ -21,7 +21,7 @@ The same calculation is available to other scripts through :func:`run_forecast`,
 Each configuration costs one iterative CLASS_delens run plus two per varied parameter since the delensed spectra and their derivatives depend on the noise of that configuration.
 Those derivatives are therefore the expensive part of any forecast and :func:`write_forecast_cache` records them so that ``-cache`` can read them back: a rerun at a different sky fraction, with different priors or with a parameter held fixed then costs seconds and no CLASS run at all.
 
-Nothing need be written to disk: ``get_ilc_residuals.run_ilc`` returns the same dictionary that :func:`load_ilc_product` reads back, so a script can run component separation and forecasting in one process::
+Nothing need be written to disk: :func:`get_ilc_residuals.run_ilc` returns the same dictionary that :func:`load_ilc_product` reads back, so a script can run component separation and forecasting in one process::
 
     import get_ilc_residuals
 
@@ -31,7 +31,7 @@ Nothing need be written to disk: ``get_ilc_residuals.run_ilc`` returns the same 
 Notes
 -----
 Effective noise assembly and the CLASS_delens calls live in :mod:`delensing`, and the Fisher algebra in :mod:`fisher`.
-This module holds only the input and output handling, the parameter file and the command line, so that neither of those modules depends on a file format.
+This module holds only the input and output handling, the parameter file and the command line so that neither of those modules depends on a file format.
 """
 
 import argparse
@@ -135,14 +135,14 @@ def parse_args(argv=None):
     Notes
     -----
     Only the arguments that do not change a number appear here: which products to read, how much sky each covers, where the output goes and how loud the run is.
-    Everything that bears on the physics, meaning the cosmology, the step sizes, the multipole ranges, the delensing mode, the priors and the option flags, is read from the parameter file, so that a forecast is reproducible from a file rather than from a shell history.
+    Everything that bears on the physics, meaning the cosmology, the step sizes, the multipole ranges, the delensing mode, the priors and the option flags, is read from the parameter file so that a forecast is reproducible from a file rather than from a shell history.
     """
 
     parser = argparse.ArgumentParser(description='Compute delensed CMB spectra and Fisher forecasts from ILC residuals.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-ilc_fname', dest='ilc_fname', action='store', help='ILC product to forecast from, as written by get_ilc_residuals.py. Several are treated as independent experiments and combined.', nargs='+', type=str, required=True)
     parser.add_argument('-fsky', dest='fsky', action='store', help="Sky fraction of each configuration, one value per -ilc_fname, either a number or 'auto' to use the fsky_val recorded in that product. A product built with -include_gal 0 records none, so a number is required for it.", nargs='+', type=str, default=None)
     parser.add_argument('-cache', dest='cache', action='store', help="Forecast cache to read for each configuration in place of running CLASS, one value per -ilc_fname, with 'none' to run CLASS for that one. For example use to rerun with a different sky fraction or with different priors.", nargs='+', type=str, default=None)
-    parser.add_argument('-write_cache', dest='write_cache', action='store', help='Write the forecast cache of each configuration, so that a later run can reuse it (0 or 1).', type=int, default=0)
+    parser.add_argument('-write_cache', dest='write_cache', action='store', help='Write the forecast cache of each configuration so that a later run can reuse it (0 or 1).', type=int, default=0)
     parser.add_argument('-write_lensing_noise', dest='write_lensing_noise', action='store', help='Write the lensing-reconstruction noise curves of each configuration (0 or 1). Ignored for a configuration read from a cache that holds no reconstruction.', type=int, default=0)
     parser.add_argument('-label', dest='label', action='store', help='Name of this forecast, used for the output folder and the file names within it. Required when more than one ILC product is given; with one, it defaults to that product name.', type=str, default=None)
     parser.add_argument('-opfname', dest='opfname', action='store', help='Path of the forecast product, overriding the one built from -label.', type=str, default=None)
@@ -218,7 +218,7 @@ def load_fisher_params(paramfile=PARAMFILE):
     Read and validate the forecasting parameter file.
 
     The file uses the same flat ``key = value`` dialect as ``params.ini`` and is read with :func:`misc.get_param_dict`.
-    Three groups of entries are collected by prefix rather than by section, since that dialect has none: ``fid_<name>`` gives a fiducial cosmological parameter, ``step_<name>`` its derivative step size and ``prior_<name>`` the width of a Gaussian prior on it.
+    Three groups of entries are collected by prefix rather than by section since that dialect has none: ``fid_<name>`` gives a fiducial cosmological parameter, ``step_<name>`` its derivative step size and ``prior_<name>`` the width of a Gaussian prior on it.
     Everything else is passed through as a setting.
 
     Parameters
@@ -242,7 +242,7 @@ def load_fisher_params(paramfile=PARAMFILE):
     Warns
     -----
     UserWarning
-        Propagated from :func:`delensing.validate_cosmology` and if a prior names a parameter that is not being varied, since such a prior has no effect.
+        Propagated from :func:`delensing.validate_cosmology` and if a prior names a parameter that is not being varied since such a prior has no effect.
 
     Notes
     -----
@@ -250,7 +250,7 @@ def load_fisher_params(paramfile=PARAMFILE):
     That matters because :func:`misc.get_param_dict` returns an ``int`` for any value written without a fractional part, so ``fid_N_eff = 3.0`` would otherwise arrive as an integer.
     Coercing here rather than asking for a particular way of writing the file keeps that detail out of the user's way.
 
-    Multipole ranges, the lensing reconstruction cuts, the satellite block and the option flags are returned unchanged, since they are consumed by :mod:`fisher` and by :func:`delensing.run_class` rather than here.
+    Multipole ranges, the lensing reconstruction cuts, the satellite block and the option flags are returned unchanged since they are consumed by :mod:`fisher` and by :func:`delensing.run_class` rather than here.
     """
 
     if not os.path.exists(paramfile):
@@ -398,7 +398,7 @@ def load_ilc_product(ilc_fname):
     Parameters
     ----------
     ilc_fname : str
-        Path to a ``.npy`` file written by ``get_ilc_residuals.run_ilc``.
+        Path to a ``.npy`` file written by :func:`get_ilc_residuals.run_ilc`.
 
     Returns
     -------
@@ -419,7 +419,7 @@ def load_ilc_product(ilc_fname):
 
     Notes
     -----
-    This loader is deliberately the only place that knows the product layout; :func:`delensing.build_effective_noise` and the routines in :mod:`fisher` take the dictionary itself, so that they can equally be handed the return value of ``get_ilc_residuals.run_ilc`` without anything having been written to disk.
+    This loader is deliberately the only place that knows the product layout; :func:`delensing.build_effective_noise` and the routines in :mod:`fisher` take the dictionary itself so that they can equally be handed the return value of :func:`get_ilc_residuals.run_ilc` without anything having been written to disk.
     """
 
     return _load_npy_dict(ilc_fname, 'ILC product')
@@ -450,11 +450,11 @@ def get_fsky(ilc_dic, fsky=None):
     Warns
     -----
     UserWarning
-        If a supplied value overrides a stored one, since the stored value is the sky fraction the foreground spectra were computed on.
+        If a supplied value overrides a stored one since the stored value is the sky fraction the foreground spectra were computed on.
 
     Notes
     -----
-    ``get_ilc_residuals.build_output_dic`` records ``'fsky_val'`` only when ``include_gal`` is set, so a product built without galactic foregrounds carries no sky fraction and one must be supplied.
+    :func:`get_ilc_residuals.build_output_dic` records ``'fsky_val'`` only when ``include_gal`` is set, so a product built without galactic foregrounds carries no sky fraction and one must be supplied.
     The stored value is the fraction remaining after the galactic mask has been intersected with the survey footprint, which is usually the relevant area for the Fisher sum.
     """
 
@@ -663,9 +663,9 @@ def convert_legacy_lensing_noise(product, fname=None):
 
     The arrays are stored as ``complex128`` with the imaginary part zero and are returned as real.
 
-    The older products name the recorded multipole cuts ``lmin``, ``lmax`` and ``lmax_tt``, but they are the cuts on the fields entering the quadratic estimator, whereas ``lmin``, ``lmax`` and ``lmax_TT`` in the current settings are the windows of the Fisher sum. They are renamed here through :data:`LEGACY_LENSING_SETTINGS` rather than carried across, since carrying them across would put reconstruction cuts where a later stage reads Fisher windows.
+    The older products name the recorded multipole cuts ``lmin``, ``lmax`` and ``lmax_tt``, but they are the cuts on the fields entering the quadratic estimator, whereas ``lmin``, ``lmax`` and ``lmax_TT`` in the current settings are the windows of the Fisher sum. They are renamed here through :data:`LEGACY_LENSING_SETTINGS` rather than carried across since carrying them across would put reconstruction cuts where a later stage reads Fisher windows.
 
-    Reading one of these files emits several ``VisibleDeprecationWarning`` from NumPy about ``align=0``. That comes from unpickling arrays written under an older NumPy and is not suppressed here, since suppressing it would also hide the same warning raised for other reasons.
+    Reading one of these files emits several ``VisibleDeprecationWarning`` from NumPy about ``align=0``. That comes from unpickling arrays written under an older NumPy and is not suppressed here since suppressing it would also hide the same warning raised for other reasons.
     """
 
     where = '' if fname is None else ' in %s' % (fname)
@@ -746,9 +746,14 @@ def read_lensing_noise_curves(fname):
     ValueError
         If the file does not hold a single dictionary.
 
+    Warns
+    -----
+    UserWarning
+        If the file is in the older layout under ``products/`` and has been converted on read.
+
     Notes
     -----
-    The older products under ``products/`` are recognized by their ``'els'`` entry and converted by :func:`convert_legacy_lensing_noise`, with a warning saying so, since the conversion changes both the names and the convention of what is returned.
+    The older products under ``products/`` are recognized by their ``'els'`` entry and converted by :func:`convert_legacy_lensing_noise`. The conversion changes both the names and the convention of what is returned, which is why it is warned about.
     """
 
     product = _load_npy_dict(fname, 'lensing-noise product')
@@ -794,9 +799,9 @@ def forecast_cache(powers, param_derivs, noise, deflection_noise, reconstruction
     The expensive part of a forecast is the CLASS runs and nothing in the Fisher stage needs to repeat them: changing the multipole windows, the sky fraction, the priors or which parameters are held fixed all act on quantities this cache already holds.
     Keeping it therefore turns a scan over any of those into seconds rather than potentially hours.
 
-    The noise is stored in the canonical form rather than either of the re-indexed views, since :func:`delensing.noise_for_fisher` and :func:`delensing.noise_for_class` derive those cheaply and storing one of them would invite using it in the wrong place.
+    The noise is stored in the canonical form rather than either of the re-indexed views since :func:`delensing.noise_for_fisher` and :func:`delensing.noise_for_class` derive those cheaply and storing one of them would invite using it in the wrong place.
 
-    Written and read with :func:`write_forecast_cache` and :func:`read_forecast_cache`. These files are large, since they hold every derivative at every multipole, so they belong under ``results/`` rather than in the repository.
+    Written and read with :func:`write_forecast_cache` and :func:`read_forecast_cache`. These files are large since they hold every derivative at every multipole, so they belong under ``results/`` rather than in the repository.
     """
 
     cache = {'powers': powers,
@@ -1017,8 +1022,8 @@ def array_fingerprint(*arrays):
 
     Notes
     -----
-    Used to record which noise a set of non-Gaussian derivative matrices was computed with, so that a stored set can be refused when it does not match the one being asked for.
-    Everything is coerced to ``float64`` and to C order before hashing, so that a view, a byte order or a stride cannot change the answer for the same numbers.
+    Used to record which noise a set of non-Gaussian derivative matrices was computed with so that a stored set can be refused when it does not match the one being asked for.
+    Everything is coerced to ``float64`` and to C order before hashing so that a view, a byte order or a stride cannot change the answer for the same numbers.
     This identifies contents, not provenance; it is not a checksum against corruption and makes no cryptographic claim.
     """
 
@@ -1496,7 +1501,7 @@ def run_forecast(ilc,
     overwrite : bool, optional
         Replace existing output files. Default is ``False``.
     paths : dict, optional
-        Resolved paths from :func:`delensing.resolve_paths`. Default is ``None``.
+        Resolved paths from :func:`delensing.resolve_paths`. Default is ``None``, which resolves them and, when any configuration is to be run rather than read from a cache, checks the setup with :func:`delensing.check_setup` first.
     verbose : bool, optional
         Report each step as it runs. Default is ``True``.
 
@@ -1511,6 +1516,8 @@ def run_forecast(ilc,
     ------
     ValueError
         If no configurations are given, if a per-configuration argument does not match them in number, or if several configurations are given without a label or propagated from the routines below.
+    RuntimeError
+        Propagated from :func:`delensing.check_setup` when a configuration is to be run and FisherLens or a compiled CLASS_delens is not usable.
 
     Warns
     -----
@@ -1520,7 +1527,7 @@ def run_forecast(ilc,
     Notes
     -----
     Each configuration costs one iterative CLASS_delens run plus two per varied parameter because the delensed spectra and their derivatives depend on the noise of that configuration.
-    The cache of each is therefore written as soon as it is complete rather than at the end, so that a failure part way through a multi-configuration run does not discard the configurations that already succeeded.
+    The cache of each is therefore written as soon as it is complete rather than at the end so that a failure part way through a multi-configuration run does not discard the configurations that already succeeded.
 
     The satellite block is built from the first configuration's cache and added once.
     It may be built from any of them: it spans multipoles below ``lmin_ilc``, where the effective noise holds no ILC residual and is the satellite's own, and it uses the lensed spectra, which do not depend on the noise. Both were verified by perturbing each in turn and finding the block unchanged.
@@ -1563,6 +1570,10 @@ def run_forecast(ilc,
         print('\nForecast %s: %d configuration(s), lmax %d plus a buffer of %d'
               % (label, count, lmax, int(settings['lbuffer'])))
         print('  varying %s' % (', '.join(vary_params)))
+
+    if any(item is None for item in cache_list):
+        #a fresh checkout reports every missing piece of the CLASS_delens setup at once here, rather than one per attempt from inside the first run.
+        paths = delensing.check_setup(verbose=verbose, **(paths or {}))
 
     caches, configurations = [], []
     for index, entry in enumerate(ilc_list):
@@ -1617,7 +1628,7 @@ def run_forecast(ilc,
                 extra={'ilc_fname': os.path.basename(entry) if isinstance(entry, str) else name,
                        'lmax_calc': lmax_calc, 'vary_params': vary_params})
 
-        #each cache is written as it is finished rather than at the end, so that a failure on a later configuration does not discard the CLASS runs already paid for.
+        #each cache is written as it is finished rather than at the end so that a failure on a later configuration does not discard the CLASS runs already paid for.
         if write_cache:
             record['cache_fname'] = write_forecast_cache(
                 this_cache, os.path.join(opdir, '%s_cache.npy' % (name)), overwrite=overwrite)

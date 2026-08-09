@@ -15,10 +15,10 @@ The module is grouped into the following sections:
 The functions here are named for Fisher blocks rather than Fisher matrices to signal what they do not return.
 A block is the Fisher matrix over every varied parameter for one measurement, one survey configuration or the low-ell information from a satellite, carried in a dictionary alongside the information identifying how it was formed.
 It is a summand of the total, never the total itself and never a submatrix of a larger Fisher matrix.
-Every block goes through :func:`combine_fisher`, including when the total consists of a single block for a single survey, since that is what ensures no double-counting, e.g. of the low-ell information or the priors.
+Every block goes through :func:`combine_fisher`, including when the total consists of a single block for a single survey since that is what ensures no double-counting, e.g. of the low-ell information or the priors.
 
 The two kinds of block differ in more than the multipoles they cover, which is why they are separate functions rather than one with a switch.
-A survey block carries one Fisher matrix per spectrum type, since delensing is a property of the high-ell (usually ground-based) measurement and the forecast is quoted from the delensed spectra with the lensed and unlensed ones alongside for comparison.
+A survey block carries one Fisher matrix per spectrum type since delensing is a property of the high-ell (usually ground-based) measurement and the forecast is quoted from the delensed spectra with the lensed and unlensed ones alongside for comparison.
 A satellite block carries a single matrix, formed from the lensed spectra, because delensing is essentially irrelevant for the large scales covered by a satellite; :func:`combine_fisher` therefore adds that one matrix to the total of every spectrum type.
 A survey block also sums over temperature, polarization and the lensing deflection, while a satellite block inverts a one-by-one temperature covariance at each multipole, which is the likelihood of the temperature-only measurement a satellite contributes on those scales (since we add the polarization information via a tau prior).
 Each survey configuration contributes its own block, while the satellite contributes one once.
@@ -30,7 +30,7 @@ Multipoles are held under ``el`` in every dictionary this module builds, as else
 
 # Note:
 # Several routines in this module work around behavior of FisherLens that was established empirically rather than from its documentation.
-# Each such workaround carries a comment naming the pinned commit it was verified against, since the reasoning is not otherwise recoverable from the code.
+# Each such workaround carries a comment naming the pinned commit it was verified against since the reasoning is not otherwise recoverable from the code.
 # The pinned commits are those recorded in the respective ``.gitmodules``; if either submodule pointer is advanced, those comments are the places to re-check.
 # We do not directly employ ``paperPlots/plotTools.py`` of FisherLens, which is an analysis script that suits its own notebooks and is more specific than suitable here.
 
@@ -60,14 +60,14 @@ SATELLITE_POL_COMBS = ['cl_TT']
 """
 Spectra entering the satellite Fisher block.
 
-Temperature alone, since the satellite contributes large-scale temperature information and its polarization enters the forecast as a prior on the optical depth rather than as a spectrum.
+Temperature alone since the satellite contributes large-scale temperature information and its polarization enters the forecast as a prior on the optical depth rather than as a spectrum.
 """
 
 SATELLITE_SPECTRUM = 'lensed'
 """
 Spectrum type used for the satellite block.
 
-Lensed rather than delensed, since delensing is a property of the ground-based measurement and does not apply to the satellite's own large-scale temperature data.
+Lensed rather than delensed since delensing is a property of the ground-based measurement and does not apply to the satellite's own large-scale temperature data.
 """
 
 DEFAULT_WINDOWS = {'lmin': 30, 'lmax': 5000, 'lmax_TT': 5000, 'lmin_dd': 2, 'lmax_dd': 5000}
@@ -124,7 +124,7 @@ def fisher_windows(settings=None, lmin=None, lmax=None, lmax_TT=None, lmin_dd=No
     Parameters
     ----------
     settings : dict, optional
-        Forecasting settings, as returned by ``get_fisher_forecasts.load_fisher_params``, from which ``lmin``, ``lmax``, ``lmax_TT``, ``lmin_dd`` and ``lmax_dd`` are read. Default is ``None``, which uses :data:`DEFAULT_WINDOWS`.
+        Forecasting settings, as returned by :func:`get_fisher_forecasts.load_fisher_params`, from which ``lmin``, ``lmax``, ``lmax_TT``, ``lmin_dd`` and ``lmax_dd`` are read. Default is ``None``, which uses :data:`DEFAULT_WINDOWS`.
     lmin : int, optional
         Lowest multipole of the :math:`TT`, :math:`TE` and :math:`EE` spectra. Default is ``None``, which takes the value from ``settings``.
     lmax : int, optional
@@ -150,7 +150,7 @@ def fisher_windows(settings=None, lmin=None, lmax=None, lmax_TT=None, lmin_dd=No
     #Note:
     #A fresh dictionary with fresh lists is returned on every call, because ``fisherTools.createEllsToUseDict`` edits the windows it is given in place and returns the same object rather than a copy, so a dictionary reused across calls would be silently modified. This was verified against FisherLens ``652eaec``: a window given as ``[0, 29]`` leaves the caller's list reading ``[2, 29]``.
     #The windows are inclusive at both ends. ``getGaussianCMBFisher`` applies them as the slice ``[lmin-2 : lmax-1]`` of an array whose element zero is :math:`\ell = 2`, which retains both bounds.
-    #No ``lmaxCov`` entry is set here. It is read only on the non-Gaussian path, where :func:`survey_fisher_block` supplies it, and setting it on the Gaussian path would have no effect, since a covariance diagonal in multipole contributes nothing outside the windows.
+    #No ``lmaxCov`` entry is set here. It is read only on the non-Gaussian path, where :func:`survey_fisher_block` supplies it, and setting it on the Gaussian path would have no effect since a covariance diagonal in multipole contributes nothing outside the windows.
 
     if settings is None:
         settings = DEFAULT_WINDOWS
@@ -202,7 +202,7 @@ def _check_powers(powers, spectrum_types, pol_combs):
     #entry must be present even when it is not among them (FisherLens 652eaec).
     if 'unlensed' not in powers:
         raise ValueError("The spectra must include an 'unlensed' entry whatever spectrum types are "
-                         'requested, since FisherLens reads its multipole array to set up the '
+                         'requested since FisherLens reads its multipole array to set up the '
                          'covariance. The entries present are %s' % (sorted(powers.keys())))
     if 'l' not in powers['unlensed']:
         raise ValueError("The 'unlensed' spectra must hold their multipoles under 'l', as CLASS "
@@ -327,7 +327,8 @@ def _warn_non_finite(matrix, spectrum, label):
         warnings.warn('The %s Fisher matrix%s holds %d non-finite entries out of %d. FisherLens '
                       'fills a multipole with them when it cannot invert the covariance there and '
                       'reports that by printing rather than raising, so check its output above.'
-                      % (spectrum, '' if label is None else ' for %s' % (label), bad, matrix.size))
+                      % (spectrum, '' if label is None else ' for %s' % (label), bad, matrix.size),
+                      stacklevel=2)
 
 
 def _non_gaussian_matrices(fisher_tools,
@@ -378,6 +379,11 @@ def _non_gaussian_matrices(fisher_tools,
     dict
         Fisher matrices keyed by spectrum type, before the sky fraction is applied.
 
+    Raises
+    ------
+    ValueError
+        If a derivative matrix is not two dimensional or is too small to reach ``lmax_cov``.
+
     Warns
     -----
     UserWarning
@@ -410,9 +416,9 @@ def _non_gaussian_matrices(fisher_tools,
     matrices = {}
     for spectrum in spectrum_types:
         if spectrum == 'unlensed':
-            warnings.warn('The unlensed spectra carry no non-Gaussian covariance, since they do '
+            warnings.warn('The unlensed spectra carry no non-Gaussian covariance since they do '
                           'not depend on the lensing potential, so their Fisher matrix is the '
-                          'Gaussian one and is returned as such.')
+                          'Gaussian one and is returned as such.', stacklevel=2)
             matrices.update( fisher_tools.getGaussianCMBFisher(powersFid=powers,
                                                                paramDerivs=param_derivs,
                                                                cmbNoiseSpectra=fisher_noise,
@@ -466,11 +472,11 @@ def survey_fisher_block(powers,
     Parameters
     ----------
     powers : dict
-        Spectra from ``delensing.run_class``, keyed ``'unlensed'``, ``'lensed'``, ``'delensed'`` and ``'lensing'``, each holding multipoles under ``'l'`` from :math:`\ell = 2`.
+        Spectra from :func:`delensing.run_class`, keyed ``'unlensed'``, ``'lensed'``, ``'delensed'`` and ``'lensing'``, each holding multipoles under ``'l'`` from :math:`\ell = 2`.
     param_derivs : dict
-        Derivatives from ``delensing.parameter_derivatives``, keyed by parameter, then by spectrum type, then by spectrum, with the deflection derivative under ``['lensing']['cl_dd']``.
+        Derivatives from :func:`delensing.parameter_derivatives`, keyed by parameter, then by spectrum type, then by spectrum, with the deflection derivative under ``['lensing']['cl_dd']``.
     noise : dict
-        Effective noise from ``delensing.build_effective_noise``, whose entries begin at :math:`\ell = 0`. It is re-indexed to :math:`\ell = 2` here.
+        Effective noise from :func:`delensing.build_effective_noise`, whose entries begin at :math:`\ell = 0`. It is re-indexed to :math:`\ell = 2` here.
     deflection_noise : array_like
         Lensing-reconstruction noise :math:`N_\ell^{dd}` of the configuration, as handed to CLASS.
     vary_params : sequence of str
@@ -484,7 +490,7 @@ def survey_fisher_block(powers,
     pol_combs : sequence of str, optional
         Spectra entering the sum. Default is ``None``, which uses :data:`POL_COMBS`.
     deflection_from_multipole_zero : bool, optional
-        Whether ``deflection_noise`` is indexed from multipole zero, as ``delensing.deflection_noise_for_class`` returns it, in which case its first two entries are dropped. Default is ``True``.
+        Whether ``deflection_noise`` is indexed from multipole zero, as :func:`delensing.deflection_noise_for_class` returns it, in which case its first two entries are dropped. Default is ``True``.
     lensing_derivs : dict, optional
         FisherLens ``dCldCLd``, the derivatives of the spectra with respect to the lensing-deflection power, which switches on the non-Gaussian covariance. Default is ``None``, for a Gaussian covariance.
     unlensed_derivs : dict, optional
@@ -494,7 +500,7 @@ def survey_fisher_block(powers,
     label : str, optional
         Name recorded with the block, such as the configuration it belongs to. Default is ``None``.
     fisherlens_dir : str, optional
-        Location of the FisherLens checkout. Default is ``None``, which uses ``delensing.DEFAULT_FISHERLENS_DIR``.
+        Location of the FisherLens checkout. Default is ``None``, which uses :data:`delensing.DEFAULT_FISHERLENS_DIR`.
 
     Returns
     -------
@@ -525,7 +531,7 @@ def survey_fisher_block(powers,
     """
 
     #TODO:
-    #The choice of ``lmax_cov`` needs cross-checking with a collaborator before any non-Gaussian number is quoted, and is recorded as an open item. Raising it past the largest window bound extends the sum over the deflection multipole :math:`L`, which is physical and wanted, since the covariance of :math:`C_\ell` at :math:`\ell \le \ell_\mathrm{max}` does receive contributions from :math:`L > \ell_\mathrm{max}`. But the two axes share one bound, so raising it also extends the range of :math:`\ell` past the windows, where the derivative vector is zero. Zero-padding the derivative and inverting the larger covariance yields
+    #The choice of ``lmax_cov`` needs cross-checking with a collaborator before any non-Gaussian number is quoted, and is recorded as an open item. Raising it past the largest window bound extends the sum over the deflection multipole :math:`L`, which is physical and wanted since the covariance of :math:`C_\ell` at :math:`\ell \le \ell_\mathrm{max}` does receive contributions from :math:`L > \ell_\mathrm{max}`. But the two axes share one bound, so raising it also extends the range of :math:`\ell` past the windows, where the derivative vector is zero. Zero-padding the derivative and inverting the larger covariance yields
     #d_w^\mathsf{T}\,(C^{-1})_{ww}\,d_w = d_w^\mathsf{T}\,\bigl(C_{ww} - C_{wo}C_{oo}^{-1}C_{ow}\bigr)^{-1} d_w \;\ge\; d_w^\mathsf{T}\,C_{ww}^{-1}\,d_w\, ,
     #that is more information than inverting the covariance of the band powers actually used, the excluded multipoles acting as a noise monitor. That is justified only if they are measured, which is not the case when the upper bound was chosen to avoid foregrounds and systematics. The default here is the largest window bound, which is the conservative reading; the reference example in FisherLens sets it to the buffered ``lmax_calc`` instead.
 
@@ -655,11 +661,11 @@ def satellite_fisher_block(powers,
     Parameters
     ----------
     powers : dict
-        Spectra from ``delensing.run_class``, as for :func:`survey_fisher_block`.
+        Spectra from :func:`delensing.run_class`, as for :func:`survey_fisher_block`.
     param_derivs : dict
-        Derivatives from ``delensing.parameter_derivatives``.
+        Derivatives from :func:`delensing.parameter_derivatives`.
     noise : dict
-        Effective noise from ``delensing.build_effective_noise``, whose entries begin at :math:`\ell = 0`. Below the multipole at which the ILC residual is used, this is the satellite noise alone.
+        Effective noise from :func:`delensing.build_effective_noise`, whose entries begin at :math:`\ell = 0`. Below the multipole at which the ILC residual is used, this is the satellite noise alone.
     vary_params : sequence of str
         Parameters to include, in the order the rows and columns take.
     fsky : float
@@ -675,7 +681,7 @@ def satellite_fisher_block(powers,
     label : str, optional
         Name recorded with the block. Default is ``None``.
     fisherlens_dir : str, optional
-        Location of the FisherLens checkout. Default is ``None``, which uses ``delensing.DEFAULT_FISHERLENS_DIR``.
+        Location of the FisherLens checkout. Default is ``None``, which uses :data:`delensing.DEFAULT_FISHERLENS_DIR`.
 
     Returns
     -------
@@ -769,7 +775,7 @@ def foreground_systematic(ilc_dic, fractions, spectrum_types=None, pol_combs=Non
     Parameters
     ----------
     ilc_dic : dict
-        ILC product from ``get_fisher_forecasts.load_ilc_product``, whose ``'fg_res_dic'`` holds the residual power of each component.
+        ILC product from :func:`get_fisher_forecasts.load_ilc_product`, whose ``'fg_res_dic'`` holds the residual power of each component.
     fractions : dict
         Fraction of each component that is mismodeled, keyed by component name. A fraction of 1 means the component is not modeled at all, 0 that it is modeled perfectly.
     spectrum_types : sequence of str, optional
@@ -810,7 +816,7 @@ def foreground_systematic(ilc_dic, fractions, spectrum_types=None, pol_combs=Non
 
     with :math:`\Delta C_\ell^{TE}` and :math:`\Delta C_\ell^{dd}` zero throughout, the first because ``fg_res_dic`` holds no TE and the second because the deflection carries no ILC residual.
 
-    Arbitrary changes of shape or of spectral energy distribution are not implemented yet: they need ``force_cl_dic``, which exists in ``ilc.get_analytic_covariance`` but is not plumbed through ``get_covariances`` or ``run_ilc`` at the moment.
+    Arbitrary changes of shape or of spectral energy distribution are not implemented yet: they need ``force_cl_dic``, which exists in :func:`ilc.get_analytic_covariance` but is not plumbed through ``get_covariances`` or ``run_ilc`` at the moment.
 
     Fractions outside :math:`[0, 1]` are permitted with a warning rather than refused. Above 1 means assuming less of a component than is present, below 0 means over-subtracting it; both are real failure modes and the formalism treats them no differently.
 
@@ -957,7 +963,7 @@ def bias_vector(powers,
     label : str, optional
         Name recorded with the vector. Default is ``None``.
     fisherlens_dir : str, optional
-        Location of the FisherLens checkout. Default is ``None``, which uses ``delensing.DEFAULT_FISHERLENS_DIR``.
+        Location of the FisherLens checkout. Default is ``None``, which uses :data:`delensing.DEFAULT_FISHERLENS_DIR`.
 
     Returns
     -------
@@ -971,7 +977,7 @@ def bias_vector(powers,
 
     Notes
     -----
-    The sky fraction is applied as it is to a Fisher block. It very nearly cancels from the parameter bias, since :math:`\Delta p = F^{-1} b` scales both, but not exactly, because a prior contributes to :math:`F` and not to :math:`b`.
+    The sky fraction is applied as it is to a Fisher block. It very nearly cancels from the parameter bias since :math:`\Delta p = F^{-1} b` scales both, but not exactly, because a prior contributes to :math:`F` and not to :math:`b`.
     """
 
     #Note: ``getBiasVectorGaussian`` of FisherLens (``652eaec``) takes no multipole windows: it has no ``ellsToUse`` argument and makes no call to ``createEllsToUseDict``, so it sums from :math:`\ell = 2` to its ``lmax`` for every spectrum, with no lower bound and no way to give it one, where the Fisher sums over whatever windows :func:`fisher_windows` supplied. Both the systematic and a copy of the derivatives are therefore masked to the windows before being handed over. Masking only one is not equivalent, because the inverse covariance mixes spectra at fixed multipole, so an unmasked derivative at multipoles the windows exclude would still pull on a masked systematic through the off-diagonal terms.
@@ -1188,7 +1194,7 @@ def combine_fisher(blocks, satellite=None, priors=None, fix_params=None, spectru
     spectrum_types : sequence of str, optional
         Spectrum types to form a total for. Default is ``None``, which uses those every block has.
     fisherlens_dir : str, optional
-        Location of the FisherLens checkout. Default is ``None``, which uses ``delensing.DEFAULT_FISHERLENS_DIR``.
+        Location of the FisherLens checkout. Default is ``None``, which uses :data:`delensing.DEFAULT_FISHERLENS_DIR`.
 
     Returns
     -------
@@ -1236,7 +1242,7 @@ def combine_fisher(blocks, satellite=None, priors=None, fix_params=None, spectru
     named = [label for label in labels if label is not None]
     if len(set(named)) != len(named):
         repeated = sorted({label for label in named if named.count(label) > 1})
-        warnings.warn('More than one block is labelled %s. Blocks are summed, so a configuration '
+        warnings.warn('More than one block is labeled %s. Blocks are summed, so a configuration '
                       'included twice is counted twice.' % (', '.join(repeated)), stacklevel=2)
     gaussian = {bool( block.get('gaussian', True) ) for block in blocks}
     if len(gaussian) > 1:
@@ -1359,7 +1365,7 @@ def parameter_bias(combined, vectors):
     Warns
     -----
     UserWarning
-        Always, since the foreground-bias calculation has a limited implementation, is experimental and has not been checked against an independent calculation.
+        Always since the foreground-bias calculation has a limited implementation, is experimental and has not been checked against an independent calculation.
 
     Notes
     -----

@@ -1,9 +1,12 @@
 Quickstart
 ==========
 
-DRAFT is run from the repository root. Each run computes the ILC residual power
-spectra for one experiment configuration and writes them to a product file. See
-:doc:`installation` for the requirements.
+The DRAFT forecasting tool is run from the repository root and has two
+drivers. ``get_ilc_residuals.py`` computes the ILC residual power spectra for
+one experiment configuration and writes them to a product file.
+``get_fisher_forecasts.py`` reads one or more of those products and turns them
+into a Fisher forecast. See :doc:`installation` for the requirements, which
+differ between the two.
 
 First ILC run
 -------------
@@ -47,9 +50,10 @@ Planck GAL070, GAL080 and GAL090 masks intersected with the survey footprint.
        -include_gal 1 -which_gal_mask 2
 
 Because the galactic simulations are only available for a fixed set of bands,
-``-include_gal 1`` requires a configuration whose bands are 27, 39, 93, 145,
-225 and 278 GHz. Any other configuration raises a ``ValueError`` naming the
-offending bands rather than failing later in the computation.
+``-include_gal 1`` requires every band of the configuration to be one of 27,
+39, 93, 145, 225 and 278 GHz. A configuration carrying any other band raises a
+``ValueError`` naming the offending bands rather than failing later in the
+computation.
 
 **What the ILC recovers.** ``-final_comp`` chooses the component preserved with
 unit response, one of ``cmb``, ``tsz``, ``y``, ``radio`` or ``cib``. The
@@ -77,12 +81,14 @@ applying the scaling twice.
 white-noise level of each band by a given factor, one value per band in band
 order, which is useful for exploring sensitivity to individual channels.
 
-**Diagnostics and bookkeeping.** ``-interactive_mode 0`` suppresses the
-diagnostic plots of the beam and noise spectra, which is what you want when
-running non-interactively. ``-save_fg_res_and_weights 0`` omits the
-per-component residuals and the ILC weights from the product file.
-``-debug 1`` prints intermediate dictionary keys and progress. ``-paramfile``
-points at an alternative parameter file in place of ``params.ini``.
+**Diagnostics and bookkeeping.** ``-debug 1`` prints the intermediate
+dictionary keys and progress, and draws the diagnostic plots of the beams and
+the noise spectra. A default run draws nothing. ``-interactive_mode 0`` then
+forces the non-interactive ``Agg`` backend rather than showing those figures; on
+its own, without ``-debug``, it has no effect. ``-save_fg_res_and_weights 0``
+omits the per-component residuals and the ILC weights from the product file.
+``-paramfile`` points at an alternative parameter file in place of
+``params.ini``.
 
 From Python
 -----------
@@ -109,12 +115,121 @@ Four options are available only this way, with no command line equivalent:
 partial ILC, ``freqcalib_fac`` to apply a per-band gain, and ``save`` to return
 the result without writing a file.
 
+First forecast
+--------------
+
+Forecasting needs the two companion codes built, as described in
+:doc:`installation`. It reads ILC products rather than recomputing them, so the
+files above or the released ones under ``products/`` are its input:
+
+.. code-block:: bash
+
+   python3 get_fisher_forecasts.py -ilc_fname <wide product> \
+       -fsky 0.62 -label s4_wide
+
+The product paths are long, so refer to :doc:`products` for their grammar
+and :mod:`get_fisher_forecasts` for a longer version of this command written
+out.
+
+Several products can be given at once. They are treated as independent
+experiments whose Fisher matrices are summed, which is how the surveys and sky
+patches of a configuration are combined into one forecast:
+
+.. code-block:: bash
+
+   python3 get_fisher_forecasts.py \
+       -ilc_fname <wide product> <ultradeep product> \
+       -fsky 0.59 0.03 -label s4_conceptual -write_cache 1
+
+``-fsky`` takes one value per ``-ilc_fname``, either a number or ``auto`` to use
+the ``fsky_val`` recorded in that product. A product built with
+``-include_gal 0`` records none, so a number is required for it. ``-label``
+names the output folder and the files within it, and is required once more than
+one product is given.
+
+Only what does not bear on a number is given on the command line. The
+cosmology, the step sizes, the multipole ranges, the delensing mode, the priors
+and the option flags are read from ``params_fisher.ini``, so a forecast is
+reproducible from a file rather than from a shell history.
+
+**Caching.** Each configuration costs one iterative CLASS_delens run plus two
+CLASS_delens runs per varied parameter. ``-write_cache 1`` records the computed
+spectra and derivatives, and ``-cache`` reads them back in place of
+running CLASS, one value per ``-ilc_fname`` with ``none`` to run CLASS for that
+one. A rerun at a different sky fraction, with different priors or with a
+parameter held fixed then costs seconds and no CLASS run at all.
+
+**Other options.** ``-write_lensing_noise 1`` writes the
+lensing-reconstruction noise curves of each configuration. ``-save 0`` returns
+the forecast without writing it, ``-opfname`` overrides the output path built
+from ``-label``, ``-overwrite 1`` replaces existing output files rather than
+refusing to, ``-verbose 0`` silences the per-step reporting and ``-paramfile``
+points at an alternative parameter file in place of ``params_fisher.ini``.
+
+The same calculation is available through
+:func:`get_fisher_forecasts.run_forecast`, which returns the forecast together
+with the path it would be written to:
+
+.. code-block:: python
+
+   import get_fisher_forecasts
+
+   product, opfname = get_fisher_forecasts.run_forecast(
+       ['<wide product>', '<ultradeep product>'], fsky=[0.59, 0.03],
+       label='s4_conceptual', save=False)
+
+Three options are available only this way: ``settings`` to pass the parameters
+directly in place of reading a file, ``fix_params`` to hold parameters fixed
+after the total Fisher matrix is formed and ``paths`` to point at a FisherLens
+or CLASS_delens checkout elsewhere.
+
 Reading the results
 -------------------
 
-Products are written under ``results/`` in a directory tree that records the
-experiment, the mask and the spectra combined. The filename grammar and the
-contents of the product dictionary are documented in :doc:`products`. The
-released products come with reader scripts,
-``products/202310xx_PBDR_config/read_ilc_residuals.py`` for the ILC residuals
-and ``read_lensing_noise.py`` for the lensing-noise curves.
+ILC products are written under ``results/`` in a directory tree that records
+the experiment, the mask and the spectra combined. The filename grammar and the
+contents of the product dictionary are documented in :doc:`products`.
+
+Everything a forecast produces is written together under
+``results/forecasts/<label>/``, because a forecast combining several
+configurations belongs to no single ILC product. The run above leaves
+
+``<label>_forecast.npy``
+   The forecast itself.
+
+``<ilc product name>_cache.npy``
+   One per configuration, written with ``-write_cache 1``.
+
+``<ilc product name>_lensing_noise.npy``
+   One per configuration, written with ``-write_lensing_noise 1``.
+
+Each is read back by a function in :mod:`get_fisher_forecasts` rather than by
+a script:
+
+.. code-block:: python
+
+   import get_fisher_forecasts as gff
+
+   opdir = 'results/forecasts/s4_conceptual'
+
+   ilc      = gff.load_ilc_product('<ilc product>')
+   forecast = gff.read_forecast_product(opdir + '/s4_conceptual_forecast.npy')
+   cache    = gff.read_forecast_cache('<cache file>')
+   curves   = gff.read_lensing_noise_curves('<lensing-noise file>')
+
+   gff.report_forecast(forecast)
+
+:func:`get_fisher_forecasts.read_lensing_noise_curves` also reads the older
+lensing-noise files released under ``products/``, converting them to the
+current layout and warning that it has done so.
+
+A forecast product records the Fisher matrix, its inverse and its condition
+number under ``fisher``, ``covariance`` and ``condition``, each keyed by
+spectrum type, ``unlensed``, ``lensed`` and ``delensed``. ``sigmas`` is keyed
+by spectrum type and then by parameter name. ``params`` gives the surviving
+parameter order, with ``params_supplied``, ``params_fixed``, ``priors``,
+``spectrum_types``, ``survey_labels`` and ``satellite_label`` recording how the
+total was formed, ``configurations`` holding one entry per input with its
+``fsky`` and the files it produced, and ``settings`` the parameters the run
+used. :func:`get_fisher_forecasts.report_forecast` prints the projected
+uncertainties of one spectrum type, ``delensed`` unless another is given.

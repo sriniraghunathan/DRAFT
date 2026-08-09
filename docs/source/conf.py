@@ -37,9 +37,10 @@ napoleon_numpy_docstring = True     # Turn on numpydoc strings
 napoleon_use_ivar = True            # Use :ivar: for attributes
 napoleon_use_rtype = False          # Use inline parenthesis for return type
 autodoc_member_order = 'bysource'   # Follow the grouping in each module
+autodoc_preserve_defaults = True    # Show keyword defaults as written, not evaluated
 napoleon_preprocess_types = True    # Cross-reference Returns types, not only Parameters
 napoleon_type_aliases = {           # numpydoc type names -> real targets
-     'array_like': ':obj:`numpy.typing.ArrayLike`',
+    'array_like': ':obj:`numpy.typing.ArrayLike`',
     'ndarray': ':class:`numpy.ndarray`',
     'sequence': ':class:`collections.abc.Sequence`',
     'iterable': ':class:`collections.abc.Iterable`',
@@ -53,9 +54,23 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org/stable/', None),
 }
 
+#The paths that this repository derives from __file__ are absolute, so autodoc
+#would otherwise print the build machine's own location into every page holding
+#one. The repository root is replaced by a placeholder wherever a value is shown.
+import sphinx.util.inspect as _sphinx_inspect
+
+_REPO_ROOT = os.path.abspath('../..')
+_object_description = _sphinx_inspect.object_description
+
+
+def _object_description_without_root(obj, **kwargs):
+    return _object_description(obj, **kwargs).replace(_REPO_ROOT, '<repository root>')
+
+
+_sphinx_inspect.object_description = _object_description_without_root
+
 nitpicky = True                     # Fail loudly on unresolved references
 
-# templates_path = ['_templates']   # unused
 exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 
 extlinks = {'arxiv': ('https://arxiv.org/abs/%s', 'arXiv:%s')}
@@ -71,4 +86,3 @@ html_theme = 'sphinx_rtd_theme'
 html_theme_options = {'navigation_depth': 2}
 html_copy_source = False
 html_show_sourcelink = False
-# html_static_path = ['_static']    # unused

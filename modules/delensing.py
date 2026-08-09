@@ -2,13 +2,24 @@ r"""
 Iterative delensing of CMB spectra with CLASS_delens, driven through FisherLens.
 
 This module supplies the delensing stage of DRAFT.
-It takes the residual noise and foreground power spectra produced by the internal linear combination in ``get_ilc_residuals.py``, combines them with the effective Planck instrumental noise, and hands the result to CLASS_delens, which iteratively reconstructs the lensing potential and returns the delensed CMB spectra together with the lensing-reconstruction noise :math:`N_\ell^{dd}`.
-Those outputs are consumed by ``fisher.py``, which performs the Fisher-matrix forecast.
+It takes the residual noise and foreground power spectra produced by the internal linear combination in :mod:`get_ilc_residuals`, combines them with the effective Planck instrumental noise, and hands the result to CLASS_delens, which iteratively reconstructs the lensing potential and returns the delensed CMB spectra together with the lensing-reconstruction noise :math:`N_\ell^{dd}`.
+Those outputs are consumed by :mod:`fisher`, which performs the Fisher-matrix forecast.
 
-The module is grouped into the following sections:
+The module is grouped into five sections:
 
-* Setup: ``resolve_paths``, ``import_fisherlens``, ``check_setup``
-* Noise: ``planck_noise``, ``check_ilc_product``, ``build_effective_noise``, ``noise_for_fisher``
+* Setup: :func:`nearest_existing_dir`, :func:`resolve_paths`, :func:`import_fisherlens`, :func:`check_setup`
+* Cosmology: :func:`validate_cosmology`
+* Noise: :func:`planck_noise`, :func:`check_ilc_product`, :func:`build_effective_noise`, :func:`noise_for_fisher`, :func:`noise_for_class`
+* CLASS diagnostics: :func:`missing_class_outputs`, :func:`missing_class_derivatives`, :func:`unused_class_parameters`, :func:`ng_derivative_bytes`, :func:`class_run_parameters`, :func:`derivative_flags_consumed`
+* CLASS runs: :func:`check_noise_for_class`, :func:`deflection_noise_for_class`, :func:`reconstruction_mask`, :func:`run_class`, :func:`lensing_derivatives`, :func:`lensing_noise_curves`, :func:`parameter_derivatives`
+
+The CLASS runs section has three entry points, one for each kind of CLASS_delens run.
+:func:`run_class` returns the spectra and the reconstruction noise of a single cosmology, :func:`lensing_derivatives` the derivative matrices of the non-Gaussian covariance, and :func:`parameter_derivatives` the derivatives with respect to each varied parameter.
+The rest of that section prepares their inputs and assembles their outputs, while the CLASS diagnostics section establishes what CLASS actually read and produced.
+
+:func:`validate_cosmology`, :func:`resolve_paths`, :func:`build_effective_noise`, :func:`reconstruction_mask`, :func:`deflection_noise_for_class`, :func:`run_class`, :func:`ng_derivative_bytes`, :func:`class_run_parameters`, :func:`lensing_derivatives`, :func:`lensing_noise_curves` and :func:`parameter_derivatives` are called by :mod:`get_fisher_forecasts`, and :func:`import_fisherlens` and :func:`noise_for_fisher` by :mod:`fisher`.
+:func:`check_setup` confirms that FisherLens and a compiled CLASS_delens are usable, and is called by :mod:`get_fisher_forecasts` before the first CLASS run of a forecast so that a fresh checkout reports every missing piece at once.
+The remaining routines are internal helpers.
 
 CLASS_delens and FisherLens are not distributed with DRAFT.
 FisherLens is a git submodule at the repository root and brings CLASS_delens as a submodule of its own::
@@ -17,15 +28,15 @@ FisherLens is a git submodule at the repository root and brings CLASS_delens as 
     cd FisherLens/CLASS_delens
     make class
 
-See ``docs/`` for the full installation instructions.
-Power spectra are in units of μK² throughout, matching the convention of ``ilc.py`` and the ``cl_residual`` entries of the ILC product files.
+See :doc:`installation` for the full installation instructions.
+Power spectra are in units of μK² throughout, matching the convention of :mod:`ilc` and the ``cl_residual`` entries of the ILC product files.
 Multipoles are held under ``el``, as elsewhere in DRAFT, in every dictionary this module builds.
 FisherLens uses ``l`` instead, so the dictionaries it builds and consumes keep that name and the conversion happens in one place, :func:`noise_for_class`.
 """
 
 # Note:
 # Several routines in this module work around behavior of CLASS_delens and FisherLens that was established empirically rather than from their documentation.
-# Each such workaround carries a comment naming the pinned commit it was verified against, since the reasoning is not otherwise recoverable from the code.
+# Each such workaround carries a comment naming the pinned commit it was verified against since the reasoning is not otherwise recoverable from the code.
 # The pinned commits are those recorded in the respective ``.gitmodules``; if either submodule pointer is advanced, those comments are the places to re-check.
 
 import difflib
@@ -44,12 +55,7 @@ import misc
 
 # Constants
 
-REPO_ROOT = os.path.dirname( os.path.dirname( os.path.abspath(__file__) ) )
-"""
-Repository root, one level above the ``modules`` folder holding this file.
-"""
-
-DEFAULT_FISHERLENS_DIR = os.path.join(REPO_ROOT, 'FisherLens')
+DEFAULT_FISHERLENS_DIR = os.path.join(misc.REPO_ROOT, 'FisherLens')
 """
 Default location of the FisherLens submodule.
 """
@@ -59,7 +65,7 @@ DEFAULT_CLASS_SUBDIR = 'CLASS_delens'
 Name of the CLASS_delens submodule inside FisherLens.
 """
 
-DEFAULT_CLASS_DATA_DIR = os.path.join(REPO_ROOT, 'results', 'class_data')
+DEFAULT_CLASS_DATA_DIR = os.path.join(misc.REPO_ROOT, 'results', 'class_data')
 """
 Default scratch location for the CLASS input and output files.
 
@@ -111,7 +117,7 @@ CLASS reads the noise only up to its ``l_lensed_max``, which equals the requeste
 
 CLASS_COSMO_KEYS_REQUIRED = ('omega_b_h2', 'omega_c_h2', 'n_s', 'tau')
 """
-Cosmological parameters that ``classWrapTools.class_generate_data`` indexes unconditionally, so that omitting one raises ``KeyError`` from inside FisherLens.
+Cosmological parameters that ``classWrapTools.class_generate_data`` indexes unconditionally so that omitting one raises ``KeyError`` from inside FisherLens.
 """
 
 LENSING_DERIVATIVE_FILES = {'cl_TT': 'dClTTdCldd', 'cl_EE': 'dClEEdCldd',
@@ -125,7 +131,7 @@ UNLENSED_DERIVATIVE_FILES = {'cl_TT_cl_TT': 'dClTTdClTT', 'cl_TE_cl_TE': 'dClTEd
                              'cl_EE_cl_EE': 'dClEEdClEE', 'cl_EE_cl_BB': 'dClEEdClBB',
                              'cl_BB_cl_EE': 'dClBBdClEE', 'cl_BB_cl_BB': 'dClBBdClBB'}
 """
-Same as ``LENSING_DERIVATIVE_FILES`` for the derivatives with respect to the unlensed spectra, keyed as ``classWrapTools.loadUnlensedSpectraDerivatives`` keys them.
+Same as :data:`LENSING_DERIVATIVE_FILES` for the derivatives with respect to the unlensed spectra, keyed as ``classWrapTools.loadUnlensedSpectraDerivatives`` keys them.
 """
 
 DERIVATIVE_TYPES = ['lensed', 'delensed']
@@ -136,8 +142,9 @@ There is no unlensed entry: the unlensed spectra do not depend on the lensing po
 
 NG_DERIVATIVE_MODES = ['recompute', 'save', 'load']
 """
-How the non-Gaussian derivative matrices are obtained: recomputed and discarded, recomputed and written to a DRAFT product or read back from an earlier run without a CLASS run at all.
-No default is offered, since the three trade a large file against a long calculation.
+Ways of obtaining the non-Gaussian derivative matrices.
+They are recomputed and discarded, recomputed and written to a DRAFT product, or read back from an earlier run without a CLASS run at all.
+No default is offered since the three trade a large file against a long calculation.
 """
 
 DERIVATIVE_FLAGS = ['delensing derivatives', 'output_derivatives', 'derv_binedges',
@@ -155,7 +162,7 @@ def nearest_existing_dir(path):
     r"""
     Walk up a path until an existing directory is found.
 
-    This identifies where a directory tree would actually start being created, since :func:`os.makedirs` creates every missing level rather than only the last one.
+    This identifies where a directory tree would actually start being created since :func:`os.makedirs` creates every missing level rather than only the last one.
 
     Parameters
     ----------
@@ -252,7 +259,7 @@ def import_fisherlens(fisherlens_dir=None):
     ------
     ImportError
         If either module cannot be imported, with a message distinguishing an unpopulated submodule, a missing CAMB installation and any other cause.
-        Also if the modules were already imported from a different checkout, since Python caches modules by name and only one FisherLens can be used per process.
+        Also if the modules were already imported from a different checkout since Python caches modules by name and only one FisherLens can be used per process.
 
     Notes
     -----
@@ -302,7 +309,7 @@ def check_setup(fisherlens_dir=None, class_exec_dir=None, class_data_dir=None, v
     r"""
     Check that FisherLens and a compiled CLASS_delens are usable.
 
-    Every problem found is collected before raising, so that a fresh checkout reports all of its
+    Every problem found is collected before raising so that a fresh checkout reports all of its
     missing pieces at once rather than one per attempt.
 
     Parameters
@@ -415,8 +422,8 @@ def validate_cosmology(cosmo_fid, step_sizes=None, vary_params=None):
     Warns
     -----
     UserWarning
-        If neither ``A_s`` nor ``logA`` is given, or none of ``H0``, ``h`` and ``theta_s`` is, since CLASS then silently uses its own default.
-        Also if a step size would carry a positive parameter to zero or below, since the two-sided derivative would then straddle an unphysical value.
+        If neither ``A_s`` nor ``logA`` is given, or if none of ``H0``, ``h`` and ``theta_s`` is given. CLASS then silently uses its own default.
+        Also if a step size would carry a positive parameter to zero or below since the two-sided derivative would then straddle an unphysical value.
 
     Notes
     -----
@@ -499,7 +506,7 @@ def planck_noise(el, expname='planck', include_pol=True):
     Effective Planck instrumental noise, inverse-variance combined over frequency bands.
 
     The per-band beams and white-noise levels are taken from :func:`exp_specs.get_exp_specs` and the per-band spectra are formed with :func:`misc.get_nl`.
-    Low-frequency (1/f) noise is neglected for a satellite, which the stored specifications express by setting :math:`\ell_\mathrm{knee}` to ``-1`` in every band, so that :math:`N_\ell = \Delta_X^2 B_\ell^{-2}` with beam function :math:`B_\ell`.
+    Low-frequency (1/f) noise is neglected for a satellite, which the stored specifications express by setting :math:`\ell_\mathrm{knee}` to ``-1`` in every band so that :math:`N_\ell = \Delta_X^2 B_\ell^{-2}` with beam function :math:`B_\ell`.
     The bands are then combined as
 
     .. math::
@@ -571,7 +578,7 @@ def check_ilc_product(ilc_dic, lmax_calc, lmin_ilc):
     Parameters
     ----------
     ilc_dic : dict
-        ILC product, as written by ``get_ilc_residuals.build_output_dic`` or returned by ``get_ilc_residuals.run_ilc``.
+        ILC product, as written by :func:`get_ilc_residuals.build_output_dic` or returned by :func:`get_ilc_residuals.run_ilc`.
         Must hold ``'el'`` and ``'cl_residual'``, the latter with ``'TT'`` and ``'EE'`` entries.
     lmax_calc : int
         Highest multipole at which the effective noise is needed, which is the ``lmax`` handed to CLASS.
@@ -595,7 +602,7 @@ def check_ilc_product(ilc_dic, lmax_calc, lmin_ilc):
 
     Notes
     -----
-    The residual is zero for :math:`\ell \le` ``param_dict['lmin']`` because ``get_ilc_residuals.get_noise_spectra`` zeroes the noise there, so an inverse-variance combination that reaches those multipoles would divide by zero.
+    The residual is zero for :math:`\ell \le` ``param_dict['lmin']`` because :func:`get_ilc_residuals.get_noise_spectra` zeroes the noise there, so an inverse-variance combination that reaches those multipoles would divide by zero.
     Rather than trusting the recorded ``lmin``, the vanishing region is measured from the residual itself and the two are compared.
     """
 
@@ -788,12 +795,12 @@ def noise_for_fisher(noise_dic):
     Returns
     -------
     dict
-        The same entries with the first two multipoles dropped, so that element zero is :math:`\ell = 2`.
+        The same entries with the first two multipoles dropped so that element zero is :math:`\ell = 2`.
 
     Raises
     ------
     ValueError
-        If the supplied multipoles do not begin at zero, since the offset would then be wrong.
+        If the supplied multipoles do not begin at zero since the offset would then be wrong.
 
     Notes
     -----
@@ -850,152 +857,7 @@ def noise_for_class(noise_dic):
     return converted
 
 
-# CLASS runs
-
-def check_noise_for_class(cmb_noise, lmax_calc):
-    r"""
-    Check that an effective-noise dictionary is acceptable to the FisherLens CLASS wrapper.
-
-    Parameters
-    ----------
-    cmb_noise : dict
-        Effective noise from :func:`build_effective_noise`, with multipoles under ``'el'``.
-    lmax_calc : int
-        Highest multipole CLASS will be asked for.
-
-    Returns
-    -------
-    int
-        The multipole the noise was required to reach, for reporting.
-
-    Raises
-    ------
-    ValueError
-        If the multipoles do not start at zero or do not extend far enough for the length check inside ``classWrapTools``.
-    """
-
-    #Note: Both conditions are tested here rather than left to ``classWrapTools``, whose own length check reports failure by evaluating a bare name that does not exist and so raises ``NameError`` with no explanation.
-    #That check also runs before its ``extraParams`` override is applied, so it always demands multipoles up to ``lmax + 2000`` however ``delta_l_max`` is set; see :data:`GUARD_DELTA_L_MAX`.
-
-    el_noise = np.asarray(cmb_noise['el'])
-    if len(el_noise) == 0 or el_noise[0] != 0:
-        raise ValueError('The supplied noise must start at multipole zero so that its row index '
-                         'matches the multipole once CLASS reads it back; see '
-                         'build_effective_noise.')
-    required = int(lmax_calc) + GUARD_DELTA_L_MAX
-    if el_noise[-1] < required:
-        raise ValueError('The supplied noise reaches only ell = %d, but classWrapTools requires '
-                         'ell >= %d for lmax_calc = %d. That bound is hardcoded and is tested '
-                         'before any delta_l_max override takes effect, so pad the noise to it; '
-                         'build_effective_noise does this with its guard_pad argument.'
-                         % (el_noise[-1], required, lmax_calc))
-
-    return required
-
-
-def deflection_noise_for_class(reconstruction, estimator='MV', from_multipole_zero=True):
-    r"""
-    Re-index a reconstruction-noise curve for supply back to CLASS_delens.
-
-    Parameters
-    ----------
-    reconstruction : dict or array_like
-        Either the reconstruction output of :func:`run_class`, from which ``estimator`` is taken or the noise array itself indexed by multipole from two upward, as CLASS returns it.
-    estimator : str, optional
-        Which estimator to take when a dictionary is given. Default is ``'MV'``; see the note under :func:`lensing_noise_curves` about what CLASS puts there.
-    from_multipole_zero : bool, optional
-        Prepend two entries so that the array is indexed by multipole from zero rather than from two. Default is ``True``; see the Notes for why that is not merely cosmetic and pass ``False`` to reproduce the behavior of the earlier pipeline.
-
-    Returns
-    -------
-    ndarray
-        Noise array in the requested convention. Two entries longer than the input when ``from_multipole_zero`` is set.
-
-    Raises
-    ------
-    ValueError
-        If ``estimator`` is absent from the supplied dictionary or if the array is not one dimensional and non-empty.
-
-    Warns
-    -----
-    UserWarning
-        If the supplied curve is not everywhere positive and finite, since CLASS divides by it.
-    """
-
-    #Note: CLASS_delens reads an externally supplied reconstruction noise by *row* rather than by multipole and converts it from the deflection to the potential convention using that row counter in place of the multipole:
-    #    ple->pk_rcn_ext[index_l] = plrn[index_l]/ll/(1.+ll);     /* ll = (double)index_l */
-    #The multipole column read from the file is stored in ``l_rcn_ext`` and never used.
-    #The result is then consumed as ``pk_rcn_ext[l]``, indexed by multipole and starting at ``l = 0``.
-    #Since ``classWrapTools`` writes the file starting at multipole two, an array supplied in the convention CLASS itself returns is displaced by two multipoles and both the conversion factor and the lookup are then taken at the wrong multipole.
-    #Indexing from zero instead makes the row counter coincide with the multipole, so the conversion and the lookup are both correct.
-    #The first entry is read but cannot be made meaningful: the conversion divides by ``ll*(1.+ll)`` with ``ll`` zero, giving infinity for a positive input and an indeterminate value for a zero one. The prepended entries are therefore set to the lowest supplied value rather than to zero, so that the result is an infinity rather than a nan. CLASS's own source marks this region as needing improvement.
-    #Verified against CLASS_delens ``f27ff1b``. If that submodule pointer is advanced, this is one of the places to re-check.
-
-    if isinstance(reconstruction, dict):
-        if estimator not in reconstruction:
-            raise ValueError("The reconstruction output has no '%s' entry; its estimators are %s"
-                             % (estimator, sorted(key for key in reconstruction if key != 'l')))
-        noise = np.asarray(reconstruction[estimator], dtype=float)
-    else:
-        noise = np.asarray(reconstruction, dtype=float)
-
-    if noise.ndim != 1 or len(noise) == 0:
-        raise ValueError('The reconstruction noise must be a non-empty one-dimensional array, got '
-                         'shape %s' % (noise.shape,))
-    usable = np.isfinite(noise) & (noise > 0.)
-    if not usable.all():
-        warnings.warn('The reconstruction noise is not everywhere positive and finite: %d of %d '
-                      'entries are not. CLASS divides by it.' % ((~usable).sum(), len(noise)),
-                      stacklevel=2)
-    if not from_multipole_zero:
-        return noise
-
-    #a positive value here yields an infinity rather than a nan from the division by zero at ll = 0
-    filler = noise[usable].min() if usable.any() else 1.
-
-    return np.concatenate([np.repeat(filler, 2), noise])
-
-
-def reconstruction_mask(lmin_lensing=2, lmax_T_lensing=3000, lmax_P_lensing=5000):
-    r"""
-    Assemble the multipole mask for the lensing reconstruction.
-
-    Parameters
-    ----------
-    lmin_lensing : int, optional
-        Lowest multipole entering the reconstruction, in every spectrum. Default is 2.
-    lmax_T_lensing : int, optional
-        Highest temperature multipole entering the reconstruction. Default is 3000, which mitigates reconstruction biases from non-Gaussian foregrounds.
-    lmax_P_lensing : int, optional
-        Highest polarization multipole entering the reconstruction, applied to both :math:`E` and :math:`B`. Default is 5000.
-
-    Returns
-    -------
-    dict
-        Mask in the form ``classWrapTools`` expects, with the six entries ``lmin_T``, ``lmax_T``, ``lmin_E``, ``lmax_E``, ``lmin_B`` and ``lmax_B``.
-
-    Raises
-    ------
-    ValueError
-        If a lower bound is below 2 or is not below its matching upper bound.
-
-    Notes
-    -----
-        The mask is read by ``classWrapTools.class_generate_data`` of FisherLens only on the iterative branch, that is only when no external deflection noise is supplied, since otherwise CLASS performs no reconstruction of its own.
-    """
-
-    if lmin_lensing < 2:
-        raise ValueError('lmin_lensing must be at least 2, got %s' % (lmin_lensing))
-    for label, lmax in [('lmax_T_lensing', lmax_T_lensing), ('lmax_P_lensing', lmax_P_lensing)]:
-        if lmax <= lmin_lensing:
-            raise ValueError('%s must exceed lmin_lensing = %s, got %s' % (label, lmin_lensing, lmax))
-
-    #A fresh dictionary is returned on every call because ``fisherTools.createEllsToUseDict``, which handles the analogous structure for the Fisher sum, edits the dictionary it is given in place; keeping to fresh copies avoids the same pattern biting here.
-
-    return {'lmin_T': int(lmin_lensing), 'lmax_T': int(lmax_T_lensing),
-            'lmin_E': int(lmin_lensing), 'lmax_E': int(lmax_P_lensing),
-            'lmin_B': int(lmin_lensing), 'lmax_B': int(lmax_P_lensing)}
-
+# CLASS diagnostics
 
 def missing_class_outputs(class_data_dir, root_name, expect_reconstruction):
     r"""
@@ -1109,162 +971,6 @@ def unused_class_parameters(class_data_dir, root_name, among=None):
         names = [name for name in names if name in among]
 
     return sorted( set(names) )
-
-
-def run_class(cosmo_fid,
-              lmax_calc,
-              cmb_noise=None,
-              deflection_noise=None,
-              recon_mask=None,
-              delensing=None,
-              extra_params=None,
-              root_name=None,
-              paths=None,
-              use_temp_scratch=False,
-              class_wrap_tools=None,
-              verbose=True
-              ):
-    r"""
-    Run CLASS_delens once and return the CMB spectra and the lensing-reconstruction noise.
-
-    Parameters
-    ----------
-    cosmo_fid : dict
-        Cosmological parameters, validated by :func:`validate_cosmology`.
-    lmax_calc : int
-        Highest multipole CLASS is asked for, passed through as its ``l_max_scalars``.
-        Choose it above the multipole range of the Fisher sum so that the lensing convolution is accurate there.
-    cmb_noise : dict, optional
-        Effective noise from :func:`build_effective_noise`, with multipoles under ``'el'`` starting at zero. It is re-keyed for FisherLens by :func:`noise_for_class` on the way in.
-        Default is ``None``, which makes CLASS use its own idealized white-noise model instead.
-    deflection_noise : array_like, optional
-        Lensing-reconstruction noise :math:`N_\ell^{dd}`, indexed by multipole from zero, as :func:`deflection_noise_for_class` returns.
-        Default is ``None``, which is the case of interest: CLASS then reconstructs the lensing potential iteratively and returns the noise it achieved.
-        Supplying an array instead switches off the iteration and delenses with the given noise, on a code path whose indexing is discussed under :func:`deflection_noise_for_class`.
-    recon_mask : dict, optional
-        Reconstruction mask from :func:`reconstruction_mask`. Default is ``None``, which lets CLASS use its own bounds and so places no cut on the temperature multipoles.
-    delensing : str, optional
-        One of :data:`DELENSING_MODES`, passed through to CLASS unchanged. Default is ``None``, which leaves whatever ``classWrapTools`` chose, namely iterative delensing when no external deflection noise is supplied and a single pass when one is.
-    extra_params : dict, optional
-        Additional CLASS settings, overriding those ``classWrapTools`` sets. Default is ``None``.
-    root_name : str, optional
-        Base name for the CLASS input and output files. Default is ``None``, which generates a unique one.
-    paths : dict, optional
-        Resolved paths from :func:`resolve_paths`. Default is ``None``, which resolves them.
-    use_temp_scratch : bool, optional
-        Place the CLASS files in a temporary directory and delete it afterward, leaving nothing behind. Default is ``False``, which uses the scratch directory in ``paths``.
-    class_wrap_tools : module, optional
-        An already-imported ``classWrapTools``. Default is ``None``, which imports it.
-    verbose : bool, optional
-        Report the settings and where the files went. Default is ``True``.
-
-    Returns
-    -------
-    powers : dict
-        Spectra keyed ``'unlensed'``, ``'lensed'``, ``'delensed'`` and ``'lensing'``, as returned by ``classWrapTools.class_generate_data`` of FisherLens.
-        The first three hold ``'l'`` and ``'cl_XY'`` in μK², the last holds ``'cl_phiphi'``, ``'cl_dd'`` and ``'cl_kk'``.
-    reconstruction : dict or None
-        Lensing-reconstruction noise :math:`N_\ell^{dd}` for every estimator, keyed ``'l'``, ``'MV'``, ``'TT'``, ``'TE'``, ``'EE'``, ``'BB'``, ``'EB'`` and ``'TB'``.
-        ``None`` when ``deflection_noise`` was supplied, since CLASS then performs no reconstruction.
-
-    Raises
-    ------
-    ValueError
-        If ``lmax_calc`` is not positive, or if ``cmb_noise`` does not start at multipole zero or does not extend far enough for the length check inside ``classWrapTools``.
-        Also if ``delensing`` is not one of :data:`DELENSING_MODES`, if iterative delensing is requested alongside an external deflection noise or if the mode is given both directly and through ``extra_params``.
-    RuntimeError
-        If CLASS did not produce the output files that ``classWrapTools`` goes on to read.
-    """
-
-    #Note: Three code choices of ``classWrapTools`` are worked around here.
-    #(i) Its own length check on the supplied noise runs before its ``extraParams`` override is applied, so it always demands multipoles up to ``lmax + 2000`` however ``delta_l_max`` is set, and reports the failure by evaluating a bare name that does not exist, giving a ``NameError`` rather than an explanation. The same condition is therefore tested first here, with a message that says what to do.
-    #(ii) It launches CLASS with :func:`os.system` and discards the return code, so a failed run surfaces later as an unrelated error from reading a file that was never written. The output files CLASS is expected to have produced are therefore checked before ``classWrapTools.class_generate_data`` of FisherLens is allowed to read them, which is possible because a unique ``root_name`` guarantees that anything found was written by this call.
-    #(iii) It sets ``overwrite_root``, so runs sharing a ``root_name`` and scratch directory overwrite the output of one another. Unique names are generated by default for that reason and ``use_temp_scratch`` isolates a run completely. CLASS prints a good deal to the terminal, which cannot be suppressed from here because it is a separate process writing to the inherited output stream.
-    #(iv) It couples the delensing mode to the source of the reconstruction noise, choosing iterative delensing with an internal reconstruction when no deflection noise is supplied and a single pass with an external one otherwise, so an internal reconstruction followed by a single delensing pass is not reachable through its interface. It is reachable here because its ``extraParams`` override is applied after that choice is made and nothing in between depends on it and because CLASS writes the reconstruction noise whenever the reconstruction is internal, independently of how many delensing passes follow.
-
-    if lmax_calc <= 0:
-        raise ValueError('lmax_calc must be positive, got %s' % (lmax_calc))
-    lmax_calc = int(lmax_calc)
-
-    class_settings = {} if extra_params is None else dict(extra_params)
-    if delensing is not None:
-        #the parameter file returns a numpy string, which compares equal but prints awkwardly
-        delensing = str(delensing)
-        if delensing not in DELENSING_MODES:
-            raise ValueError('delensing must be one of %s, got %r'
-                             % (', '.join(DELENSING_MODES), delensing))
-        if delensing == 'iterative' and deflection_noise is not None:
-            raise ValueError('Iterative delensing needs an internal reconstruction to iterate on, '
-                             'but an external deflection noise was supplied. Leave '
-                             'deflection_noise as None to iterate or ask for a single pass.')
-        if 'delensing' in class_settings:
-            raise ValueError('The delensing mode was given both as an argument (%r) and through '
-                             'extra_params (%r). Give it once.'
-                             % (delensing, class_settings['delensing']))
-        class_settings['delensing'] = delensing
-
-    if class_wrap_tools is None:
-        class_wrap_tools = import_fisherlens(None if paths is None else paths['fisherlens_dir'])[0]
-    if paths is None:
-        paths = resolve_paths()
-    if root_name is None:
-        root_name = 'draft_%s' % (uuid.uuid4().hex[:10])
-
-    if cmb_noise is not None:
-        check_noise_for_class(cmb_noise, lmax_calc)
-
-    scratch = None
-    if use_temp_scratch:
-        scratch = tempfile.mkdtemp(prefix='draft_class_')
-        class_data_dir = os.path.join(scratch, '')
-    else:
-        class_data_dir = paths['class_data_dir']
-        os.makedirs(class_data_dir, exist_ok=True)
-
-    if verbose:
-        print('CLASS run %s' % (root_name))
-        print('  lmax_calc %d, scratch %s' % (lmax_calc, class_data_dir))
-        print('  noise %s, deflection noise %s, reconstruction mask %s'
-              % ('supplied' if cmb_noise is not None else 'idealized',
-                 'supplied' if deflection_noise is not None else 'reconstructed internally',
-                 'supplied' if recon_mask is not None else 'CLASS defaults'))
-        print('  delensing %s' % (class_settings['delensing'] if 'delensing' in class_settings
-                                  else '%s (chosen by classWrapTools)'
-                                  % ('yes' if deflection_noise is not None else 'iterative')))
-
-    try:
-        try:
-            output = class_wrap_tools.class_generate_data(
-                cosmo_fid,
-                rootName=root_name,
-                cmbNoise=None if cmb_noise is None else noise_for_class(cmb_noise),
-                deflectionNoise=deflection_noise,
-                reconstructionMask=recon_mask,
-                lmax=lmax_calc,
-                classExecDir=paths['class_exec_dir'],
-                classDataDir=class_data_dir,
-                extraParams=class_settings,
-                outputAllReconstructions=deflection_noise is None
-                )
-        except Exception as err:
-            missing = missing_class_outputs(class_data_dir, root_name, deflection_noise is None)
-            if missing:
-                raise RuntimeError('CLASS did not write %s under %soutput/. Its own messages are '
-                                   'above; a failure there is not reported by classWrapTools of '
-                                   'FisherLens, which discards the return code of the command it '
-                                   'launches.' % (', '.join(missing), class_data_dir)) from err
-            raise
-
-        powers, reconstruction = output
-        if deflection_noise is not None:
-            reconstruction = None
-    finally:
-        if scratch is not None:
-            shutil.rmtree(scratch, ignore_errors=True)
-            if verbose:
-                print('  temporary scratch removed')
-
-    return powers, reconstruction
 
 
 def ng_derivative_bytes(lmax_calc, include_unlensed=True, derivative_types=1):
@@ -1396,6 +1102,309 @@ def derivative_flags_consumed(class_data_dir, root_name, derivative_type, includ
     return complaints
 
 
+# CLASS runs
+
+def check_noise_for_class(cmb_noise, lmax_calc):
+    r"""
+    Check that an effective-noise dictionary is acceptable to the FisherLens CLASS wrapper.
+
+    Parameters
+    ----------
+    cmb_noise : dict
+        Effective noise from :func:`build_effective_noise`, with multipoles under ``'el'``.
+    lmax_calc : int
+        Highest multipole CLASS will be asked for.
+
+    Returns
+    -------
+    int
+        The multipole the noise was required to reach, for reporting.
+
+    Raises
+    ------
+    ValueError
+        If the multipoles do not start at zero or do not extend far enough for the length check inside ``classWrapTools``.
+    """
+
+    #Note: Both conditions are tested here rather than left to ``classWrapTools``, whose own length check reports failure by evaluating a bare name that does not exist and so raises ``NameError`` with no explanation.
+    #That check also runs before its ``extraParams`` override is applied, so it always demands multipoles up to ``lmax + 2000`` however ``delta_l_max`` is set; see :data:`GUARD_DELTA_L_MAX`.
+
+    el_noise = np.asarray(cmb_noise['el'])
+    if len(el_noise) == 0 or el_noise[0] != 0:
+        raise ValueError('The supplied noise must start at multipole zero so that its row index '
+                         'matches the multipole once CLASS reads it back; see '
+                         'build_effective_noise.')
+    required = int(lmax_calc) + GUARD_DELTA_L_MAX
+    if el_noise[-1] < required:
+        raise ValueError('The supplied noise reaches only ell = %d, but classWrapTools requires '
+                         'ell >= %d for lmax_calc = %d. That bound is hardcoded and is tested '
+                         'before any delta_l_max override takes effect, so pad the noise to it; '
+                         'build_effective_noise does this with its guard_pad argument.'
+                         % (el_noise[-1], required, lmax_calc))
+
+    return required
+
+
+def deflection_noise_for_class(reconstruction, estimator='MV', from_multipole_zero=True):
+    r"""
+    Re-index a reconstruction-noise curve for supply back to CLASS_delens.
+
+    Parameters
+    ----------
+    reconstruction : dict or array_like
+        Either the reconstruction output of :func:`run_class`, from which ``estimator`` is taken or the noise array itself indexed by multipole from two upward, as CLASS returns it.
+    estimator : str, optional
+        Which estimator to take when a dictionary is given. Default is ``'MV'``; see the note under :func:`lensing_noise_curves` about what CLASS puts there.
+    from_multipole_zero : bool, optional
+        Prepend two entries so that the array is indexed by multipole from zero rather than from two. Default is ``True``; see the Notes for why that is not merely cosmetic and pass ``False`` to reproduce the behavior of the earlier pipeline.
+
+    Returns
+    -------
+    ndarray
+        Noise array in the requested convention. Two entries longer than the input when ``from_multipole_zero`` is set.
+
+    Raises
+    ------
+    ValueError
+        If ``estimator`` is absent from the supplied dictionary or if the array is not one dimensional and non-empty.
+
+    Warns
+    -----
+    UserWarning
+        If the supplied curve is not everywhere positive and finite since CLASS divides by it.
+    """
+
+    #Note: CLASS_delens reads an externally supplied reconstruction noise by *row* rather than by multipole and converts it from the deflection to the potential convention using that row counter in place of the multipole:
+    #    ple->pk_rcn_ext[index_l] = plrn[index_l]/ll/(1.+ll);     /* ll = (double)index_l */
+    #The multipole column read from the file is stored in ``l_rcn_ext`` and never used.
+    #The result is then consumed as ``pk_rcn_ext[l]``, indexed by multipole and starting at ``l = 0``.
+    #Since ``classWrapTools`` writes the file starting at multipole two, an array supplied in the convention CLASS itself returns is displaced by two multipoles and both the conversion factor and the lookup are then taken at the wrong multipole.
+    #Indexing from zero instead makes the row counter coincide with the multipole, so the conversion and the lookup are both correct.
+    #The first entry is read but cannot be made meaningful: the conversion divides by ``ll*(1.+ll)`` with ``ll`` zero, giving infinity for a positive input and an indeterminate value for a zero one. The prepended entries are therefore set to the lowest supplied value rather than to zero so that the result is an infinity rather than a nan. CLASS's own source marks this region as needing improvement.
+    #Verified against CLASS_delens ``f27ff1b``. If that submodule pointer is advanced, this is one of the places to re-check.
+
+    if isinstance(reconstruction, dict):
+        if estimator not in reconstruction:
+            raise ValueError("The reconstruction output has no '%s' entry; its estimators are %s"
+                             % (estimator, sorted(key for key in reconstruction if key != 'l')))
+        noise = np.asarray(reconstruction[estimator], dtype=float)
+    else:
+        noise = np.asarray(reconstruction, dtype=float)
+
+    if noise.ndim != 1 or len(noise) == 0:
+        raise ValueError('The reconstruction noise must be a non-empty one-dimensional array, got '
+                         'shape %s' % (noise.shape,))
+    usable = np.isfinite(noise) & (noise > 0.)
+    if not usable.all():
+        warnings.warn('The reconstruction noise is not everywhere positive and finite: %d of %d '
+                      'entries are not. CLASS divides by it.' % ((~usable).sum(), len(noise)),
+                      stacklevel=2)
+    if not from_multipole_zero:
+        return noise
+
+    #a positive value here yields an infinity rather than a nan from the division by zero at ll = 0
+    filler = noise[usable].min() if usable.any() else 1.
+
+    return np.concatenate([np.repeat(filler, 2), noise])
+
+
+def reconstruction_mask(lmin_lensing=2, lmax_T_lensing=3000, lmax_P_lensing=5000):
+    r"""
+    Assemble the multipole mask for the lensing reconstruction.
+
+    Parameters
+    ----------
+    lmin_lensing : int, optional
+        Lowest multipole entering the reconstruction, in every spectrum. Default is 2.
+    lmax_T_lensing : int, optional
+        Highest temperature multipole entering the reconstruction. Default is 3000, which mitigates reconstruction biases from non-Gaussian foregrounds.
+    lmax_P_lensing : int, optional
+        Highest polarization multipole entering the reconstruction, applied to both :math:`E` and :math:`B`. Default is 5000.
+
+    Returns
+    -------
+    dict
+        Mask in the form ``classWrapTools`` expects, with the six entries ``lmin_T``, ``lmax_T``, ``lmin_E``, ``lmax_E``, ``lmin_B`` and ``lmax_B``.
+
+    Raises
+    ------
+    ValueError
+        If a lower bound is below 2 or is not below its matching upper bound.
+
+    Notes
+    -----
+        The mask is read by ``classWrapTools.class_generate_data`` of FisherLens only on the iterative branch, that is only when no external deflection noise is supplied since otherwise CLASS performs no reconstruction of its own.
+    """
+
+    if lmin_lensing < 2:
+        raise ValueError('lmin_lensing must be at least 2, got %s' % (lmin_lensing))
+    for label, lmax in [('lmax_T_lensing', lmax_T_lensing), ('lmax_P_lensing', lmax_P_lensing)]:
+        if lmax <= lmin_lensing:
+            raise ValueError('%s must exceed lmin_lensing = %s, got %s' % (label, lmin_lensing, lmax))
+
+    #A fresh dictionary is returned on every call because ``fisherTools.createEllsToUseDict``, which handles the analogous structure for the Fisher sum, edits the dictionary it is given in place; keeping to fresh copies avoids the same pattern biting here.
+
+    return {'lmin_T': int(lmin_lensing), 'lmax_T': int(lmax_T_lensing),
+            'lmin_E': int(lmin_lensing), 'lmax_E': int(lmax_P_lensing),
+            'lmin_B': int(lmin_lensing), 'lmax_B': int(lmax_P_lensing)}
+
+
+def run_class(cosmo_fid,
+              lmax_calc,
+              cmb_noise=None,
+              deflection_noise=None,
+              recon_mask=None,
+              delensing=None,
+              extra_params=None,
+              root_name=None,
+              paths=None,
+              use_temp_scratch=False,
+              class_wrap_tools=None,
+              verbose=True
+              ):
+    r"""
+    Run CLASS_delens once and return the CMB spectra and the lensing-reconstruction noise.
+
+    Parameters
+    ----------
+    cosmo_fid : dict
+        Cosmological parameters, validated by :func:`validate_cosmology`.
+    lmax_calc : int
+        Highest multipole CLASS is asked for, passed through as its ``l_max_scalars``.
+        Choose it above the multipole range of the Fisher sum so that the lensing convolution is accurate there.
+    cmb_noise : dict, optional
+        Effective noise from :func:`build_effective_noise`, with multipoles under ``'el'`` starting at zero. It is re-keyed for FisherLens by :func:`noise_for_class` on the way in.
+        Default is ``None``, which makes CLASS use its own idealized white-noise model instead.
+    deflection_noise : array_like, optional
+        Lensing-reconstruction noise :math:`N_\ell^{dd}`, indexed by multipole from zero, as :func:`deflection_noise_for_class` returns.
+        Default is ``None``, which is the case of interest: CLASS then reconstructs the lensing potential iteratively and returns the noise it achieved.
+        Supplying an array instead switches off the iteration and delenses with the given noise, on a code path whose indexing is discussed under :func:`deflection_noise_for_class`.
+    recon_mask : dict, optional
+        Reconstruction mask from :func:`reconstruction_mask`. Default is ``None``, which lets CLASS use its own bounds and so places no cut on the temperature multipoles.
+    delensing : str, optional
+        One of :data:`DELENSING_MODES`, passed through to CLASS unchanged. Default is ``None``, which leaves whatever ``classWrapTools`` chose, namely iterative delensing when no external deflection noise is supplied and a single pass when one is.
+    extra_params : dict, optional
+        Additional CLASS settings, overriding those ``classWrapTools`` sets. Default is ``None``.
+    root_name : str, optional
+        Base name for the CLASS input and output files. Default is ``None``, which generates a unique one.
+    paths : dict, optional
+        Resolved paths from :func:`resolve_paths`. Default is ``None``, which resolves them.
+    use_temp_scratch : bool, optional
+        Place the CLASS files in a temporary directory and delete it afterward, leaving nothing behind. Default is ``False``, which uses the scratch directory in ``paths``.
+    class_wrap_tools : module, optional
+        An already-imported ``classWrapTools``. Default is ``None``, which imports it.
+    verbose : bool, optional
+        Report the settings and where the files went. Default is ``True``.
+
+    Returns
+    -------
+    powers : dict
+        Spectra keyed ``'unlensed'``, ``'lensed'``, ``'delensed'`` and ``'lensing'``, as returned by ``classWrapTools.class_generate_data`` of FisherLens.
+        The first three hold ``'l'`` and ``'cl_XY'`` in μK², the last holds ``'cl_phiphi'``, ``'cl_dd'`` and ``'cl_kk'``.
+    reconstruction : dict or None
+        Lensing-reconstruction noise :math:`N_\ell^{dd}` for every estimator, keyed ``'l'``, ``'MV'``, ``'TT'``, ``'TE'``, ``'EE'``, ``'BB'``, ``'EB'`` and ``'TB'``.
+        ``None`` when ``deflection_noise`` was supplied since CLASS then performs no reconstruction.
+
+    Raises
+    ------
+    ValueError
+        If ``lmax_calc`` is not positive, or if ``cmb_noise`` does not start at multipole zero or does not extend far enough for the length check inside ``classWrapTools``.
+        Also if ``delensing`` is not one of :data:`DELENSING_MODES`, if iterative delensing is requested alongside an external deflection noise or if the mode is given both directly and through ``extra_params``.
+    RuntimeError
+        If CLASS did not produce the output files that ``classWrapTools`` goes on to read.
+    """
+
+    #Note: Three code choices of ``classWrapTools`` are worked around here.
+    #(i) Its own length check on the supplied noise runs before its ``extraParams`` override is applied, so it always demands multipoles up to ``lmax + 2000`` however ``delta_l_max`` is set, and reports the failure by evaluating a bare name that does not exist, giving a ``NameError`` rather than an explanation. The same condition is therefore tested first here, with a message that says what to do.
+    #(ii) It launches CLASS with :func:`os.system` and discards the return code, so a failed run surfaces later as an unrelated error from reading a file that was never written. The output files CLASS is expected to have produced are therefore checked before ``classWrapTools.class_generate_data`` of FisherLens is allowed to read them, which is possible because a unique ``root_name`` guarantees that anything found was written by this call.
+    #(iii) It sets ``overwrite_root``, so runs sharing a ``root_name`` and scratch directory overwrite the output of one another. Unique names are generated by default for that reason and ``use_temp_scratch`` isolates a run completely. CLASS prints a good deal to the terminal, which cannot be suppressed from here because it is a separate process writing to the inherited output stream.
+    #(iv) It couples the delensing mode to the source of the reconstruction noise, choosing iterative delensing with an internal reconstruction when no deflection noise is supplied and a single pass with an external one otherwise, so an internal reconstruction followed by a single delensing pass is not reachable through its interface. It is reachable here because its ``extraParams`` override is applied after that choice is made and nothing in between depends on it and because CLASS writes the reconstruction noise whenever the reconstruction is internal, independently of how many delensing passes follow.
+
+    if lmax_calc <= 0:
+        raise ValueError('lmax_calc must be positive, got %s' % (lmax_calc))
+    lmax_calc = int(lmax_calc)
+
+    class_settings = {} if extra_params is None else dict(extra_params)
+    if delensing is not None:
+        #the parameter file returns a numpy string, which compares equal but prints awkwardly
+        delensing = str(delensing)
+        if delensing not in DELENSING_MODES:
+            raise ValueError('delensing must be one of %s, got %r'
+                             % (', '.join(DELENSING_MODES), delensing))
+        if delensing == 'iterative' and deflection_noise is not None:
+            raise ValueError('Iterative delensing needs an internal reconstruction to iterate on, '
+                             'but an external deflection noise was supplied. Leave '
+                             'deflection_noise as None to iterate or ask for a single pass.')
+        if 'delensing' in class_settings:
+            raise ValueError('The delensing mode was given both as an argument (%r) and through '
+                             'extra_params (%r). Give it once.'
+                             % (delensing, class_settings['delensing']))
+        class_settings['delensing'] = delensing
+
+    if class_wrap_tools is None:
+        class_wrap_tools = import_fisherlens(None if paths is None else paths['fisherlens_dir'])[0]
+    if paths is None:
+        paths = resolve_paths()
+    if root_name is None:
+        root_name = 'draft_%s' % (uuid.uuid4().hex[:10])
+
+    if cmb_noise is not None:
+        check_noise_for_class(cmb_noise, lmax_calc)
+
+    scratch = None
+    if use_temp_scratch:
+        scratch = tempfile.mkdtemp(prefix='draft_class_')
+        class_data_dir = os.path.join(scratch, '')
+    else:
+        class_data_dir = paths['class_data_dir']
+        os.makedirs(class_data_dir, exist_ok=True)
+
+    if verbose:
+        print('CLASS run %s' % (root_name))
+        print('  lmax_calc %d, scratch %s' % (lmax_calc, class_data_dir))
+        print('  noise %s, deflection noise %s, reconstruction mask %s'
+              % ('supplied' if cmb_noise is not None else 'idealized',
+                 'supplied' if deflection_noise is not None else 'reconstructed internally',
+                 'supplied' if recon_mask is not None else 'CLASS defaults'))
+        print('  delensing %s' % (class_settings['delensing'] if 'delensing' in class_settings
+                                  else '%s (chosen by classWrapTools)'
+                                  % ('yes' if deflection_noise is not None else 'iterative')))
+
+    try:
+        try:
+            output = class_wrap_tools.class_generate_data(
+                cosmo_fid,
+                rootName=root_name,
+                cmbNoise=None if cmb_noise is None else noise_for_class(cmb_noise),
+                deflectionNoise=deflection_noise,
+                reconstructionMask=recon_mask,
+                lmax=lmax_calc,
+                classExecDir=paths['class_exec_dir'],
+                classDataDir=class_data_dir,
+                extraParams=class_settings,
+                outputAllReconstructions=deflection_noise is None
+                )
+        except Exception as err:
+            missing = missing_class_outputs(class_data_dir, root_name, deflection_noise is None)
+            if missing:
+                raise RuntimeError('CLASS did not write %s under %soutput/. Its own messages are '
+                                   'above; a failure there is not reported by classWrapTools of '
+                                   'FisherLens, which discards the return code of the command it '
+                                   'launches.' % (', '.join(missing), class_data_dir)) from err
+            raise
+
+        powers, reconstruction = output
+        if deflection_noise is not None:
+            reconstruction = None
+    finally:
+        if scratch is not None:
+            shutil.rmtree(scratch, ignore_errors=True)
+            if verbose:
+                print('  temporary scratch removed')
+
+    return powers, reconstruction
+
+
 def lensing_derivatives(cosmo_fid,
                         lmax_calc,
                         derivative_type='delensed',
@@ -1464,7 +1473,7 @@ def lensing_derivatives(cosmo_fid,
 
     The lensed derivatives do not depend on the noise, so one run serves every configuration and its result may be shared. The delensed derivatives do depend on it, through both the effective noise and the reconstruction noise, so they are per configuration. That asymmetry is what makes caching worthwhile for the first and not for the second.
 
-    ``calculate_derviaties_wrt_unlensed`` is checked against the parameters CLASS reports as unused, since a name CLASS does not recognize is ignored silently. See :func:`unused_class_parameters`.
+    ``calculate_derviaties_wrt_unlensed`` is checked against the parameters CLASS reports as unused since a name CLASS does not recognize is ignored silently. See :func:`unused_class_parameters`.
     """
 
     derivative_type = str(derivative_type)
@@ -1602,7 +1611,7 @@ def lensing_noise_curves(powers, reconstruction, lmax=None, settings=None, extra
 
     * CLASS_delens builds its minimum-variance entry on one of three branches, depending on whether the full estimator covariance, only its diagonal or an iterative :math:`EB` reconstruction is requested, and on the last of those it sets the entry equal to a single estimator rather than combining any.
       The label alone therefore does not say what the entry holds, so it is compared against each individual estimator and the result recorded under ``'mv_estimator'``, which reads ``'MV'`` when the entry is a genuine combination.
-      ``classWrapTools`` requests the diagonal form and the entry was checked to reproduce the inverse-variance sum of the five estimators.
+      ``classWrapTools`` of FisherLens requests the diagonal form and the entry was checked to reproduce the inverse-variance sum of the five estimators.
     """
 
     #Note: This format departs from the lensing-noise products shipped in ``products/``, which were written by an earlier pipeline.
@@ -1689,7 +1698,7 @@ def parameter_derivatives(cosmo_fid,
         Spectra to differentiate. Default is ``None``, which uses ``['cl_TT', 'cl_TE', 'cl_EE', 'cl_dd']``, matching the multipole windows of the Fisher sum.
     spectrum_types : list of str, optional
         Which spectra to differentiate. Default is ``None``, which takes ``['unlensed', 'lensed', 'delensed', 'lensing']``, matching the default of ``getPowerDerivWithParams`` itself.
-        ``'lensing'`` is required whenever ``'cl_dd'`` appears in ``pol_combs``, since that is where the lensing derivative is taken from.
+        ``'lensing'`` is required whenever ``'cl_dd'`` appears in ``pol_combs`` since that is where the lensing derivative is taken from.
     extra_params : dict, optional
         Additional CLASS settings. Default is ``None``.
     root_name : str, optional
@@ -1716,7 +1725,7 @@ def parameter_derivatives(cosmo_fid,
     Notes
     -----
     ``fisherTools.getPowerDerivWithParams`` gives every CLASS run it launches the same root name, and ``classWrapTools`` sets ``overwrite_root``, so the runs overwrite one another's output in turn.
-    That is harmless in sequence, since each is read before the next begins, but two forecasts sharing a root name and scratch directory would destroy each other's intermediate files.
+    That is harmless in sequence since each is read before the next begins, but two forecasts sharing a root name and scratch directory would destroy each other's intermediate files.
     A unique root name is therefore generated by default and ``use_temp_scratch`` isolates a forecast completely.
 
     There is deliberately no delensing-mode argument here, unlike :func:`run_class`. These runs are given a fixed reconstruction noise, so ``classWrapTools`` selects a single delensing pass for them and there is nothing to iterate on; the mode is settled by the fiducial run that produced that noise.

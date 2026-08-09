@@ -1,25 +1,41 @@
 """
-Helper routines supporting the ILC noise and residual calculation in get_ilc_residuals.py.
+Helper routines supporting the ILC noise and residual calculation in :mod:`get_ilc_residuals`.
 
 The module is grouped into six sections:
 
-* Argument checking: ``check_freqs_in_ghz``
-* Parameter file I/O: ``get_param_dict``
-* Beams: ``get_bl``, ``get_beam_dic``, ``rebeam``
-* Noise: ``get_nl``
-* Power spectrum uncertainties: ``get_delta_cl``
-* Map-domain utilities: ``get_apod_mask``, ``healpix_rotate_coords``
+* Argument checking: :func:`check_freqs_in_ghz`
+* Parameter file I/O: :func:`get_param_dict`
+* Beams: :func:`get_bl`, :func:`get_beam_dic`, :func:`rebeam`
+* Noise: :func:`get_nl`
+* Power spectrum uncertainties: :func:`get_delta_cl`
+* Map-domain utilities: :func:`get_apod_mask`, :func:`healpix_rotate_coords`
 
-``check_freqs_in_ghz`` is called by ``foregrounds.py`` and ``ilc.py``.
-``get_param_dict``, ``get_beam_dic`` and ``get_nl`` are currently called by ``get_ilc_residuals.py``, and ``get_bl`` is an internal helper used by the latter two.
-The remainder (``rebeam``, ``get_delta_cl``, ``get_apod_mask`` and ``healpix_rotate_coords``) are standalone utilities that are currently not used elsewhere in this repository.
+:func:`check_freqs_in_ghz` is called by :mod:`foregrounds` and :mod:`ilc`.
+:func:`get_beam_dic` is currently called by :mod:`get_ilc_residuals`, :func:`get_param_dict` by :mod:`get_ilc_residuals` and :mod:`get_fisher_forecasts`, and :func:`get_nl` by :mod:`get_ilc_residuals` and :mod:`delensing`.
+:func:`get_bl` is an internal helper.
+The remainder are standalone utilities that are currently not used elsewhere in this repository.
+:data:`REPO_ROOT` locates the repository and is used by :mod:`delensing`, and :data:`DATA_FOLDER` locates its ``data`` directory and is used by :mod:`exp_specs` and :mod:`foregrounds` so that the path is derived in one place rather than in each of them.
 """
 
+import os
 import warnings
 
 import numpy as np
 
 import flatsky
+
+
+# Constants
+
+REPO_ROOT = os.path.dirname( os.path.dirname( os.path.abspath(__file__) ) )
+"""
+Repository root, one level above the ``modules`` folder holding this file.
+"""
+
+DATA_FOLDER = os.path.join(REPO_ROOT, 'data')
+"""
+Repository ``data`` directory, resolved relative to this file rather than the current working directory so that the data files are found however a driver is invoked.
+"""
 
 
 # Argument checking
@@ -163,6 +179,11 @@ def get_beam_dic(freqs, beam_noise_dic, lmax, opbeam=None, make_2d=0, mapparams=
     bl_dic : dict
         Beam window functions :math:`B_\ell` for each entry of ``freqs``, keyed by frequency, plus an ``'effective'`` key when ``opbeam`` is given.
         Values are 1-D arrays of length ``lmax`` or 2-D arrays when ``make_2d`` is set.
+
+    Raises
+    ------
+    ValueError
+        If ``make_2d`` is set without ``mapparams``.
     """
 
     bl_dic = {}
@@ -209,6 +230,11 @@ def rebeam(bl_dic, threshold=1000.):
     -------
     rebeamarr : ndarray
         Array of shape ``(n_freq, n_el)``, ordered by ascending frequency.
+
+    Raises
+    ------
+    ValueError
+        If ``bl_dic`` holds no ``'effective'`` entry, which means :func:`get_beam_dic` was called without ``opbeam``.
     """
 
     if 'effective' not in bl_dic:
@@ -308,6 +334,11 @@ def get_nl(
     -------
     final_nl : ndarray
         Noise power spectrum, same length as ``el``.
+
+    Raises
+    ------
+    ValueError
+        If ``noiseval2`` is given without ``rho``, or without ``beamval2`` when ``use_beam_window`` is set.
 
     Notes
     -----
@@ -462,11 +493,21 @@ def get_delta_cl(el, cl, nl=None, fsky=1., delta_l=1.):
     delta_cl : ndarray
         Uncertainty at each multipole :math:`\Delta C_\ell`.
 
+    Raises
+    ------
+    ValueError
+        If ``fsky`` is not a sky fraction in :math:`(0, 1]` or if ``delta_l`` is not positive, either of which would make the result infinite or undefined rather than merely inaccurate.
+
     Warns
     -----
     UserWarning
-        If a non-zero ``nl`` is supplied, since it does not affect the result.
+        If a non-zero ``nl`` is supplied since it does not affect the result.
     """
+
+    if not 0. < fsky <= 1.:
+        raise ValueError('fsky must be a sky fraction in (0, 1], got %s' % (fsky))
+    if delta_l <= 0.:
+        raise ValueError('delta_l must be positive, got %s' % (delta_l))
 
     if nl is not None and np.any(np.asarray(nl) != 0.):
         warnings.warn("nl provided but not used: get_delta_cl currently returns sample variance only",

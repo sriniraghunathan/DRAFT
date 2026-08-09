@@ -88,7 +88,7 @@ def parse_args(argv=None):
     parser.add_argument('-total_obs_time', dest='total_obs_time', action='store', help='Observing time in years.', type=float, default=7.0)
     parser.add_argument('-include_gal', dest='include_gal', action='store', help='Include galactic dust and synchrotron foregrounds (0 or 1).', type=int, default=0)
     parser.add_argument('-which_gal_mask', dest='which_gal_mask', action='store', help='Galactic mask: 0, 1 or 2 selects the Planck GAL070, GAL080 or GAL090 mask intersected with the survey footprint. Ignored when -include_gal is 0.', type=int, default=2)
-    parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='Show diagnostic plots of the beam and noise spectra (0 or 1).', type=int, default=1)  #diagnostic plots only; see plot_noise_spectra
+    parser.add_argument('-interactive_mode', dest='interactive_mode', action='store', help='Show the diagnostic plots rather than forcing the non-interactive Agg backend (0 or 1). Only takes effect with -debug.', type=int, default=1)  #see setup_matplotlib
     parser.add_argument('-save_fg_res_and_weights', dest='save_fg_res_and_weights', action='store', help='Store the per-component foreground residuals and the ILC weights in the output file (0 or 1).', type=int, default=1)
     parser.add_argument('-s4_so_joint_configs', dest='s4_so_joint_configs', action='store', help='Mark the run as a joint CMB-S4 and Simons Observatory configuration in the output path (0 or 1).', type=int, default=0)
     parser.add_argument('-include_fulls4scaledsobaseline', dest='include_fulls4scaledsobaseline', action='store', help='Combine in the scaled SO-baseline noise (0 or 1).', type=int, default=0)
@@ -96,7 +96,7 @@ def parse_args(argv=None):
     parser.add_argument('-final_comp', dest='final_comp', action='store', help='Component the ILC preserves with unit response.', type=str, default='cmb', choices=COMP_CHOICES)
     parser.add_argument('-null_comp', dest='null_comp', action='store', help='Component or components to null with a constrained ILC.', nargs='+', type=str, default=None, choices=COMP_CHOICES)
     parser.add_argument('-paramfile', dest='paramfile', action='store', help='Parameter file to read.', type=str, default=PARAMFILE)
-    parser.add_argument('-debug', dest='debug', action='store', help='Print intermediate dictionary keys and progress (0 or 1).', type=int, default=0)
+    parser.add_argument('-debug', dest='debug', action='store', help='Print intermediate dictionary keys and progress, and draw the diagnostic plots (0 or 1).', type=int, default=0)
 
     return parser.parse_args(argv)
 
@@ -126,7 +126,7 @@ def get_experiment_specs(expname, remove_atm=0, include_fulls4scaledsobaseline=0
     rho : float
         Atmospheric noise correlation coefficient.
     corr_noise : int
-        Whether correlated noise is modelled at all.
+        Whether correlated noise is modeled at all.
     Nred_dic : dict
         Band mapped to red-noise levels, indexed by :data:`TP_ARR`. Empty for every configuration currently defined.
     secondary_specs : dict
@@ -227,7 +227,7 @@ def get_total_obs_time_default(expname, total_obs_time):
         raise ValueError('-total_obs_time must be positive, got %g' % (total_obs_time))
     total_obs_time_default = 7. ###10. #years
     if expname.find('s4_all_chile_config_lat_') > -1: #20250504
-        total_obs_time_default = 10.  #NOTE: Check if true
+        total_obs_time_default = 10.  #TODO: Check if true
     if expname.find('---year') > -1 and total_obs_time_default != total_obs_time:
         raise ValueError('expname %s encodes an observing time via its ---year suffix, which exp_specs already uses to scale the noise levels. -total_obs_time %g would apply a second scaling of sqrt(%g/%g). Rerun with -total_obs_time %g.' % (expname, total_obs_time, total_obs_time_default, total_obs_time, total_obs_time_default))
 
@@ -274,7 +274,7 @@ def build_output_path(
     total_obs_time : float
         Observing time in years.
     corr_noise : int
-        Whether correlated atmospheric noise is modelled.
+        Whether correlated atmospheric noise is modeled.
     remove_atm : int
         Whether the atmospheric component was dropped.
     noise_scalings_for_bands : list of float, optional
@@ -663,7 +663,7 @@ def plot_beams(freqarr, bl_dic, interactive_mode=1):
 
     Notes
     -----
-    Diagnostic only; nothing in this module calls it.
+    Diagnostic only; called by :func:`run_ilc` when ``debug`` is set and by nothing else.
     """
 
     setup_matplotlib(interactive_mode)
@@ -700,7 +700,7 @@ def plot_noise_spectra(expname, freqarr, el, nl_dic, bl_dic, beam_noise_dic, use
 
     Notes
     -----
-    Diagnostic only; nothing in this module calls it.
+    Diagnostic only; called by :func:`run_ilc` when ``debug`` is set and by nothing else.
     The white-noise level quoted in the legend is the median of :math:`N_\ell` over :math:`3000 \le \ell \le 5000`.
     """
 
@@ -728,9 +728,9 @@ def plot_noise_spectra(expname, freqarr, el, nl_dic, bl_dic, beam_noise_dic, use
     plt.legend(loc=1)
     if not use_dls:
         plt.xlim(0, 5000); plt.ylim(1e-8, 1.)
-        plt.ylabel(r'N$_{\ell}$ [$\mu$K$^{2}$]', fontsize=14)
+        plt.ylabel(r'$N_\ell$ [$\mu\mathrm{K}^2$]', fontsize=14)
     else:
-        plt.ylabel(r'$\ell(\ell+1)/(2\pi)$ N$_{\ell}$ [$\mu$K$^{2}$]', fontsize=14)
+        plt.ylabel(r'$\ell(\ell+1)/(2\pi)\, N_\ell$ [$\mu\mathrm{K}^2$]', fontsize=14)
         plt.xlim(0, 5000); plt.ylim(.1, 1e5)
     plt.xlabel(r'Multipole $\ell$', fontsize=14)
     expname_str = expname.replace('spt3g_', 'SPT-3G: ').replace('summer', 'Summer').replace('_', r'\_')
@@ -1093,7 +1093,7 @@ def build_output_dic(
     Warns
     -----
     UserWarning
-        When ``noise_scalings_for_bands`` is given, since that forces ``save_fg_res_and_weights`` to zero and so overrides an explicit request.
+        When ``noise_scalings_for_bands`` is given since that forces ``save_fg_res_and_weights`` to zero and so overrides an explicit request.
     """
 
     #freq0, lmax = param_dict['freq0'], param_dict['lmax']  #unused
@@ -1136,6 +1136,7 @@ def run_ilc(
         noise_scalings_for_bands=None,
         final_comp='cmb',
         debug=0,
+        interactive_mode=1,
         paramfile=PARAMFILE,
         which_spec_arr=None,
         null_comp=None,
@@ -1167,7 +1168,9 @@ def run_ilc(
     final_comp : str, optional
         Component the ILC preserves, one of :data:`COMP_CHOICES`. Default is ``'cmb'``.
     debug : int, optional
-        Print intermediate dictionary keys and progress. Default is 0.
+        Print intermediate dictionary keys and progress, and draw the diagnostic plots of the beams and the noise spectra. Default is 0.
+    interactive_mode : int, optional
+        Show the figures when it is nonzero and force the non-interactive ``Agg`` backend when it is zero. Only consulted when ``debug`` is set. Default is 1.
     paramfile : str, optional
         Parameter file to read. Default is :data:`PARAMFILE`.
     which_spec_arr : list of str, optional
@@ -1263,6 +1266,8 @@ def run_ilc(
     bl_dic = misc.get_beam_dic(freqarr, beam_noise_dic['T'], param_dict['lmax'])
     if debug:
         print(bl_dic.keys())
+        plot_beams(freqarr, bl_dic, interactive_mode=interactive_mode)
+        plot_noise_spectra(expname, freqarr, el, nl_dic, bl_dic, beam_noise_dic, interactive_mode=interactive_mode)
 
     #get the CMB, noise, and foreground covriance
     ignore_fg = get_ignore_fg(param_dict, final_comp)
@@ -1316,7 +1321,7 @@ def main(argv=None):
     #    else:
     #        cmd = '%s = %s' % (kargs, param_value)
     #    exec(cmd)
-    run_ilc(args.expname, total_obs_time=args.total_obs_time, include_gal=args.include_gal, which_gal_mask=args.which_gal_mask, save_fg_res_and_weights=args.save_fg_res_and_weights, s4_so_joint_configs=args.s4_so_joint_configs, include_fulls4scaledsobaseline=args.include_fulls4scaledsobaseline, noise_scalings_for_bands=args.noise_scalings_for_bands, final_comp=args.final_comp, null_comp=args.null_comp, paramfile=args.paramfile, debug=args.debug)
+    run_ilc(args.expname, total_obs_time=args.total_obs_time, include_gal=args.include_gal, which_gal_mask=args.which_gal_mask, save_fg_res_and_weights=args.save_fg_res_and_weights, s4_so_joint_configs=args.s4_so_joint_configs, include_fulls4scaledsobaseline=args.include_fulls4scaledsobaseline, noise_scalings_for_bands=args.noise_scalings_for_bands, final_comp=args.final_comp, null_comp=args.null_comp, paramfile=args.paramfile, debug=args.debug, interactive_mode=args.interactive_mode)
     print('\nDone.')
 
 

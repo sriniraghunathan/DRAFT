@@ -4,13 +4,14 @@ References
 How to cite
 -----------
 
-If you use DRAFT or the released data products, please cite the tool together
-with the paper describing the pipeline and the forecasts:
+If you use the DRAFT forecasting tool or the released data products, please
+cite it together with the paper describing the pipeline and the forecasts:
 
-* S. Raghunathan, J. Meyers, C. Trendafilova & B. Wallisch (2026),
-  *DRAFT: CMB-S4 Dark Radiation Anisotropy Flowdown Team Tool*,
+* S. Raghunathan, J. Meyers, C. Trendafilova & B. Wallisch,
+  *DRAFT: Dark Radiation Anisotropy Flowdown Team Forecasting Tool*,
   https://github.com/sriniraghunathan/DRAFT (2026).
-* C. Trendafilova, S. Raghunathan, B. Wallisch, J. Meyers et al.,
+* C. Trendafilova, S. Raghunathan, B. Wallisch, J. Meyers et al.
+  (CMB-S4 Collaboration),
   *Sensitivity of Next-Generation CMB Surveys to Neutrinos and Other Light
   Relics*,
   |paper|.
@@ -56,7 +57,7 @@ Component separation
   https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run (2021a).
 * A. Zonca, B. Thorne, N. Krachmalnicoff & J. Borrill,
   *The Python Sky Model 3 Software*,
-  `J. Open Source Softw. 6 (2021b) 3783 <https://doi.org/10.21105/joss.03783>`_,
+  `J. Open Source Softw. 6 (2021) 3783 <https://doi.org/10.21105/joss.03783>`_,
   :arxiv:`2108.01444` [astro-ph.IM].
 * A. Zonca et al.,
   *Documentation of the PySM Simulations for the Simons Observatory*,
@@ -108,8 +109,9 @@ Forecasting
 
 The delensing and Fisher-matrix stages are performed by the two companion codes
 `CLASS_delens <https://github.com/selimhotinli/class_delens>`_ and
-`FisherLens <https://github.com/ctrendafilova/FisherLens>`_.
-*[A module driving both from within this repository is in preparation.]*
+`FisherLens <https://github.com/ctrendafilova/FisherLens>`_, which are driven
+from within this repository by :doc:`get_fisher_forecasts`, :doc:`delensing`
+and :doc:`fisher`.
 
 .. rubric:: Delensing
 
@@ -159,4 +161,4 @@ The delensing and Fisher-matrix stages are performed by the two companion codes
   :arxiv:`0710.5171` [astro-ph].
 * S. Hotinli, J. Meyers, C. Trendafilova, D. Green & A. van Engelen,
   *FisherLens: Fisher Forecasting Code for CLASS_delens*,
-  https://github.com/ctrendafilova/FisherLens (2021).
+  https://github.com/ctrendafilova/FisherLens (2021b).

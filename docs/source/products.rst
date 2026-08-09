@@ -19,7 +19,11 @@ spectra as precomputed pySM3 outputs (based on `these simulations
 <https://github.com/CMB-S4/s4mapbasedsims/tree/main/202102_design_tool_run>`_),
 evaluated on the masked sky.
 `PySM 3 <https://so-pysm-models.readthedocs.io/en/latest/>`_ itself is not run
-by this repository.
+by this repository. The simulations carry no galactic :math:`TE`, so it is
+constructed from the other two spectra as
+:math:`C_\ell^{TE} = \rho_{TE} \sqrt{C_\ell^{TT} C_\ell^{EE}}` (§3.1 of
+|paper|), with :math:`\rho_{TE} = 0.35` and 0 for dust and synchrotron,
+respectively.
 
 **Extragalactic templates.** ``data/george_plot_bestfit_line.sav`` contains
 the South Pole Telescope best-fit extragalactic foreground power spectra from
@@ -39,16 +43,6 @@ Sunyaev-Zel'dovich effect, ``data/dl_cib_1halo_norm1_12000.txt`` and
 white-noise levels for the CMB-S4 Chile-only revised configuration, tabulated
 in §2.4 of |paper|. All other configurations have their specifications coded
 directly in :func:`exp_specs.get_exp_specs`.
-
-**Figures.** ``data/planck_gal_fg_masks_with_cmbs4_footprint.png`` shows the
-galactic masks with the CMB-S4 footprint applied, and
-``data/s4_wide_specs_pbdr.png`` and ``data/s4_ultradeep_specs_pbdr.png`` show
-the instrument and noise specifications of the conceptual design. The masks
-themselves are currently not included.
-
-.. TODO: include masks?
-.. Earlier: "Planck Galactic masks with the CMB-S4 footprint applied"
-
 
 Released products
 -----------------
@@ -78,8 +72,9 @@ integration time, ``for1years`` through ``for10years``. In addition,
 ``lmax_12000/`` repeats the same configurations to a higher maximum multipole,
 with the results being identical over the shared multipole range. ``s4wide/``
 is the pre-PBDR baseline, which differs from ``s4wide_202310xx_pbdr_config``
-only in the 27 and 39 GHz white-noise levels. ``202303xx/`` is an earlier
-generation of the same configuration and is superseded by its parent directory.
+only in the 27 and 39 GHz beam widths and white-noise levels. ``202303xx/`` is
+an earlier generation of the same configuration and is superseded by its parent
+directory.
 
 .. TODO: Remove 202303xx/?
 
@@ -89,23 +84,28 @@ generation of the same configuration and is superseded by its parent directory.
 
 The Chile-only revised configuration of §2.4 of |paper|. While two subtrees
 are currently included, ``report/lmax_6500/`` is the authoritative branch. It
-scans the survey year from ``---year1.0`` to ``---year15.0``. ``lmax_6500/``
-contains an earlier generation covering the same survey and patch combinations,
-but with its noise in polarization incorrectly being the same as in
-temperature. The ``20250530_wrong_1_over_f_definitions/`` subdirectory holds a
-superseded set computed with different atmospheric-noise definitions (currently
-only retained for reference and should not be used).
+covers ``advanced_so_goal``, ``lat_delensing---patch1`` and
+``lat_wide---patch2`` combined with ``advanced_so_goal``, scanning the survey
+year from ``---year1.0`` to ``---year15.0`` for the SO-like telescope and from
+``---year1.0`` to ``---year10.0`` for the CMB-S4 surveys. ``lmax_6500/``
+contains an earlier generation, which covers a wider set of surveys and all
+four patches, but with its noise in polarization incorrectly being the same as
+in temperature. Inside the authoritative branch, the
+``20250530_wrong_1_over_f_definitions/`` subdirectory holds a superseded set
+computed with different atmospheric-noise definitions (currently only retained
+for reference and should not be used).
 
-.. TODO: Remove 20250530_wrong_1_over_f_definitions/?
+.. TODO: Remove 20250530_wrong_1_over_f_definitions/? More?
 
 .. rubric:: products/20220726/
 
 The earliest tree, with its ``s4wide`` and ``s4deepv3r025`` being superseded by
 the PBDR tree. It also contains an ``lmax_10000/`` variant, lensing-noise
-curves and the plotting scripts that produced ``ilc_residuals.png`` *[with the
-latter being moved soon]*.
+curves and the plotting scripts that produced ``ilc_residuals.png``.
 
-.. TODO: Perform this move
+.. TODO: Move or incorporate the plotting scripts?
+.. TODO: Remove the ten .pkl.gz files here and under lmax_10000/, which
+   duplicate the .npy products exactly.
 
 .. rubric:: Coverage of the paper's configurations
 
@@ -134,9 +134,11 @@ the sky where the CMB-S4 Hybrid wide survey and the SO-like large-aperture
 telescope overlap, ``lat_delensing---patch<N>`` is the CMB-S4 Hybrid Delensing
 survey, which has no SO combination, and ``advanced_so_goal`` alone covers the
 sky observed by the SO-like telescope but by neither CMB-S4 survey. Products
-exist for patches 1 to 4, of which the paper uses patches 1 and 2.
+exist for patches 1 to 4 in ``lmax_6500/``, while ``report/lmax_6500/`` contains
+a more restricted set.
 
-.. TODO: check and correct
+.. TODO: Check and correct. Also complete the uploaded patches for
+   ``report/lmax_6500/``
 
 Three further survey variants are released: ``lat_wide_dc0`` corresponds to
 calculations based on the CMB-S4 Data Challenge 0 (DC 0), ``lat_wide_phase2``
@@ -186,7 +188,7 @@ with the following tokens:
    Galactic foregrounds excluded or included.
 
 ``<bands>``
-   Band centres in GHz, joined by hyphens, in the order used for the
+   Band centers in GHz, joined by hyphens, in the order used for the
    covariance and the weights.
 
 ``<spectra>``
@@ -196,6 +198,20 @@ with the following tokens:
    Galactic mask, present only when ``galaxy1``. ``0``, ``1`` and ``2`` select
    the Planck GAL070, GAL080 and GAL090 masks intersected with the CMB-S4
    footprint.
+
+.. figure:: figures/planck_gal_fg_masks_with_cmbs4_footprint.*
+   :alt: The three Planck galactic masks, each intersected with the CMB-S4
+         survey footprint.
+   :width: 100%
+
+   The Planck GAL070, GAL080 and GAL090 masks intersected with the CMB-S4
+   footprint, selected by ``galmask0``, ``galmask1`` and ``galmask2``
+   respectively. The masks themselves are currently not included with the
+   repository.
+
+.. TODO: include the masks in the data/ folder?
+   Earlier: "Planck Galactic masks with the CMB-S4 footprint applied"
+.. TODO: Update the figure, including size
 
 ``_AZ`` / ``_CU``
    Which set of galactic simulations was used. The driver writes ``_CU`` when
@@ -223,10 +239,20 @@ token inside the experiment name, with the ``for<T>years`` token not reflecting
 the depth, but the total survey duration from which the ``year<Y>`` noise
 levels were derived by rescaling with :math:`\sqrt{T/Y}`.
 
+In the combined products, the experiment name carries a ``---year<Y>`` token on
+each side of the ``+``, as in
+``s4_all_chile_config_lat_wide---patch2---year1.0+advanced_so_goal---year6.0``.
+The two differ by five years because the SO-like survey is planned to begin
+observations in 2028, five years before the earliest CMB-S4 operational start
+of 2033, so it has already accumulated data by the time CMB-S4 comes online
+(§2.4 of |paper|).
+
 File format
 -----------
 
-Each ``.npy`` file holds a single pickled dictionary with eleven keys.
+Each ILC product ``.npy`` file holds a single pickled dictionary with at most
+the eleven keys below, which is what the current pipeline writes. Older
+products hold a subset, so a key should be checked for before it is used.
 
 ``el``
    Multipole array, shape ``(lmax,)``, running from 0 to ``lmax - 1``. The array
@@ -274,21 +300,57 @@ Each ``.npy`` file holds a single pickled dictionary with eleven keys.
 Note that ``cl_residual`` is exactly zero below :math:`\ell = 11`, i.e. the
 usable range is :math:`11 \le \ell <` ``lmax``.
 
+Lensing-noise curves
+--------------------
+
+The files under ``lensing_noise_curves/`` follow a separate convention. They
+are named ``<expname>_lmin<L>_lmax<L>[_lmaxtt<L>].npy`` and hold a pickled
+dictionary with a different set of keys.
+
+``els``
+   Multipole array, running from 0 to ``lmax`` inclusive, so it has
+   ``lmax + 1`` entries rather than the ``lmax`` of the ILC products.
+
+``Nl_TT``, ``Nl_EE``, ``Nl_ET``, ``Nl_TB``, ``Nl_EB``, ``Nl_MV``, ``Nl_MVpol``
+   Lensing-reconstruction noise :math:`N_\ell^{dd}` for the individual
+   quadratic estimators, for their minimum-variance combination and for the
+   polarization-only combination. These are stored as complex arrays with a
+   vanishing imaginary part and are undefined at :math:`\ell = 0`.
+
+``cl_kk``
+   Fiducial lensing convergence power spectrum :math:`C_\ell^{\kappa\kappa}`.
+
+``lmin``, ``lmax``, ``lmax_tt``
+   Multipole cuts applied to the reconstruction, matching the filename tokens.
+   ``lmax_tt`` is the separate temperature cut.
+
+``beam_arcmins``, ``noise_T_uKarmins``
+   Unused, and left at ``None`` and ``0.0`` in every released file, because the
+   reconstruction was run from the ILC residuals rather than from a single
+   beam and white-noise level.
+
 Reading the products
 --------------------
 
-``products/202310xx_PBDR_config/read_ilc_residuals.py`` and
-``read_lensing_noise.py`` load a single file and plot it, and
-``make_ascii.py`` writes the plain-text exports. All three take the filename
-from a variable at the top of the script rather than from the command line.
-``products/20220726/`` contains its own plotting scripts, which glob the
-current directory and must therefore be run from inside it.
-*[A ``load_product()`` function in a new module, superseding these scripts and
-applicable to all three trees, is to be added.]*
+:mod:`get_fisher_forecasts` supplies a reader for each kind of file, which can
+be used as follows:
 
-.. TODO: New module
+.. code-block:: python
 
-Loading a product directly requires both ``allow_pickle`` and the ``latin1``
+   import get_fisher_forecasts as gff
+
+   ilc    = gff.load_ilc_product('<ilc product>')
+   curves = gff.read_lensing_noise_curves('<lensing-noise file>')
+
+:func:`get_fisher_forecasts.load_ilc_product` reads a product from any of the
+three trees, whichever subset of the keys it holds, and returns the same
+dictionary that :func:`get_ilc_residuals.run_ilc` returns in memory.
+:func:`get_fisher_forecasts.read_lensing_noise_curves` converts files with
+an older layout to the current one, warning that it has done so. The forecast
+products written under ``results/forecasts/`` have their own readers, described
+in :doc:`quickstart`.
+
+Loading a file without them requires both ``allow_pickle`` and the ``latin1``
 encoding, the latter a compatibility setting for pickles written under
 Python 2:
 
@@ -300,6 +362,16 @@ Python 2:
    el = res_dic['el']
    cl_residual = res_dic['cl_residual']['TT']
 
+Each tree also carries its own scripts, which predate these readers.
+``products/202310xx_PBDR_config/read_ilc_residuals.py`` and
+``read_lensing_noise.py`` load a single file and plot it, and ``make_ascii.py``
+writes the plain-text exports. All three take the filename from a variable at
+the top of the script rather than from the command line, and the scripts under
+``products/20220726/`` glob the current directory and must therefore be run
+from inside it.
+
+.. TODO: Remove the per-directory scripts now that the readers supersede them?
+
 In addition, some plain-text exports accompany a subset of the products under
-``products/202310xx_PBDR_config/``. They cover ILC residuals for ``galaxy0``
-configurations and some lensing-noise curves.
+``products/202310xx_PBDR_config/``, covering ILC residuals and some
+lensing-noise curves.

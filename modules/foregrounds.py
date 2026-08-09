@@ -1,5 +1,5 @@
 r"""
-Foreground power spectra supporting the ILC noise and residual calculation in get_ilc_residuals.py.
+Foreground power spectra supporting the ILC noise and residual calculation in :mod:`get_ilc_residuals`.
 
 Precise measurements of the CMB damping tail at multipoles :math:`\ell \gtrsim 1000` are essential for constraining :math:`N_\mathrm{eff}`, but this is also the regime where astrophysical foreground emission becomes increasingly significant relative to the primary CMB signal.
 Extragalactic sources dominate at small angular scales, while galactic emission is the primary contaminant at large angular scales and near the galactic plane.
@@ -9,19 +9,19 @@ See also §3.1 of |paper| for additional information and details.
 
 The module is grouped into four sections:
 
-* Unit conversions and spectral functions: ``coth``, ``dl_to_cl``, ``get_BnuT``, ``get_dB_dT``, ``compton_y_to_delta_Tcmb``
-* Power-law fitting: ``power_law``, ``perform_power_law_fit``, ``smooth_cib_spectra``
-* Galactic foregrounds: ``scale_cl_dust_galactic``, ``get_cl_dust_galactic``, ``get_cl_galactic``
-* Extragalactic foregrounds: ``get_foreground_power_spt``, ``get_cl_dust_cib``, ``scale_cl_dust_cib``, ``get_cl_tsz``, ``get_cl_tsz_cib``, ``get_cl_radio``
+* Unit conversions and spectral functions: :func:`coth`, :func:`dl_to_cl`, :func:`get_BnuT`, :func:`get_dB_dT`, :func:`compton_y_to_delta_Tcmb`
+* Power-law fitting: :func:`power_law`, :func:`perform_power_law_fit`, :func:`smooth_cib_spectra`
+* Galactic foregrounds: :func:`scale_cl_dust_galactic`, :func:`get_cl_dust_galactic`, :func:`get_cl_galactic`
+* Extragalactic foregrounds: :func:`get_foreground_power_spt`, :func:`get_cl_dust_cib`, :func:`scale_cl_dust_cib`, :func:`get_cl_tsz`, :func:`get_cl_tsz_cib`, :func:`get_cl_radio`
 
-``get_BnuT``, ``get_dB_dT``, ``get_cl_galactic``, ``get_foreground_power_spt``, ``get_cl_dust_cib``, ``get_cl_tsz``, ``get_cl_tsz_cib`` and ``get_cl_radio`` are called by ``ilc.py``.
-``scale_cl_dust_cib``, ``smooth_cib_spectra`` and ``get_cl_dust_galactic`` are standalone utilities that are currently not used elsewhere in this repository.
+:func:`get_BnuT`, :func:`get_dB_dT`, :func:`compton_y_to_delta_Tcmb`, :func:`get_cl_galactic`, :func:`get_foreground_power_spt`, :func:`get_cl_dust_cib`, :func:`get_cl_tsz`, :func:`get_cl_tsz_cib` and :func:`get_cl_radio` are called by :mod:`ilc`.
+:func:`scale_cl_dust_cib`, :func:`smooth_cib_spectra` and :func:`get_cl_dust_galactic` are standalone utilities that are currently not used elsewhere in this repository.
 The remaining routines are internal helpers.
 
 **Galactic foregrounds.**
 The dominant galactic signals at the relevant frequencies are thermal dust emission and synchrotron radiation.
 Thermal dust arises from interstellar grains heated by the interstellar radiation field, is described by a modified blackbody spectrum, rises towards higher frequencies and is brightest towards the galactic plane where the dust column density is largest.
-Synchrotron radiation is emitted by cosmic-ray electrons spiralling in the galactic magnetic field and follows a power law that falls steeply towards higher frequencies, so that it dominates the lowest bands.
+Synchrotron radiation is emitted by cosmic-ray electrons spiraling in the galactic magnetic field and follows a power law that falls steeply towards higher frequencies so that it dominates the lowest bands.
 The subdominant free-free and anomalous-microwave-emission components are neglected.
 Both components are read from map-based PySM 3 simulations rather than computed here, with the spectra evaluated on the masked sky region and the simulation files named in the parameter dictionary.
 Since those simulations carry no galactic :math:`TE`, the correlation is constructed as :math:`C_\ell^{TE} = \rho_{TE} \sqrt{C_\ell^{TT} C_\ell^{EE}}` (see §3.1 of |paper|).
@@ -30,9 +30,9 @@ Since those simulations carry no galactic :math:`TE`, the correlation is constru
 The dominant extragalactic components are the thermal and kinematic Sunyaev-Zel'dovich effects, the cosmic infrared background and emission from radio galaxies.
 The tSZ signal is sourced by inverse Compton scattering of CMB photons off the hot electrons in the intracluster medium and the kSZ effect by the Doppler shift due to the peculiar motion of galaxy clusters. Both follow a common template.
 CIB emission from dusty star-forming galaxies is decomposed into a Poisson contribution from individually unresolved sources and a spatially clustered contribution, with the frequency dependence of both described by a modified blackbody spectrum.
-Radio galaxy emission, which dominates at lower frequencies, is modelled as a Poisson power spectrum whose power-law frequency scaling falls towards higher frequencies, with a clustering contribution not being included.
-The tSZ-CIB correlation is available through ``get_cl_tsz_cib`` (but is not included in the forecasts of |paper|).
-The brightest individual point sources and galaxy clusters are assumed to be detected and masked, so the spectra modelled here are those of the unresolved sources that remain.
+Radio galaxy emission, which dominates at lower frequencies, is modeled as a Poisson power spectrum whose power-law frequency scaling falls towards higher frequencies, with a clustering contribution not being included.
+The tSZ-CIB correlation is available through :func:`get_cl_tsz_cib` (but is not included in the forecasts of |paper|).
+The brightest individual point sources and galaxy clusters are assumed to be detected and masked, so the spectra modeled here are those of the unresolved sources that remain.
 That masking is captured directly at the power-spectrum level through the amplitudes of the templates rather than by injecting sources into simulated maps.
 Amplitudes and frequency scalings follow the parameterization based on measurements by the South Pole Telescope (see §3.1 of |paper|).
 
@@ -41,7 +41,6 @@ Power spectra are in units of μK² unless stated otherwise.
 Frequencies are in GHz throughout.
 """
 
-import os
 import warnings
 
 import numpy as np
@@ -55,9 +54,6 @@ import misc
 
 #Planck constant, Boltzmann constant and speed of light (in SI units)
 h, k_B, c = 6.62607004e-34, 1.38064852e-23, 2.99792458e8
-
-#data directory, resolved relative to the repo root rather than the current working directory
-data_folder = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data' )
 
 #cache for the galactic sim spectra: get_cl_galactic is called once per band pair
 _cl_gal_cache = {}
@@ -208,7 +204,7 @@ def compton_y_to_delta_Tcmb(freq, freq_max=None, Tcmb=2.73):  #default is 2.73, 
 
         g(x) = x \coth(x/2) - 4\, , \qquad x = \frac{h \nu}{k_\mathrm{B} T_\mathrm{CMB}}\, .
 
-    This function returns :math:`T_\mathrm{CMB} \langle g \rangle`, so that :math:`\Delta T = y` times the returned value.
+    This function returns :math:`T_\mathrm{CMB} \langle g \rangle` so that :math:`\Delta T = y` times the returned value.
 
     Parameters
     ----------
@@ -570,7 +566,7 @@ def get_cl_galactic(
     Parameters
     ----------
     param_dict : dict
-        Parameter dictionary, as returned by ``misc.get_param_dict``.
+        Parameter dictionary, as returned by :func:`misc.get_param_dict`.
         Must contain the file name for the requested component (``cl_gal_dic_dust_fname``, ``cl_gal_dic_sync_fname`` or ``cl_gal_dic_freefree_fname``), and may contain ``cl_gal_folder`` and ``which_gal_mask``.
     component : str
         Galactic component, one of ``'dust'``, ``'sync'`` or ``'freefree'``.
@@ -618,7 +614,11 @@ def get_cl_galactic(
 
     Notes
     -----
+    The simulations carry no galactic ``TE``, so for ``which_spec = 'TE'`` it is built from the other two spectra as :math:`C_\ell^{TE} = \rho_{TE} \sqrt{C_\ell^{TT} C_\ell^{EE}}` with :math:`\rho_{TE} = 0.35` and 0 for dust and synchrotron, respectively. This substitution is skipped for a ``CUmilta`` simulation path, which is read directly, but no released product uses one.
+
     Synchrotron and free-free are never SED scaled, so those spectra always come from the simulations at the nearest simulated band.
+
+    Reading a simulation file emits several ``VisibleDeprecationWarning`` from NumPy about ``align=0``. That comes from unpickling arrays written under an older NumPy and is not suppressed here since suppressing it would also hide the same warning raised for other reasons. Each file is read once and cached in this module, so the warnings appear only on the first call for a given file.
     """
 
     misc.check_freqs_in_ghz(freq0_for_sed_scaling, freq1, freq2)
@@ -697,9 +697,11 @@ def get_cl_galactic(
         #force TE to be np.sqrt(TT) * np.sqrt(EE)
         cl_gal_tt, cl_gal_ee = cl_gal_dic[ (freq1, freq2) ][0], cl_gal_dic[ (freq1, freq2) ][1]
 
-        if (1):  ##component == 'dust':  #fix
+        if component == 'dust': #(1):  ##component == 'dust':  #fix
             rte = 0.35 #page 5 of https://arxiv.org/pdf/1801.04945.pdf: Discussion below Fig.5; also page 38 of https://readthedocs.org/projects/so-pysm-models/downloads/pdf/0.2.dev/
-        else: ##elif component == 'sync':
+        elif component == 'sync': #else: ##elif component == 'sync':
+            rte = 0.
+        else:
             rte = 0.
         cl_gal = rte * np.sqrt( cl_gal_tt * cl_gal_ee )
 
@@ -811,7 +813,7 @@ def get_foreground_power_spt(component, freq1=150, freq2=None, units='uk', lmax=
     if lmax is not None and lmax < 0:
         raise ValueError('lmax must be non-negative, got %s' % (lmax))
 
-    filename = '%s/george_plot_bestfit_line.sav' % (data_folder)
+    filename = '%s/george_plot_bestfit_line.sav' % (misc.DATA_FOLDER)
     data = readsav(filename)
 
     if freq2 is None:

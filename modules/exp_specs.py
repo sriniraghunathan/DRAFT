@@ -1,7 +1,7 @@
 """
-Instrument specifications for the experiment configurations supported by get_ilc_residuals.py.
+Instrument specifications for the experiment configurations supported by :mod:`get_ilc_residuals`.
 
-The module exposes a single function, ``get_exp_specs``, which maps an experiment name onto the per-band beams, white-noise levels and atmospheric (1/f) noise parameters from which the noise power spectra are built in ``misc.get_nl``.
+The module exposes a single function, :func:`get_exp_specs`, which maps an experiment name onto the per-band beams, white-noise levels and atmospheric (1/f) noise parameters from which the noise power spectra are built in :func:`misc.get_nl`.
 
 Seven experiment families are covered:
 
@@ -13,20 +13,15 @@ Seven experiment families are covered:
 * South Pole Telescope: SPT-SZ, SPTpol and SPT-3G,
 * Planck.
 
-``get_exp_specs`` is called by ``get_ilc_residuals.py``.
-``data_folder`` points at the repository's ``data`` directory and is used to load the per-patch survey noise levels needed by the Chile-only revised configurations.
+:func:`get_exp_specs` is called by :mod:`get_ilc_residuals`.
+The per-patch survey noise levels the Chile-only revised configurations need are read from :data:`misc.DATA_FOLDER`.
 """
 
-import os
 import warnings
 
 import numpy as np
 
-
-# Constants and module state
-
-#data directory, resolved relative to the repo root rather than the current working directory
-data_folder = os.path.join( os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data' )
+import misc
 
 
 # Experiment specifications
@@ -60,9 +55,9 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
         * **CMB-HD**, selected by ``cmbhd`` or ``cmb-hd`` appearing anywhere in the name.
         * **AtLAST**, selected by ``atlast``: ``atlast`` or ``atlast_dummy``.
         * **Advanced Simons Observatory**, selected by ``advanced_so``: ``advanced_so_baseline`` or ``advanced_so_goal``, optionally suffixed ``---year<Y>``.
-        * **Simons Observatory**: ``sobaseline`` or ``sogoal``, case insensitive. (``ccat_prime_so`` reaches this family but has no noise levels defined and raises.)
+        * **Simons Observatory**: ``sobaseline`` or ``sogoal``.
         * **South Pole Telescope**, selected by ``spt``: ``sptsz``, ``sptpol``, ``sptpol_summer``, ``sptpolsummer``, ``sptpolultradeep``, ``sptpolultradeepplus3g``, ``sptpolplusultradeep``, ``sptpolplusultradeepplus3g``, ``sptpolplusultradeepplus3gfull``, ``spt3g``, ``spt3gsummer``, ``spt3g_summer``, ``spt3g_y12``, ``spt3g_ZP``, ``spt3g_TC``, ``spt3g_WG2``, ``spt3g_plus_spt3g+_WG2``.
-        * **Planck**: ``planck``, case insensitive.
+        * **Planck**: ``planck``.
 
         The tests are applied in the order above and are substring matches, so a name containing ``s4``, ``atlast``, ``advanced_so`` or ``spt`` anywhere is routed to that family.
         CMB-S4 and CMB-HD share a single dispatch test, so a name matching both is given the CMB-HD specifications.
@@ -82,7 +77,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
     rho : float
         Correlation coefficient between the atmospheric noise of two correlated bands, passed to :func:`misc.get_nl`.
     corr_noise : int
-        Whether correlated atmospheric noise is modelled for this configuration.
+        Whether correlated atmospheric noise is modeled for this configuration.
     Nred_dic : dict
         Red-noise amplitudes in μK² s, keyed by band, each a ``[Nred_T, Nred_P]`` pair in which ``-1`` disables the treatment.
         Empty except for the Simons Observatory family.
@@ -100,7 +95,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
     Notes
     -----
     Polarization noise levels are :math:`\Delta_P = \sqrt{2} \Delta_T` unless the configuration quotes them separately.
-    Bands with no usable data in a given configuration are given a large :math:`\Delta_X` rather than being omitted, so that the ILC weights them to zero.
+    Bands with no usable data in a given configuration are given a large :math:`\Delta_X` rather than being omitted so that the ILC weights them to zero.
 
     Observing times are handled by rescaling the reference white-noise level of a configuration from its reference duration :math:`t_\mathrm{ref}` to the requested :math:`t`:
 
@@ -244,7 +239,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
             total_obs_time_default_for_advanced_so = 9.
 
             #s4_all_chile_config_noise_val_dic_fname = '../data/cmbs4_chile_opt_survey_patch_noise_levels.npy'
-            s4_all_chile_config_noise_val_dic_fname = '%s/cmbs4_chile_opt_survey_patch_noise_levels.npy' % (data_folder)
+            s4_all_chile_config_noise_val_dic_fname = '%s/cmbs4_chile_opt_survey_patch_noise_levels.npy' % (misc.DATA_FOLDER)
             s4_all_chile_config_noise_val_dic = np.load(s4_all_chile_config_noise_val_dic_fname, allow_pickle=True).item()
             ##print(s4_all_chile_config_noise_val_dic.keys())
 
@@ -265,6 +260,15 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
             s4_all_chile_config_survey_yearval = float( s4_all_chile_config_survey_yearval.replace('year', '') )
             if s4_all_chile_config_survey_yearval <= 0.:
                 raise ValueError('Observing time must be positive; got %s in expname %s' % (s4_all_chile_config_survey_yearval, expname))
+            if s4_all_chile_config_survey_keyname not in s4_all_chile_config_noise_val_dic:
+                raise ValueError("Unrecognized survey '%s' in expname %s; the stored noise levels cover %s"
+                                 % (s4_all_chile_config_survey_keyname, expname,
+                                    ', '.join(sorted(s4_all_chile_config_noise_val_dic))))
+            if s4_all_chile_config_survey_patchno not in s4_all_chile_config_noise_val_dic[s4_all_chile_config_survey_keyname]:
+                raise ValueError("Unrecognized patch %s in expname %s; survey '%s' has patches %s"
+                                 % (s4_all_chile_config_survey_patchno, expname,
+                                    s4_all_chile_config_survey_keyname,
+                                    ', '.join(str(patch) for patch in sorted(s4_all_chile_config_noise_val_dic[s4_all_chile_config_survey_keyname]))))
             s4_all_chile_config_noise_val_dic_curr_survey_noise_dic = s4_all_chile_config_noise_val_dic[s4_all_chile_config_survey_keyname][s4_all_chile_config_survey_patchno]
             mod_nu_dic = {27: 30, 39: 40, 93: 90, 145: 150, 225: 220, 278: 280}
 
@@ -292,7 +296,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
                 225: [1.0, 15., 3800., 3.5, None, 700, 1.4],
                 278: [0.9, 35., 3800., 3.5, None, 700, 1.4],
                 }
-                #NOTE: The dict above carries the Advanced SO knees from arXiv:2503.00636, but it is immediately overwritten here, so the SO-like LAT atmosphere is modelled with S4 knees.
+                #NOTE: The dict above carries the Advanced SO knees from arXiv:2503.00636, but it is immediately overwritten here, so the SO-like LAT atmosphere is modeled with S4 knees.
 
                 aso_specs_dic = { #same as S4 for 1/f
                 27: [7.4, None, 415., 3.5, None, 700, 1.4],
@@ -486,8 +490,8 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
             }
 
             if expname == 's4deepv3r025_tma':
-                s4deep_CD_dia = 6. #metres
-                s4deep_TMA_dia = 5. #metres
+                s4deep_CD_dia = 6. #meters
+                s4deep_TMA_dia = 5. #meters
                 for nu in specs_dic:
                     specs_dic[nu][0] = specs_dic[nu][0] * s4deep_CD_dia/s4deep_TMA_dia
         else:
@@ -556,7 +560,7 @@ def get_exp_specs(expname, corr_noise_for_spt=1, remove_atm=0):
         225: [1.0, 15., 3800., 3.5, None, 700, 1.4],
         278: [0.9, 35., 3800., 3.5, None, 700, 1.4],
         }
-        #NOTE: The dict above carries the Advanced SO knees from arXiv:2503.00636, but it is immediately overwritten here, so the SO-like LAT atmosphere is modelled with S4 knees.
+        #NOTE: The dict above carries the Advanced SO knees from arXiv:2503.00636, but it is immediately overwritten here, so the SO-like LAT atmosphere is modeled with S4 knees.
 
         specs_dic = { #same as S4 for 1/f
         27: [7.4, None, 415., 3.5, None, 700, 1.4],
