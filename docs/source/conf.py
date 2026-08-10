@@ -76,7 +76,7 @@ exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 extlinks = {'arxiv': ('https://arxiv.org/abs/%s', 'arXiv:%s')}
 
 rst_prolog = """
-.. |paper| replace:: :arxiv:`2608.XXXXX`
+.. |paper| replace:: :arxiv:`2608.07453`
 """
 
 # -- Options for HTML output -------------------------------------------------

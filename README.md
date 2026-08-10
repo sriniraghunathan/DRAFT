@@ -6,9 +6,10 @@ cosmological parameters.
 
 The **DRAFT** (Dark Radiation Anisotropy Flowdown Team) forecasting tool
 was developed within the Maps-to-Power-Spectra analysis working group of the
-CMB-S4 collaboration and is described in arXiv:2608.XXXXX. It is not
-specific to CMB-S4 and can be applied directly to other survey designs: the
-experiment library already covers Planck, the South Pole Telescope, the Simons
+CMB-S4 collaboration and is described in
+[arXiv:2608.07453](https://arxiv.org/abs/2608.07453). It is not specific to
+CMB-S4 and can be applied directly to other survey designs: the experiment
+library already covers Planck, the South Pole Telescope, the Simons
 Observatory, CMB-HD and AtLAST alongside the CMB-S4 surveys.
 
 ## What it does
@@ -150,7 +151,8 @@ with the paper describing the pipeline and the forecasts:
   https://github.com/sriniraghunathan/DRAFT (2026).
 * C. Trendafilova, S. Raghunathan, B. Wallisch, J. Meyers et al.
   (CMB-S4 Collaboration), *Sensitivity of Next-Generation CMB Surveys to
-  Neutrinos and Other Light Relics*, arXiv:2608.XXXXX.
+  Neutrinos and Other Light Relics*,
+  [arXiv:2608.07453](https://arxiv.org/abs/2608.07453).
 
 The [references](docs/source/references.rst) page lists the further work
 underlying the foreground models, the component separation, and the delensing

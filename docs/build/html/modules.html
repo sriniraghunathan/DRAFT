@@ -94,7 +94,7 @@
 experimental specifications to projected parameter constraints, covering
 foreground modeling, sky masking, ILC-based component separation, delensing and
 the Fisher-matrix calculation. The pipeline as a whole is described in §3.4 of
-<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>, with the underlying formalism in §3.1 to §3.3.</p>
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>, with the underlying formalism in §3.1 to §3.3.</p>
 <p>All these pipeline stages are implemented in this repository. The delensing and
 the Fisher-matrix calculation are carried out by two companion codes, which
 DRAFT drives rather than reimplements. See <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> for how to build
@@ -111,10 +111,10 @@ by its own module docstring. Do not regenerate them with <code class="docutils l
 beam widths <span class="math notranslate nohighlight">\(\theta_b\)</span>, white-noise levels <span class="math notranslate nohighlight">\(\Delta_{T,P}\)</span> and the
 atmospheric (<span class="math notranslate nohighlight">\(1/f\)</span>) parameters <span class="math notranslate nohighlight">\(\ell_\mathrm{knee}\)</span> and
 <span class="math notranslate nohighlight">\(\alpha_\mathrm{knee}\)</span>. Also covers the Planck configurations whose
-inverse-variance-combined noise enters the forecast (§2.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+inverse-variance-combined noise enters the forecast (§2.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>).</p>
 </dd>
 <dt><a class="reference internal" href="foregrounds.html"><span class="doc">foregrounds module</span></a></dt><dd><p>Galactic dust and synchrotron power spectra obtained from pySM3 simulations,
-and the extragalactic CIB, radio, tSZ and kSZ templates (§3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+and the extragalactic CIB, radio, tSZ and kSZ templates (§3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>).</p>
 </dd>
 </dl>
 <p>The fiducial cosmology, the parameter step sizes for the numerical derivatives
@@ -132,7 +132,7 @@ to a product file.</p>
 </dd>
 <dt><a class="reference internal" href="ilc.html"><span class="doc">ilc module</span></a></dt><dd><p>The multi-frequency covariance <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> of the noise and
 foreground spectra, the ILC weights and the residual power. Supports the
-minimum-variance, constrained and partial variants (§3.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+minimum-variance, constrained and partial variants (§3.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>).</p>
 </dd>
 <dt><a class="reference internal" href="misc.html"><span class="doc">misc module</span></a></dt><dd><p>Supporting calculations: beam transfer functions <span class="math notranslate nohighlight">\(B_\ell\)</span>, noise power
 spectra <span class="math notranslate nohighlight">\(N_\ell\)</span> from the experimental specifications, parameter file
@@ -164,7 +164,7 @@ projected uncertainties <span class="math notranslate nohighlight">\(\sigma(p_\a
 </dl>
 <p>Both companion codes are reached through <a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a>, a git submodule of this
 repository which brings CLASS_delens as a submodule of its own
-(§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+(§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>).</p>
 <p>The fiducial cosmology, the parameter step sizes, the multipole ranges, the
 priors and the option flags are read from <code class="docutils literal notranslate"><span class="pre">params_fisher.ini</span></code>.</p>
 <div class="toctree-wrapper compound">

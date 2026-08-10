@@ -88,7 +88,7 @@ provides an end-to-end pipeline for cosmic microwave background (CMB)
 experiments, from experimental specifications to projected constraints on
 cosmological parameters. It was developed within the Maps-to-Power-Spectra
 analysis working group of the CMB-S4 collaboration and is described in §3.4 of
-<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>. This code is however not specific to CMB-S4, but can be applied
+<a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>. This code is however not specific to CMB-S4, but can be applied
 directly to other CMB survey designs, and the experiment library already covers
 configurations for Planck, the South Pole Telescope, the Simons Observatory,
 CMB-HD and AtLAST alongside the CMB-S4 surveys.</p>
@@ -108,7 +108,7 @@ the damping tail and the acoustic peaks.</p>
 <figcaption>
 <p><span class="caption-text">Schematic overview of the DRAFT forecasting tool and the pipeline it
 implements, from the instrumental and astrophysical inputs to the projected
-sensitivity to cosmological parameters. (Reproduced from <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>.)</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+sensitivity to cosmological parameters. (Reproduced from <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>.)</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p><strong>Inputs.</strong> The fiducial cosmology together with the parameter step sizes for the
@@ -121,10 +121,10 @@ effects, the cosmic infrared background and radio galaxies, following a
 parameterization based on South Pole Telescope measurements, and the
 experimental specifications of the survey configurations under consideration.
 See <a class="reference internal" href="modules.html"><span class="doc">API reference</span></a> for the modules that supply each of these (and
-Sections 2 and 3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+Sections 2 and 3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>).</p>
 <p><strong>Sky preparation.</strong> The survey footprint is combined with a galactic mask to
 remove the most contaminated regions of the sky, which component separation can
-only partially clean (§3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+only partially clean (§3.1 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>).</p>
 <p><strong>Component separation.</strong> The multi-frequency covariance
 <span class="math notranslate nohighlight">\(\mathbf{C}_\ell\)</span> of the noise and foreground spectra is assembled from
 the auto- and cross-frequency spectra, and an internal linear combination
@@ -132,7 +132,7 @@ optimally combines the frequency bands to extract the required component while
 down-weighting modes dominated by foregrounds or instrumental noise. The
 standard minimum-variance, constrained and partial variants are supported
 <em>[cross-ILC still to be ported]</em>, leaving the residual power spectra
-<span class="math notranslate nohighlight">\(C_\ell^\mathrm{res}\)</span> (§3.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>).</p>
+<span class="math notranslate nohighlight">\(C_\ell^\mathrm{res}\)</span> (§3.2 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>).</p>
 <p><strong>Forecasting.</strong> The post-ILC noise spectra are passed to
 <a class="reference external" href="https://github.com/selimhotinli/class_delens">CLASS_delens</a>, which computes
 the theoretical CMB spectra and performs the iterative delensing. The delensed
@@ -141,7 +141,7 @@ Fisher-matrix forecast performed by
 <a class="reference external" href="https://github.com/ctrendafilova/FisherLens">FisherLens</a> to obtain projected
 constraints on the cosmological parameters. Both codes are driven from within
 this repository, which treats the surveys and sky patches of a configuration as
-independent experiments and sums their Fisher matrices (§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.XXXXX">arXiv:2608.XXXXX</a>). The
+independent experiments and sums their Fisher matrices (§3.3 of <a class="extlink-arxiv reference external" href="https://arxiv.org/abs/2608.07453">arXiv:2608.07453</a>). The
 same formalism can also be used to estimate the biases induced in those
 parameters by residual foregrounds, which is implemented but still experimental.</p>
 <p><strong>Outputs.</strong> The ILC residuals, the lensing-reconstruction noise, the Fisher
